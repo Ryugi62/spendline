@@ -1,0 +1,50 @@
+import type { ChainEvent } from '../domain/audit';
+import { evaluate, type Mandate } from '../domain/mandate';
+import type { Receipt } from '../domain/receipt';
+import type { Flow } from '../domain/tokenLedger';
+import type { CatalogPort, ChainPort, ChatMessage, LlmPort, Offer, PayCall, PayOutcome, ReceiptStore } from '../application/ports';
+
+/** Test doubles. MemoryChain mirrors SpendlineVault.sol: same evaluate(), stops are events, not reverts. */
+export class FakeLlm implements LlmPort {
+  private i = 0;
+  constructor(private replies: string[]) {}
+  async chat(flow: Flow, messages: ChatMessage[]) {
+    const text = this.replies[this.i++] ?? '{}';
+    const promptTokens = messages.reduce((n, m) => n + Math.ceil(m.content.length / 4), 0);
+    return { text, usage: { flow, promptTokens, completionTokens: Math.ceil(text.length / 4), costUsd: 0, latencyMs: 0, generationId: `fake-${this.i}` } };
+  }
+}
+
+export class MemoryChain implements ChainPort {
+  events: ChainEvent[] = [];
+  private spentMicro = 0;
+  private tx = 0;
+  constructor(private m: Mandate, private clock: number) {}
+  mandateSnapshot(): Mandate { return { ...this.m, paused: false }; }
+  async mandate() { return { ...this.m }; }
+  async spent() { return this.spentMicro; }
+  async now() { return this.clock; }
+  async pause() { this.m.paused = true; const txHash = `pause-${++this.tx}`; this.events.push({ kind: 'paused', at: this.clock, txHash }); return txHash; }
+  async pay(c: PayCall): Promise<PayOutcome> {
+    const txHash = `mem-${++this.tx}`;
+    const d = evaluate(this.m, this.spentMicro, { merchant: c.merchant, amount: c.amount, fee: c.fee, at: this.clock });
+    if (d.kind === 'allow') {
+      this.spentMicro += c.amount + c.fee;
+      this.events.push({ kind: 'paid', receiptHash: c.receiptHash, merchant: c.merchant, amount: c.amount, fee: c.fee, at: this.clock, txHash });
+      return { kind: 'paid', txHash, at: this.clock };
+    }
+    this.events.push({ kind: 'blocked', receiptHash: c.receiptHash, merchant: c.merchant, amount: c.amount, fee: c.fee, at: this.clock, reason: d.reason, txHash });
+    return { kind: 'blocked', reason: d.reason, txHash, at: this.clock };
+  }
+}
+
+export class MemoryCatalog implements CatalogPort {
+  constructor(private list: Offer[]) {}
+  async offers(item: string) { return this.list.filter((o) => o.item === item); }
+}
+
+export class MemoryReceiptStore implements ReceiptStore {
+  private rs: Receipt[] = [];
+  async all() { return [...this.rs]; }
+  async append(r: Receipt) { this.rs.push(r); }
+}

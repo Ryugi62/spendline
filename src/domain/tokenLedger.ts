@@ -1,0 +1,30 @@
+export type Flow = 'F1_intent' | 'F2_explain' | 'F3_dispute';
+
+/** One Kiln call, straight from the response `usage` + `X-Neocloud-Generation-Id` header + measured wall time. */
+export type UsageRecord = {
+  flow: Flow;
+  promptTokens: number;
+  completionTokens: number;
+  costUsd: number;
+  latencyMs: number;
+  generationId: string;
+};
+
+export type FlowTotals = { calls: number; promptTokens: number; completionTokens: number; costUsd: number; latencyMs: number };
+const zero = (): FlowTotals => ({ calls: 0, promptTokens: 0, completionTokens: 0, costUsd: 0, latencyMs: 0 });
+
+export function summarize(records: UsageRecord[]): { byFlow: Record<string, FlowTotals>; total: FlowTotals } {
+  const byFlow: Record<string, FlowTotals> = {};
+  const total = zero();
+  for (const r of records) {
+    const f = (byFlow[r.flow] ??= zero());
+    for (const t of [f, total]) {
+      t.calls += 1;
+      t.promptTokens += r.promptTokens;
+      t.completionTokens += r.completionTokens;
+      t.costUsd += r.costUsd;
+      t.latencyMs += r.latencyMs;
+    }
+  }
+  return { byFlow, total };
+}

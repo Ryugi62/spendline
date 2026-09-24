@@ -1,0 +1,171 @@
+{
+ "vault": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+ "deployed": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+ "nowTs": 1790230032,
+ "nowTsLooksLikeSeconds": true,
+ "grant": "304360a0a8185257a18e260a1b48dbe9e7d6746f029d2916a24c8ce117acc6cc",
+ "fundVault": "537e19659484aa37c1f1bdbacefbd69b12eb383a04e67b649778887c9b36bc30",
+ "pause": "488996eef9ecdc35f53004ccb1f7b5b1d43484fc84ebb9a7bf6a154f382a0721",
+ "runs": [
+  {
+   "text": "2 GPU hours",
+   "preview": {
+    "kind": "allow"
+   },
+   "outcome": {
+    "kind": "paid",
+    "txHash": "14d696c38d4aefa3503754093deef91e2a58ca876e839d7d05a69ee565ab393f",
+    "at": 1790230041
+   },
+   "receipt": "a3979caaf684ed2e"
+  },
+  {
+   "text": "2 GPU hours from the cheap unknown seller",
+   "preview": {
+    "kind": "block",
+    "reason": "MERCHANT_NOT_ALLOWED"
+   },
+   "outcome": {
+    "kind": "blocked",
+    "reason": "MERCHANT_NOT_ALLOWED",
+    "txHash": "dfabe354f7f527177d29f085c326b90752e69e1f2214cf629627409bbf6f601b",
+    "at": 1790230098
+   },
+   "receipt": "06a3710106484ea6"
+  },
+  {
+   "text": "2 more GPU hours",
+   "preview": {
+    "kind": "block",
+    "reason": "OVER_BUDGET_WITH_FEES"
+   },
+   "outcome": {
+    "kind": "blocked",
+    "reason": "OVER_BUDGET_WITH_FEES",
+    "txHash": "9a1fe129669d67089d36146fdeaff37a49a0414dc6d028447174deb928e6f64a",
+    "at": 1790230155
+   },
+   "receipt": "2b11732603439270"
+  },
+  {
+   "text": "1 GPU hour after STOP",
+   "preview": {
+    "kind": "block",
+    "reason": "PAUSED"
+   },
+   "outcome": {
+    "kind": "blocked",
+    "reason": "PAUSED",
+    "txHash": "5c91105ed9d0cd49ea8822ab0d30f3d5d9a34232f8020096d658befede01cffc",
+    "at": 1790230224
+   },
+   "receipt": "bee5811f3bc5a3e7"
+  }
+ ],
+ "audit": {
+  "chain": {
+   "ok": true
+  },
+  "verdicts": [
+   "1:PAID_INSIDE",
+   "2:STOPPED(MERCHANT_NOT_ALLOWED)",
+   "3:STOPPED(OVER_BUDGET_WITH_FEES)",
+   "4:MISMATCH"
+  ],
+  "totalPaid": 5000000
+ },
+ "receipts": [
+  {
+   "seq": 1,
+   "mandateId": "0x1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 4800000,
+    "fee": 200000,
+    "at": 1790230038
+   },
+   "intentText": "2 GPU hours",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 78,
+     "completionTokens": 9,
+     "costUsd": 0,
+     "latencyMs": 0,
+     "generationId": "fake-1"
+    }
+   ],
+   "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
+   "hash": "a3979caaf684ed2e4ea4b257e4cf409c9382d3c1c0394326a869e0985fa2496b"
+  },
+  {
+   "seq": 2,
+   "mandateId": "0x1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+   "request": {
+    "merchant": "TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh",
+    "amount": 1800000,
+    "fee": 0,
+    "at": 1790230095
+   },
+   "intentText": "2 GPU hours from the cheap unknown seller",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 86,
+     "completionTokens": 22,
+     "costUsd": 0,
+     "latencyMs": 0,
+     "generationId": "fake-2"
+    }
+   ],
+   "prevHash": "a3979caaf684ed2e4ea4b257e4cf409c9382d3c1c0394326a869e0985fa2496b",
+   "hash": "06a3710106484ea63c9279a3adfc5992087c292d31c11467e7bb6e6f33eed766"
+  },
+  {
+   "seq": 3,
+   "mandateId": "0x1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 4800000,
+    "fee": 200000,
+    "at": 1790230152
+   },
+   "intentText": "2 more GPU hours",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 79,
+     "completionTokens": 9,
+     "costUsd": 0,
+     "latencyMs": 0,
+     "generationId": "fake-3"
+    }
+   ],
+   "prevHash": "06a3710106484ea63c9279a3adfc5992087c292d31c11467e7bb6e6f33eed766",
+   "hash": "2b11732603439270792add03c0af7920b2d3daa61a1a030b2aa12a68a7af5cde"
+  },
+  {
+   "seq": 4,
+   "mandateId": "0x1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 2400000,
+    "fee": 200000,
+    "at": 1790230218
+   },
+   "intentText": "1 GPU hour after STOP",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 81,
+     "completionTokens": 9,
+     "costUsd": 0,
+     "latencyMs": 0,
+     "generationId": "fake-4"
+    }
+   ],
+   "prevHash": "2b11732603439270792add03c0af7920b2d3daa61a1a030b2aa12a68a7af5cde",
+   "hash": "bee5811f3bc5a3e797603e1ee77fee5d0efb84b26f6f3ee9eef4cc851e7f9556"
+  }
+ ]
+}

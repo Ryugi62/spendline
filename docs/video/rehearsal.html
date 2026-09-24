@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Spendline — rehearsal</title>
+<style>body{margin:0;font:18px/1.5 -apple-system,sans-serif;background:#0b1220;color:#e8eef7}section{height:720px;display:flex;flex-direction:column;justify-content:center;padding:0 96px}
+h1{font-size:56px;margin:0 0 12px}p{color:#9fb0c6;margin:0}table{border-collapse:collapse;margin-top:24px}td,th{border-bottom:1px solid #22324a;padding:10px 18px;text-align:left}
+.ok{color:#3ddc97}.stop{color:#ff6b6b}button{margin-top:28px;font-size:22px;padding:12px 28px;border:0;border-radius:12px;background:#ff4d4f;color:#fff}</style>
+<section id="title"><h1>Spendline</h1><p>Receipts for AI spending — rehearsal of the no-voice demo pipeline.</p></section>
+<section id="receipts"><h2>Receipts</h2><table><tr><th>#</th><th>Merchant</th><th>Amount</th><th>Outcome</th></tr>
+<tr><td>1</td><td>GPU Shop</td><td>4.80 + 0.20</td><td class="ok">PAID inside the line</td></tr>
+<tr><td>2</td><td>Unknown seller</td><td>1.80</td><td class="stop">STOPPED · MERCHANT_NOT_ALLOWED</td></tr>
+<tr><td>3</td><td>GPU Shop</td><td>4.80 + 0.20</td><td class="stop">STOPPED · OVER_BUDGET_WITH_FEES</td></tr></table>
+<button id="stop" onclick="this.textContent='Agent paused on-chain'">STOP agent</button></section></html>

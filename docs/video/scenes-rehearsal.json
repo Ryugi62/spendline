@@ -1,0 +1,5 @@
+[
+  { "id": "r1", "url": "docs/video/rehearsal.html#title", "en": "This is a rehearsal of the demo pipeline. No human voice, captions burned in." },
+  { "id": "r2", "url": "docs/video/rehearsal.html#receipts", "actions": ["scroll:#receipts"], "en": "Every attempt leaves a receipt. Stops are recorded on chain, not silent." },
+  { "id": "r3", "url": "docs/video/rehearsal.html#receipts", "actions": ["click:#stop", "wait:600"], "en": "The owner can stop the agent at any time." }
+]

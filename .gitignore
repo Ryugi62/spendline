@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+docs/video/work*/
+*.log
+docs/video/rehearsal.mp4
+docs/video/rehearsal.en.srt

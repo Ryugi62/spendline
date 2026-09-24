@@ -1,0 +1,31 @@
+{
+  "name": "spendline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Receipts for AI spending: a policy vault on TRON Nile that pays only inside the line the user drew, records every stop on-chain, and lets anyone audit from receipts alone. Agent runs on Kiln (Qwen3-32B).",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "layers": "node scripts/check-layers.mjs",
+    "compile:contract": "node scripts/compile-contract.mjs",
+    "smoke:kiln": "tsx scripts/smoke-kiln.ts",
+    "smoke:nile": "tsx scripts/smoke-nile.ts",
+    "video": "node scripts/record-video.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "playwright": "^1.57.0",
+    "solc": "^0.8.30",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "tronweb": "^6.5.1"
+  }
+}
