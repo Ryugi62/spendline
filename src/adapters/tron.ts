@@ -1,6 +1,6 @@
 import { TronWeb } from 'tronweb';
 import type { ChainEvent } from '../domain/audit';
-import { reasonFromCode, type Mandate } from '../domain/mandate';
+import { reasonFromCode, type BlockReason, type Mandate } from '../domain/mandate';
 import type { ChainPort, PayCall, PayOutcome } from '../application/ports';
 
 /** TRON Nile adapter for SpendlineVault. The agent key signs pay(); the owner key (optional) signs grant/pause. */
@@ -9,6 +9,25 @@ export type TronConfig = { fullHost: string; agentKey?: string; ownerKey?: strin
 const FEE_LIMIT = 150_000_000; // 150 TRX max burn per call on Nile
 
 const hex32 = (h: string) => '0x' + h.replace(/^0x/, '').padStart(64, '0');
+
+/** keccak256 of the event signatures (= topic 0 in a TRON tx info log, without 0x). */
+export const PAID_TOPIC = '072cc6c51a329c05c701e430a01313a6bfb7168972415a0ba6603204f5562f5d'; // Paid(bytes32,bytes32,address,uint256,uint256,uint256)
+export const BLOCKED_TOPIC = '0b595aceec0a4e9ecf0dc0cb28a49734fd303f18271afa4899ad0c80dfdea6d7'; // SpendBlocked(bytes32,bytes32,address,uint256,uint256,uint8)
+type TxLog = { address: string; topics: string[]; data: string };
+export type TxInfo = { blockTimeStamp?: number; receipt?: { result?: string }; log?: TxLog[] };
+
+/** The vault's decision straight from the tx info (available as soon as the block is), instead of the event API (≈50 s lag). */
+export function decodePayLog(info: TxInfo, vaultHex: string): { kind: 'paid'; receiptHash: string; at: number } | { kind: 'blocked'; reason: BlockReason; receiptHash: string; at: number } | undefined {
+  const vault = vaultHex.toLowerCase().replace(/^0x/, '').replace(/^41/, '');
+  const at = Math.floor(Number(info.blockTimeStamp) / 1000);
+  for (const l of info.log ?? []) {
+    if (l.address.toLowerCase() !== vault) continue;
+    const [topic, receiptHash] = l.topics;
+    if (topic === PAID_TOPIC) return { kind: 'paid', receiptHash, at };
+    if (topic === BLOCKED_TOPIC) return { kind: 'blocked', reason: reasonFromCode(parseInt(l.data.slice(-64), 16)), receiptHash, at };
+  }
+  return undefined;
+}
 
 export class TronChain implements ChainPort {
   private agent: TronWeb;
@@ -46,7 +65,10 @@ export class TronChain implements ChainPort {
     const info = await this.waitInfo(txHash);
     if (info.receipt?.result && info.receipt.result !== 'SUCCESS') throw new Error(`pay tx ${txHash} failed: ${info.receipt.result}`);
     const at = Math.floor(Number(info.blockTimeStamp) / 1000);
-    const evs = await this.eventsOfTx(txHash);
+    const fromLog = decodePayLog(info, TronWeb.address.toHex(this.cfg.vault));
+    if (fromLog?.kind === 'paid') return { kind: 'paid', txHash, at };
+    if (fromLog?.kind === 'blocked') return { kind: 'blocked', reason: fromLog.reason, txHash, at };
+    const evs = await this.eventsOfTx(txHash); // fallback: event API
     const blocked = evs.find((e) => e.event_name === 'SpendBlocked');
     if (blocked) return { kind: 'blocked', reason: reasonFromCode(Number(blocked.result.reason)), txHash, at };
     if (evs.find((e) => e.event_name === 'Paid')) return { kind: 'paid', txHash, at };
@@ -91,9 +113,9 @@ export class TronChain implements ChainPort {
     return out;
   }
 
-  private async waitInfo(txHash: string, tries = 30): Promise<{ blockTimeStamp?: number; receipt?: { result?: string } }> {
+  private async waitInfo(txHash: string, tries = 30): Promise<TxInfo> {
     for (let i = 0; i < tries; i++) {
-      const info = (await this.agent.trx.getTransactionInfo(txHash)) as { blockTimeStamp?: number; receipt?: { result?: string } };
+      const info = (await this.agent.trx.getTransactionInfo(txHash)) as TxInfo;
       if (info && info.blockTimeStamp) return info;
       await new Promise((r) => setTimeout(r, 2000));
     }

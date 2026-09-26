@@ -1,71 +1,155 @@
-// Physical verification on TRON Nile (template smoke, pre-hackathon): deploy vault → grant → fund → paid ×1 → stopped ×2 → STOP → stopped PAUSED → audit.
-// Prints tx hashes (public) and numbers. Keys stay in .env.
-import { createHash } from 'node:crypto';
-import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
+// M0-13 live run on TRON Nile (pre-hackathon, disclosed) — replaces the 2026-09-24 template smoke, which used a scripted stand-in.
+// Every model call is live Kiln (qwen3-32b); there is no stand-in, and a Kiln failure aborts the run.
+// The person's steps go through the owner CLI (`npm run grant` / `npm run stop`), purchases through the agent CLI (`npm run agent`),
+// F2 / F3 through the answers CLI — the same commands a user types. Deploys a v0.6 vault (refuses a reused receipt hash, AC-25).
+// Writes: docs/receipts-nile-live.jsonl · docs/answers-nile-live.jsonl · docs/audit-nile-live-2026-09-26.txt · docs/nile-live-2026-09-26.json
+//         docs/live/mandate-{1,2}.json (the CLI inputs, same format as the Grant screen's "Copy the mandate") · web/public/session.json
+// Prints tx hashes and public numbers only. Keys stay in .env.
+import { spawnSync } from 'node:child_process';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { TronWeb } from 'tronweb';
 import { TronChain } from '../src/adapters/tron';
-import { MemoryCatalog, MemoryReceiptStore, FakeLlm } from '../src/adapters/memory';
-import { purchase } from '../src/application/purchase';
-import { audit } from '../src/domain/audit';
+import { TronGridEvents } from '../src/adapters/trongrid';
 import { usdt } from '../src/domain/money';
+import type { Receipt } from '../src/domain/receipt';
+import { LIVE_ANSWERS, LIVE_RECEIPTS, readEnv } from '../src/infrastructure/runtime';
+import { writeSessionFile } from '../src/infrastructure/session-file';
 // @ts-expect-error plain ESM
 import { compile } from './compile-contract.mjs';
 
-const env = Object.fromEntries(readFileSync('.env', 'utf8').split('\n').filter((l) => l.includes('=')).map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]));
-const sha = (s: string) => createHash('sha256').update(s).digest('hex');
-const owner = new TronWeb({ fullHost: env.TRON_FULLHOST, privateKey: env.OWNER_PRIVATE_KEY });
+const RUN_LOG = 'docs/nile-live-2026-09-26.json';
+const AUDIT_TXT = 'docs/audit-nile-live-2026-09-26.txt';
+const WINDOW_S = Number(process.env.LIVE_WINDOW_S ?? 180);
+const env = readEnv();
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const log: Record<string, unknown> = { startedAt: new Date().toISOString(), model: env.KILN_MODEL || 'qwen3-32b', network: 'nile' };
+const save = () => writeFileSync(RUN_LOG, JSON.stringify(log, null, 1) + '\n');
+
+if (existsSync(LIVE_RECEIPTS) && readFileSync(LIVE_RECEIPTS, 'utf8').trim() && !process.argv.includes('--continue'))
+  throw new Error(`${LIVE_RECEIPTS} already has receipts — this run would append to another run's record (pass --continue on purpose)`);
+
+/** Run one of the product CLIs as a separate process, exactly as a person would. Last stdout line is its --json output. */
+function cli(file: string, args: string[]): Record<string, unknown> {
+  const r = spawnSync('npx', ['tsx', file, ...args, '--json'], { encoding: 'utf8', timeout: 240_000 });
+  if (r.status !== 0) throw new Error(`${file} ${args[0] ?? ''} failed (exit ${r.status}): ${(r.stderr || r.stdout).trim().slice(-400)}`);
+  return JSON.parse(r.stdout.trim().split('\n').at(-1)!);
+}
+
 const { abi, bytecode } = compile();
-const log: Record<string, unknown> = {};
+const owner = new TronWeb({ fullHost: env.TRON_FULLHOST, privateKey: env.OWNER_PRIVATE_KEY });
+const trx = async (a: string) => (await owner.trx.getBalance(a)) / 1e6;
+async function confirmed(txid: string) {
+  for (let i = 0; i < 40; i++) {
+    const info = (await owner.trx.getTransactionInfo(txid)) as { blockTimeStamp?: number; receipt?: { result?: string } };
+    if (info?.blockTimeStamp) {
+      if (info.receipt?.result && info.receipt.result !== 'SUCCESS') throw new Error(`tx ${txid}: ${info.receipt.result}`);
+      return info;
+    }
+    await sleep(3000);
+  }
+  throw new Error(`tx ${txid} not confirmed in 120 s`);
+}
+log.balancesBefore = { ownerTrx: await trx(env.OWNER_ADDRESS), agentTrx: await trx(env.AGENT_ADDRESS) };
 
-// agent needs TRX for energy
-const agentTrx = (await owner.trx.getBalance(env.AGENT_ADDRESS)) / 1e6;
-if (agentTrx < 100) log.fundAgentTrx = (await owner.trx.sendTransaction(env.AGENT_ADDRESS, 200_000_000)).txid;
-
-let vault = env.VAULT_ADDRESS;
+// 1. deploy the v0.6 vault (once) and fund it
+let vault = env.VAULT_V2_ADDRESS;
 if (!vault) {
-  const c = await owner.contract().new({ abi, bytecode, feeLimit: 1_500_000_000, callValue: 0, parameters: [env.USDT_NILE, env.AGENT_ADDRESS, env.FEE_ADDRESS] });
-  vault = TronWeb.address.fromHex(c.address as string);
-  appendFileSync('.env', `VAULT_ADDRESS=${vault}\n`);
-  log.deployed = vault;
+  const tx = await owner.transactionBuilder.createSmartContract(
+    { abi, bytecode, feeLimit: 1_500_000_000, callValue: 0, userFeePercentage: 100, parameters: [env.USDT_NILE, env.AGENT_ADDRESS, env.FEE_ADDRESS] } as never,
+    owner.defaultAddress.hex as string,
+  );
+  const sent = await owner.trx.sendRawTransaction(await owner.trx.sign(tx));
+  await confirmed(sent.txid ?? tx.txID);
+  vault = TronWeb.address.fromHex((tx as { contract_address: string }).contract_address);
+  appendFileSync('.env', `VAULT_V2_ADDRESS=${vault}\n`);
+  log.deploy = { vault, tx: sent.txid ?? tx.txID, contract: 'SpendlineVault v0.6 (usedReceipt · DUPLICATE_RECEIPT = 7)' };
+  save();
+  const usdtC = await owner.contract().at(env.USDT_NILE);
+  const fund = await usdtC.transfer(vault, usdt(20)).send({ feeLimit: 100_000_000 });
+  await confirmed(fund);
+  log.fundVault = { tx: fund, usdt: 20 };
 }
-const v = await owner.contract(abi, vault);
-const nowTs = Number(await v.nowTs().call());
-log.nowTs = nowTs;
-log.nowTsLooksLikeSeconds = nowTs > 1.7e9 && nowTs < 2.2e9;
-const mandateId = '0x' + sha('mandate-template-smoke-' + nowTs);
-log.grant = await v.grant(mandateId, usdt(9.9), usdt(8), nowTs + 3600, [env.MERCHANT_GPU_ADDRESS, env.MERCHANT_KILN_ADDRESS]).send({ feeLimit: 200_000_000 });
-const usdtC = await owner.contract().at(env.USDT_NILE);
-log.fundVault = await usdtC.transfer(vault, usdt(20)).send({ feeLimit: 100_000_000 });
-await new Promise((r) => setTimeout(r, 6000));
+log.vault = vault;
+if ((await trx(env.AGENT_ADDRESS)) < 80) log.fundAgentTrx = (await owner.trx.sendTransaction(env.AGENT_ADDRESS, 100_000_000)).txid;
+const chain = new TronChain({ fullHost: env.TRON_FULLHOST, agentKey: env.AGENT_PRIVATE_KEY, vault, abi });
+const flags = ['--vault', vault];
 
-const chain = new TronChain({ fullHost: env.TRON_FULLHOST, agentKey: env.AGENT_PRIVATE_KEY, ownerKey: env.OWNER_PRIVATE_KEY, vault, abi });
-const offers = [
-  { merchant: env.MERCHANT_GPU_ADDRESS, item: 'gpu-hours', unitPrice: usdt(2.4), fee: usdt(0.2), label: 'GPU Shop' },
-  { merchant: env.MERCHANT_SHADY_ADDRESS, item: 'gpu-hours', unitPrice: usdt(0.9), fee: 0, label: 'Unknown seller' },
-];
-const store = new MemoryReceiptStore();
-const llm = new FakeLlm([
-  '{"item":"gpu-hours","quantity":2}',
-  `{"item":"gpu-hours","quantity":2,"merchantHint":"${env.MERCHANT_SHADY_ADDRESS}"}`,
-  '{"item":"gpu-hours","quantity":2}',
-  '{"item":"gpu-hours","quantity":1}',
-]);
-const deps = { llm, chain, catalog: new MemoryCatalog(offers), store, hash: sha };
-const runs = [];
-for (const text of ['2 GPU hours', '2 GPU hours from the cheap unknown seller', '2 more GPU hours']) {
-  const r = await purchase(deps, text);
-  runs.push({ text, preview: r.preview, outcome: r.outcome, receipt: r.receipt.hash.slice(0, 16) });
-}
-log.pause = await chain.pause();
-await new Promise((r) => setTimeout(r, 4000));
-const r4 = await purchase(deps, '1 GPU hour after STOP');
-runs.push({ text: '1 GPU hour after STOP', preview: r4.preview, outcome: r4.outcome, receipt: r4.receipt.hash.slice(0, 16) });
-log.runs = runs;
+// 2. the person grants line 1 with the owner CLI (input = the Grant screen's JSON)
+mkdirSync('docs/live', { recursive: true });
+const draft = (deadline: number) => ({ budget: usdt(9.9), perTxCap: usdt(8), merchants: [env.MERCHANT_GPU_ADDRESS, env.MERCHANT_KILN_ADDRESS], deadline, paused: false });
+writeFileSync('docs/live/mandate-1.json', JSON.stringify(draft((await chain.now()) + 3600), null, 1));
+const steps: Record<string, unknown>[] = [];
+const step = (label: string, out: Record<string, unknown>, expected?: string) => {
+  const o = out.outcome as { kind: string; reason?: string; txHash: string } | undefined;
+  const got = o ? (o.kind === 'paid' ? 'PAID' : o.reason!) : String(out.kind);
+  const r = out.receipt as Receipt | undefined;
+  steps.push({ label, expected, got, ok: expected === undefined || expected === got, tx: o?.txHash ?? out.txHash, seq: r?.seq, receiptHash: r?.hash, flows: r?.flows, mandateId: (out.mandate as { id?: string })?.id });
+  log.steps = steps;
+  save();
+  console.log(`${label}: ${got}${expected && expected !== got ? ` (expected ${expected})` : ''} · tx ${String(o?.txHash ?? out.txHash)}`);
+  return out;
+};
+step('grant line 1 (owner CLI)', cli('src/infrastructure/owner-cli.ts', ['grant', 'docs/live/mandate-1.json', ...flags]));
 
-await new Promise((r) => setTimeout(r, 8000));
-const events = await chain.events();
-const m = await chain.mandate();
-const res = audit({ mandates: [{ ...m, paused: false }], receipts: await store.all(), events, hash: sha });
-log.audit = { chain: res.chain, verdicts: res.verdicts.map((x) => `${x.seq}:${x.verdict}${x.reason ? '(' + x.reason + ')' : ''}`), totalPaid: res.totalPaid };
-writeFileSync('docs/nile-smoke-2026-09-24.json', JSON.stringify({ vault, ...log, receipts: await store.all() }, null, 1));
-console.log(JSON.stringify(log, null, 1));
+// 3. purchases with the agent CLI — every F1 on live Kiln
+const agent = (text: string) => cli('src/infrastructure/agent-cli.ts', [text, ...flags, '--no-ui']);
+const A = step('A inside the line', agent("Need 2 GPU hours for today's fine-tune, keep it under 3 USDT an hour"), 'PAID');
+step('B seller not on the list', agent(`Buy 2 GPU hours from ${env.MERCHANT_SHADY_ADDRESS}, that seller is cheaper`), 'MERCHANT_NOT_ALLOWED');
+step('C over budget once the fee is added', agent('2 more GPU hours for the eval run'), 'OVER_BUDGET_WITH_FEES');
+
+// 4. a buggy agent resends receipt A's hash → the vault refuses it (AC-25). No new receipt: it is the same receipt, asked twice.
+const a = (A.receipt as Receipt).request;
+const replay = await chain.pay({ merchant: a.merchant, amount: a.amount, fee: a.fee, receiptHash: (A.receipt as Receipt).hash });
+steps.push({ label: 'replay of receipt A (same hash, agent key)', expected: 'DUPLICATE_RECEIPT', got: replay.kind === 'paid' ? 'PAID' : replay.reason, ok: replay.kind === 'blocked' && replay.reason === 'DUPLICATE_RECEIPT', tx: replay.txHash });
+console.log(`replay of A: ${replay.kind === 'paid' ? 'PAID' : replay.reason} · tx ${replay.txHash}`);
+save();
+
+step('D second paid run', agent('Top up 1 inference credit for the eval harness'), 'PAID');
+step('STOP (owner CLI)', cli('src/infrastructure/owner-cli.ts', ['stop', ...flags]));
+step('E after STOP', agent('One more inference credit, please'), 'PAUSED');
+
+// 5. the person re-grants with a short window (a grant also lifts the STOP); the same request inside and after it
+writeFileSync('docs/live/mandate-2.json', JSON.stringify(draft((await chain.now()) + WINDOW_S), null, 1));
+step('grant line 2, short window (owner CLI)', cli('src/infrastructure/owner-cli.ts', ['grant', 'docs/live/mandate-2.json', ...flags]));
+const deadline = JSON.parse(readFileSync('docs/live/mandate-2.json', 'utf8')).deadline as number;
+const REQUEST = 'Need 2 GPU hours before the window closes';
+step('F inside the short window', agent(REQUEST), 'PAID');
+for (let now = await chain.now(); now <= deadline; now = await chain.now()) await sleep(Math.min(15_000, (deadline - now + 4) * 1000));
+step('G the same request after the deadline', agent(REQUEST), 'DEADLINE_PASSED');
+
+// 6. keyless audit once TronGrid has indexed every event (2 grants + 1 STOP + 8 spend events)
+const expectEvents = 11;
+let n = 0;
+for (let i = 0; i < 40 && (n = (await new TronGridEvents().events(vault)).length) < expectEvents; i++) await sleep(5000);
+log.indexedEvents = n;
+// no key in the environment: the audit reads receipts + public events only
+const audited = spawnSync('npx', ['tsx', 'src/infrastructure/audit-cli.ts', LIVE_RECEIPTS, '--vault', vault], { encoding: 'utf8', env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '' } });
+writeFileSync(AUDIT_TXT, `$ npm run audit -- ${LIVE_RECEIPTS} --vault ${vault}\n${audited.stdout}(exit ${audited.status})\n`);
+log.audit = { exit: audited.status, summary: audited.stdout.trim().split('\n').at(-1) };
+save();
+console.log(audited.stdout);
+
+// 7. F2 / F3 on live Kiln over this record (the answers log is also the cache: the repeated explain makes 0 calls)
+const answers: Record<string, unknown>[] = [];
+const ask = (args: string[]) => {
+  const out = cli('src/infrastructure/answers-cli.ts', [...args, '--receipts', LIVE_RECEIPTS, '--answers', LIVE_ANSWERS, ...flags]);
+  answers.push({ ask: args.slice(0, 2), seq: out.seq, verdict: out.verdict, reason: out.reason, grounded: out.grounded, rejected: out.rejected, cached: out.cached, text: out.text, usage: out.usage });
+  log.answers = answers;
+  save();
+  console.log(`${args[0]} ${args[1]} → #${out.seq} ${out.verdict ?? ''} ${out.grounded ? 'grounded' : `REJECTED ${out.rejected}`}${out.cached ? ' (cached)' : ''}\n  ${out.text}`);
+};
+ask(['explain', '2']);
+ask(['explain', '7']);
+ask(['explain', '2']);
+ask(['dispute', 'Did we pay that cheap unknown seller?']);
+ask(['dispute', 'Was anything paid after I pressed STOP?']);
+ask(['dispute', 'Why did the last GPU order fail when the same one went through a few minutes earlier?']);
+
+// 8. the UI's public record, balances, done
+const s = await writeSessionFile(LIVE_RECEIPTS, vault);
+log.session = s;
+log.balancesAfter = { ownerTrx: await trx(env.OWNER_ADDRESS), agentTrx: await trx(env.AGENT_ADDRESS) };
+log.finishedAt = new Date().toISOString();
+log.allAsExpected = steps.every((x) => x.ok !== false);
+save();
+console.log(JSON.stringify({ vault, allAsExpected: log.allAsExpected, audit: log.audit, session: s }, null, 1));
