@@ -25,8 +25,14 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const log: Record<string, unknown> = { startedAt: new Date().toISOString(), model: env.KILN_MODEL || 'qwen3-32b', network: 'nile' };
 const save = () => writeFileSync(RUN_LOG, JSON.stringify(log, null, 1) + '\n');
 
-if (existsSync(LIVE_RECEIPTS) && readFileSync(LIVE_RECEIPTS, 'utf8').trim() && !process.argv.includes('--continue'))
+const RESUME = process.argv.includes('--continue');
+if (existsSync(LIVE_RECEIPTS) && readFileSync(LIVE_RECEIPTS, 'utf8').trim() && !RESUME)
   throw new Error(`${LIVE_RECEIPTS} already has receipts — this run would append to another run's record (pass --continue on purpose)`);
+// --continue: same run, same vault, same receipts file; steps already in the run log are not repeated (a crash mid-run must not fork the record)
+if (RESUME && existsSync(RUN_LOG)) {
+  const prev = JSON.parse(readFileSync(RUN_LOG, 'utf8')) as Record<string, unknown>;
+  Object.assign(log, prev, { resumedAt: [...((prev.resumedAt as string[]) ?? []), new Date().toISOString()] });
+}
 
 /** Run one of the product CLIs as a separate process, exactly as a person would. Last stdout line is its --json output. */
 function cli(file: string, args: string[]): Record<string, unknown> {
@@ -49,7 +55,7 @@ async function confirmed(txid: string) {
   }
   throw new Error(`tx ${txid} not confirmed in 120 s`);
 }
-log.balancesBefore = { ownerTrx: await trx(env.OWNER_ADDRESS), agentTrx: await trx(env.AGENT_ADDRESS) };
+log.balancesBefore ??= { ownerTrx: await trx(env.OWNER_ADDRESS), agentTrx: await trx(env.AGENT_ADDRESS) };
 
 // 1. deploy the v0.6 vault (once) and fund it
 let vault = env.VAULT_V2_ADDRESS;
@@ -76,9 +82,10 @@ const flags = ['--vault', vault];
 
 // 2. the person grants line 1 with the owner CLI (input = the Grant screen's JSON)
 mkdirSync('docs/live', { recursive: true });
+const steps = ((log.steps as Record<string, unknown>[]) ?? []).filter((x) => x.label);
+const done = (label: string) => steps.some((x) => x.label === label);
 const draft = (deadline: number) => ({ budget: usdt(9.9), perTxCap: usdt(8), merchants: [env.MERCHANT_GPU_ADDRESS, env.MERCHANT_KILN_ADDRESS], deadline, paused: false });
-writeFileSync('docs/live/mandate-1.json', JSON.stringify(draft((await chain.now()) + 3600), null, 1));
-const steps: Record<string, unknown>[] = [];
+if (!done('grant line 1 (owner CLI)')) writeFileSync('docs/live/mandate-1.json', JSON.stringify(draft((await chain.now()) + 3600), null, 1));
 const step = (label: string, out: Record<string, unknown>, expected?: string) => {
   const o = out.outcome as { kind: string; reason?: string; txHash: string } | undefined;
   const got = o ? (o.kind === 'paid' ? 'PAID' : o.reason!) : String(out.kind);
@@ -89,33 +96,40 @@ const step = (label: string, out: Record<string, unknown>, expected?: string) =>
   console.log(`${label}: ${got}${expected && expected !== got ? ` (expected ${expected})` : ''} · tx ${String(o?.txHash ?? out.txHash)}`);
   return out;
 };
-step('grant line 1 (owner CLI)', cli('src/infrastructure/owner-cli.ts', ['grant', 'docs/live/mandate-1.json', ...flags]));
+const once = (label: string, run: () => Record<string, unknown>, expected?: string) => (done(label) ? console.log(`${label}: done before (resumed)`) : step(label, run(), expected));
+once('grant line 1 (owner CLI)', () => cli('src/infrastructure/owner-cli.ts', ['grant', 'docs/live/mandate-1.json', ...flags]));
 
 // 3. purchases with the agent CLI — every F1 on live Kiln
 const agent = (text: string) => cli('src/infrastructure/agent-cli.ts', [text, ...flags, '--no-ui']);
-const A = step('A inside the line', agent("Need 2 GPU hours for today's fine-tune, keep it under 3 USDT an hour"), 'PAID');
-step('B seller not on the list', agent(`Buy 2 GPU hours from ${env.MERCHANT_SHADY_ADDRESS}, that seller is cheaper`), 'MERCHANT_NOT_ALLOWED');
-step('C over budget once the fee is added', agent('2 more GPU hours for the eval run'), 'OVER_BUDGET_WITH_FEES');
+once('A inside the line', () => agent("Need 2 GPU hours for today's fine-tune, keep it under 3 USDT an hour"), 'PAID');
+once('B seller not on the list', () => agent(`Buy 2 GPU hours from ${env.MERCHANT_SHADY_ADDRESS}, that seller is cheaper`), 'MERCHANT_NOT_ALLOWED');
+once('C over budget once the fee is added', () => agent('2 more GPU hours for the eval run'), 'OVER_BUDGET_WITH_FEES');
 
 // 4. a buggy agent resends receipt A's hash → the vault refuses it (AC-25). No new receipt: it is the same receipt, asked twice.
-const a = (A.receipt as Receipt).request;
-const replay = await chain.pay({ merchant: a.merchant, amount: a.amount, fee: a.fee, receiptHash: (A.receipt as Receipt).hash });
-steps.push({ label: 'replay of receipt A (same hash, agent key)', expected: 'DUPLICATE_RECEIPT', got: replay.kind === 'paid' ? 'PAID' : replay.reason, ok: replay.kind === 'blocked' && replay.reason === 'DUPLICATE_RECEIPT', tx: replay.txHash });
-console.log(`replay of A: ${replay.kind === 'paid' ? 'PAID' : replay.reason} · tx ${replay.txHash}`);
-save();
+const REPLAY = 'replay of receipt A (same hash, agent key)';
+if (!done(REPLAY)) {
+  const A = readFileSync(LIVE_RECEIPTS, 'utf8').trim().split('\n').map((l) => JSON.parse(l) as Receipt).find((r) => r.seq === 1)!;
+  const replay = await chain.pay({ merchant: A.request.merchant, amount: A.request.amount, fee: A.request.fee, receiptHash: A.hash });
+  steps.push({ label: REPLAY, expected: 'DUPLICATE_RECEIPT', got: replay.kind === 'paid' ? 'PAID' : replay.reason, ok: replay.kind === 'blocked' && replay.reason === 'DUPLICATE_RECEIPT', tx: replay.txHash, seq: 1, receiptHash: A.hash });
+  log.steps = steps;
+  console.log(`replay of A: ${replay.kind === 'paid' ? 'PAID' : replay.reason} · tx ${replay.txHash}`);
+  save();
+}
 
-step('D second paid run', agent('Top up 1 inference credit for the eval harness'), 'PAID');
-step('STOP (owner CLI)', cli('src/infrastructure/owner-cli.ts', ['stop', ...flags]));
-step('E after STOP', agent('One more inference credit, please'), 'PAUSED');
+once('D second paid run', () => agent('Top up 1 inference credit for the eval harness'), 'PAID');
+once('STOP (owner CLI)', () => cli('src/infrastructure/owner-cli.ts', ['stop', ...flags]));
+once('E after STOP', () => agent('One more inference credit, please'), 'PAUSED');
 
 // 5. the person re-grants with a short window (a grant also lifts the STOP); the same request inside and after it
-writeFileSync('docs/live/mandate-2.json', JSON.stringify(draft((await chain.now()) + WINDOW_S), null, 1));
-step('grant line 2, short window (owner CLI)', cli('src/infrastructure/owner-cli.ts', ['grant', 'docs/live/mandate-2.json', ...flags]));
+if (!done('grant line 2, short window (owner CLI)')) {
+  writeFileSync('docs/live/mandate-2.json', JSON.stringify(draft((await chain.now()) + WINDOW_S), null, 1));
+  step('grant line 2, short window (owner CLI)', cli('src/infrastructure/owner-cli.ts', ['grant', 'docs/live/mandate-2.json', ...flags]));
+}
 const deadline = JSON.parse(readFileSync('docs/live/mandate-2.json', 'utf8')).deadline as number;
 const REQUEST = 'Need 2 GPU hours before the window closes';
-step('F inside the short window', agent(REQUEST), 'PAID');
+once('F inside the short window', () => agent(REQUEST), 'PAID');
 for (let now = await chain.now(); now <= deadline; now = await chain.now()) await sleep(Math.min(15_000, (deadline - now + 4) * 1000));
-step('G the same request after the deadline', agent(REQUEST), 'DEADLINE_PASSED');
+once('G the same request after the deadline', () => agent(REQUEST), 'DEADLINE_PASSED');
 
 // 6. keyless audit once TronGrid has indexed every event (2 grants + 1 STOP + 8 spend events)
 const expectEvents = 11;
@@ -130,8 +144,12 @@ save();
 console.log(audited.stdout);
 
 // 7. F2 / F3 on live Kiln over this record (the answers log is also the cache: the repeated explain makes 0 calls)
-const answers: Record<string, unknown>[] = [];
+const answers = ((log.answers as Record<string, unknown>[]) ?? []);
+const asked = new Map<string, number>(); // resume: the n-th identical ask is skipped if the log already holds n of them
 const ask = (args: string[]) => {
+  const k = JSON.stringify(args.slice(0, 2));
+  asked.set(k, (asked.get(k) ?? 0) + 1);
+  if (answers.filter((x) => JSON.stringify(x.ask) === k).length >= asked.get(k)!) return;
   const out = cli('src/infrastructure/answers-cli.ts', [...args, '--receipts', LIVE_RECEIPTS, '--answers', LIVE_ANSWERS, ...flags]);
   answers.push({ ask: args.slice(0, 2), seq: out.seq, verdict: out.verdict, reason: out.reason, grounded: out.grounded, rejected: out.rejected, cached: out.cached, text: out.text, usage: out.usage });
   log.answers = answers;

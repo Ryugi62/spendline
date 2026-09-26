@@ -16,6 +16,57 @@ export const BLOCKED_TOPIC = '0b595aceec0a4e9ecf0dc0cb28a49734fd303f18271afa4899
 type TxLog = { address: string; topics: string[]; data: string };
 export type TxInfo = { blockTimeStamp?: number; receipt?: { result?: string }; log?: TxLog[] };
 
+const NETWORK = /ECONNRESET|ETIMEDOUT|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|EPIPE|socket hang up|timeout|status code (429|5\d\d)/i;
+export const isNetworkError = (e: unknown) => NETWORK.test(`${(e as { code?: string })?.code ?? ''} ${(e as Error)?.message ?? e}`);
+const hexText = (h?: string) => (h && /^[0-9a-f]+$/i.test(h) ? Buffer.from(h, 'hex').toString('utf8') : (h ?? ''));
+
+export type SendSteps<T, S extends { txID: string }> = {
+  build: () => Promise<T>;
+  sign: (tx: T) => Promise<S>;
+  broadcast: (signed: S) => Promise<{ result?: boolean; code?: string; message?: string }>;
+  sleep?: (ms: number) => Promise<void>;
+  tries?: number;
+};
+/**
+ * Build → sign → broadcast, safe to retry: a failed BUILD sent nothing, so it is rebuilt; after a network error on
+ * BROADCAST the SAME signed tx is sent again (TRON answers DUP_TRANSACTION_ERROR if the first one landed). A node's
+ * refusal is thrown, not retried. (For pay() a re-send can never pay twice anyway: the vault decides a receipt hash once.)
+ */
+export async function sendWithRetry<T, S extends { txID: string }>(d: SendSteps<T, S>): Promise<string> {
+  const tries = d.tries ?? 4;
+  const sleep = d.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+  const retry = async <R>(f: () => Promise<R>): Promise<R> => {
+    for (let a = 1; ; a++) {
+      try {
+        return await f();
+      } catch (e) {
+        if (!isNetworkError(e) || a >= tries) throw e;
+        await sleep(1000 * 2 ** a);
+      }
+    }
+  };
+  const signed = await d.sign(await retry(d.build));
+  const res = await retry(() => d.broadcast(signed));
+  if (res.result || res.code === 'DUP_TRANSACTION_ERROR') return signed.txID;
+  throw new Error(`broadcast refused — ${res.code ?? 'unknown'}: ${hexText(res.message)}`);
+}
+
+export async function waitForInfo(fetchInfo: () => Promise<TxInfo>, o: { tries?: number; sleep?: (ms: number) => Promise<void>; txHash?: string } = {}): Promise<TxInfo> {
+  const tries = o.tries ?? 60;
+  const sleep = o.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+  for (let i = 0; i < tries; i++) {
+    let info: TxInfo | undefined;
+    try {
+      info = await fetchInfo();
+    } catch (e) {
+      if (!isNetworkError(e)) throw e;
+    }
+    if (info?.blockTimeStamp) return info;
+    if (i < tries - 1) await sleep(2000);
+  }
+  throw new Error(`tx ${o.txHash ?? '?'} not in a block after ${tries} tries`);
+}
+
 /** The vault's decision straight from the tx info (available as soon as the block is), instead of the event API (≈50 s lag). */
 export function decodePayLog(info: TxInfo, vaultHex: string): { kind: 'paid'; receiptHash: string; at: number } | { kind: 'blocked'; reason: BlockReason; receiptHash: string; at: number } | undefined {
   const vault = vaultHex.toLowerCase().replace(/^0x/, '').replace(/^41/, '');
@@ -60,8 +111,12 @@ export class TronChain implements ChainPort {
 
   async pay(call: PayCall): Promise<PayOutcome> {
     if (!this.cfg.agentKey) throw new Error('agent key required for pay');
-    const c = await this.c();
-    const txHash: string = await c.pay(call.merchant, call.amount, call.fee, hex32(call.receiptHash)).send({ feeLimit: FEE_LIMIT });
+    const txHash = await this.invoke(this.agent, 'pay(address,uint256,uint256,bytes32)', [
+      { type: 'address', value: call.merchant },
+      { type: 'uint256', value: call.amount },
+      { type: 'uint256', value: call.fee },
+      { type: 'bytes32', value: hex32(call.receiptHash) },
+    ]);
     const info = await this.waitInfo(txHash);
     if (info.receipt?.result && info.receipt.result !== 'SUCCESS') throw new Error(`pay tx ${txHash} failed: ${info.receipt.result}`);
     const at = Math.floor(Number(info.blockTimeStamp) / 1000);
@@ -77,12 +132,18 @@ export class TronChain implements ChainPort {
 
   async pause(): Promise<string> {
     if (!this.owner) throw new Error('owner key required for pause');
-    return (await this.c(this.owner)).pause().send({ feeLimit: FEE_LIMIT });
+    return this.invoke(this.owner, 'pause()', []);
   }
 
   async grant(m: Mandate): Promise<string> {
     if (!this.owner) throw new Error('owner key required for grant');
-    const txHash: string = await (await this.c(this.owner)).grant(hex32(m.id), m.budget, m.perTxCap, m.deadline, m.merchants).send({ feeLimit: FEE_LIMIT });
+    const txHash = await this.invoke(this.owner, 'grant(bytes32,uint256,uint256,uint256,address[])', [
+      { type: 'bytes32', value: hex32(m.id) },
+      { type: 'uint256', value: m.budget },
+      { type: 'uint256', value: m.perTxCap },
+      { type: 'uint256', value: m.deadline },
+      { type: 'address[]', value: m.merchants },
+    ]);
     const info = await this.waitInfo(txHash);
     if (info.receipt?.result && info.receipt.result !== 'SUCCESS') throw new Error(`grant tx ${txHash} failed: ${info.receipt.result}`);
     return txHash;
@@ -113,13 +174,22 @@ export class TronChain implements ChainPort {
     return out;
   }
 
-  private async waitInfo(txHash: string, tries = 30): Promise<TxInfo> {
-    for (let i = 0; i < tries; i++) {
-      const info = (await this.agent.trx.getTransactionInfo(txHash)) as TxInfo;
-      if (info && info.blockTimeStamp) return info;
-      await new Promise((r) => setTimeout(r, 2000));
-    }
-    throw new Error(`tx ${txHash} not confirmed in ${tries * 2}s`);
+  /** Same steps as TronWeb's contract method send(), split so a network blip can be retried safely (sendWithRetry). */
+  private invoke(tw: TronWeb, selector: string, parameters: { type: string; value: unknown }[]): Promise<string> {
+    type Built = Awaited<ReturnType<TronWeb['transactionBuilder']['triggerSmartContract']>>['transaction'];
+    return sendWithRetry({
+      build: async () => {
+        const r = await tw.transactionBuilder.triggerSmartContract(this.cfg.vault, selector, { feeLimit: FEE_LIMIT, callValue: 0 }, parameters as never, tw.defaultAddress.hex as string);
+        if (!r.result?.result) throw new Error(`${selector}: node did not build the tx: ${JSON.stringify(r).slice(0, 200)}`);
+        return r.transaction as Built;
+      },
+      sign: (tx) => tw.trx.sign(tx) as Promise<Built & { txID: string }>,
+      broadcast: (signed) => tw.trx.sendRawTransaction(signed as never) as Promise<{ result?: boolean; code?: string; message?: string }>,
+    });
+  }
+  /** Block-included info from the full node (the solidified one lags ~19 blocks ≈ 60 s per call, measured 2026-09-26). */
+  private waitInfo(txHash: string): Promise<TxInfo> {
+    return waitForInfo(() => this.agent.trx.getUnconfirmedTransactionInfo(txHash) as Promise<TxInfo>, { txHash });
   }
   private async eventsOfTx(txHash: string): Promise<{ event_name: string; result: Record<string, string> }[]> {
     for (let i = 0; i < 10; i++) {
