@@ -1,156 +1,179 @@
 {
- "vault": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+ "vault": "TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu",
  "network": "nile",
  "receipts": [
   {
    "seq": 1,
-   "mandateId": "0x1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+   "mandateId": "0xd985d1085eeb8200bda388df1bae67386af84e57d7f913ed5107b0266c9e8863",
    "request": {
     "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
     "amount": 4800000,
     "fee": 200000,
-    "at": 1790230038
+    "at": 1790396295
    },
-   "intentText": "2 GPU hours",
+   "intentText": "Need 2 GPU hours for today's fine-tune, keep it under 3 USDT an hour",
    "flows": [
     {
      "flow": "F1_intent",
-     "promptTokens": 78,
-     "completionTokens": 9,
-     "costUsd": 0,
-     "latencyMs": 0,
-     "generationId": "fake-1"
+     "promptTokens": 111,
+     "completionTokens": 35,
+     "costUsd": 0.0000152,
+     "latencyMs": 4113,
+     "generationId": "d919cfd0-5e71-46fc-8ec0-6fad043902de"
     }
    ],
    "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
-   "hash": "a3979caaf684ed2e4ea4b257e4cf409c9382d3c1c0394326a869e0985fa2496b"
+   "hash": "d74e1f292024f30b70f033bd083e4a1cf34bb300cfbb420d96ff81b493fb135b"
   },
   {
    "seq": 2,
-   "mandateId": "0x1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+   "mandateId": "0xd985d1085eeb8200bda388df1bae67386af84e57d7f913ed5107b0266c9e8863",
    "request": {
     "merchant": "TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh",
     "amount": 1800000,
     "fee": 0,
-    "at": 1790230095
+    "at": 1790396358
    },
-   "intentText": "2 GPU hours from the cheap unknown seller",
+   "intentText": "Buy 2 GPU hours from TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh, that seller is cheaper",
    "flows": [
     {
      "flow": "F1_intent",
-     "promptTokens": 86,
-     "completionTokens": 22,
-     "costUsd": 0,
-     "latencyMs": 0,
-     "generationId": "fake-2"
+     "promptTokens": 126,
+     "completionTokens": 68,
+     "costUsd": 0.00002412,
+     "latencyMs": 2191,
+     "generationId": "a83ece71-1d04-48cf-8cbf-38d1789e184f"
     }
    ],
-   "prevHash": "a3979caaf684ed2e4ea4b257e4cf409c9382d3c1c0394326a869e0985fa2496b",
-   "hash": "06a3710106484ea63c9279a3adfc5992087c292d31c11467e7bb6e6f33eed766"
+   "prevHash": "d74e1f292024f30b70f033bd083e4a1cf34bb300cfbb420d96ff81b493fb135b",
+   "hash": "ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4"
   },
   {
    "seq": 3,
-   "mandateId": "0x1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+   "mandateId": "0xd985d1085eeb8200bda388df1bae67386af84e57d7f913ed5107b0266c9e8863",
    "request": {
     "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
     "amount": 4800000,
     "fee": 200000,
-    "at": 1790230152
+    "at": 1790396418
    },
-   "intentText": "2 more GPU hours",
+   "intentText": "2 more GPU hours for the eval run",
    "flows": [
     {
      "flow": "F1_intent",
-     "promptTokens": 79,
-     "completionTokens": 9,
-     "costUsd": 0,
-     "latencyMs": 0,
-     "generationId": "fake-3"
+     "promptTokens": 98,
+     "completionTokens": 36,
+     "costUsd": 0.000014679999999999998,
+     "latencyMs": 2911,
+     "generationId": "00d1184c-2b24-43b9-b4f0-43a09039447b"
     }
    ],
-   "prevHash": "06a3710106484ea63c9279a3adfc5992087c292d31c11467e7bb6e6f33eed766",
-   "hash": "2b11732603439270792add03c0af7920b2d3daa61a1a030b2aa12a68a7af5cde"
+   "prevHash": "ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
+   "hash": "af8385d8ee76593e123e5391b4148a79e227fef3877888fddb57975fec984c72"
   },
   {
    "seq": 4,
-   "mandateId": "0x1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+   "mandateId": "0xd985d1085eeb8200bda388df1bae67386af84e57d7f913ed5107b0266c9e8863",
    "request": {
-    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
-    "amount": 2400000,
-    "fee": 200000,
-    "at": 1790230218
+    "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+    "amount": 1000000,
+    "fee": 0,
+    "at": 1790396658
    },
-   "intentText": "1 GPU hour after STOP",
+   "intentText": "Top up 1 inference credit for the eval harness",
    "flows": [
     {
      "flow": "F1_intent",
-     "promptTokens": 81,
-     "completionTokens": 9,
-     "costUsd": 0,
-     "latencyMs": 0,
-     "generationId": "fake-4"
+     "promptTokens": 100,
+     "completionTokens": 37,
+     "costUsd": 0.00001512,
+     "latencyMs": 1628,
+     "generationId": "0d72f2ca-d20d-40e5-af68-eb3ed9000660"
     }
    ],
-   "prevHash": "2b11732603439270792add03c0af7920b2d3daa61a1a030b2aa12a68a7af5cde",
-   "hash": "bee5811f3bc5a3e797603e1ee77fee5d0efb84b26f6f3ee9eef4cc851e7f9556"
+   "prevHash": "af8385d8ee76593e123e5391b4148a79e227fef3877888fddb57975fec984c72",
+   "hash": "f07798ddffd58c1cfe537e86e56cbd4e5f58a3ab6cf25036b4e9a938182a4f55"
   },
   {
    "seq": 5,
-   "mandateId": "0xfa5bb3ccf84c20ea185941bbb8731d2f549511ce224030e6adf203214e38286e",
+   "mandateId": "0xd985d1085eeb8200bda388df1bae67386af84e57d7f913ed5107b0266c9e8863",
    "request": {
-    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
-    "amount": 4800000,
-    "fee": 200000,
-    "at": 1790390148
+    "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+    "amount": 1000000,
+    "fee": 0,
+    "at": 1790396667
    },
-   "intentText": "Need 2 GPU hours for the fine-tune before the window closes",
+   "intentText": "One more inference credit, please",
    "flows": [
     {
      "flow": "F1_intent",
-     "promptTokens": 104,
-     "completionTokens": 41,
-     "costUsd": 0.0000198,
-     "latencyMs": 3332,
-     "generationId": "4e6aeeb5-4060-4529-b437-b334ffa4b176"
+     "promptTokens": 96,
+     "completionTokens": 28,
+     "costUsd": 0.000012280000000000001,
+     "latencyMs": 1399,
+     "generationId": "bec549da-0c5e-4c45-b845-7a922da104c7"
     }
    ],
-   "prevHash": "bee5811f3bc5a3e797603e1ee77fee5d0efb84b26f6f3ee9eef4cc851e7f9556",
-   "hash": "a1f2902215437551e162e0b6b1a4d7d914ca9bf02994518977ae3a89d892eaae"
+   "prevHash": "f07798ddffd58c1cfe537e86e56cbd4e5f58a3ab6cf25036b4e9a938182a4f55",
+   "hash": "d69b9a07fde60f95e83b2ee8b36a1759891502a5c205f76a3aa543fe3638fe16"
   },
   {
    "seq": 6,
-   "mandateId": "0xfa5bb3ccf84c20ea185941bbb8731d2f549511ce224030e6adf203214e38286e",
+   "mandateId": "0x33a2d64b3d737923cc1574d322d4a7423c89c711d7b9dbc4dd4ce6bfddff6317",
    "request": {
     "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
     "amount": 4800000,
     "fee": 200000,
-    "at": 1790390238
+    "at": 1790396679
    },
-   "intentText": "Need 2 GPU hours for the fine-tune before the window closes",
+   "intentText": "Need 2 GPU hours before the window closes",
    "flows": [
     {
      "flow": "F1_intent",
-     "promptTokens": 104,
-     "completionTokens": 37,
-     "costUsd": 0.000015759999999999998,
-     "latencyMs": 1515,
-     "generationId": "0e0e0dcb-8a5d-4cd2-9690-fa68c43d9064"
+     "promptTokens": 99,
+     "completionTokens": 18,
+     "costUsd": 0.00000952,
+     "latencyMs": 1322,
+     "generationId": "6bd3f0d9-086c-4a7c-8fe4-a8e5aac42b44"
     }
    ],
-   "prevHash": "a1f2902215437551e162e0b6b1a4d7d914ca9bf02994518977ae3a89d892eaae",
-   "hash": "103e54b74f40f28265c96f98b6bd8a0b2f2e6f89795a7a3a5345a913ea373840"
+   "prevHash": "d69b9a07fde60f95e83b2ee8b36a1759891502a5c205f76a3aa543fe3638fe16",
+   "hash": "4822dcdd261ea24fefd383c3d263b74d5d0175232c7bb2505c3a68e85429ecc7"
+  },
+  {
+   "seq": 7,
+   "mandateId": "0x33a2d64b3d737923cc1574d322d4a7423c89c711d7b9dbc4dd4ce6bfddff6317",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 4800000,
+    "fee": 200000,
+    "at": 1790396856
+   },
+   "intentText": "Need 2 GPU hours before the window closes",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 99,
+     "completionTokens": 18,
+     "costUsd": 0.00000904,
+     "latencyMs": 1306,
+     "generationId": "08b3ef5e-d928-428a-8d39-ff7e50d4d8c4"
+    }
+   ],
+   "prevHash": "4822dcdd261ea24fefd383c3d263b74d5d0175232c7bb2505c3a68e85429ecc7",
+   "hash": "168a28b860b679ab9a8a785bc57e07021f42d866dc4628cab0662c94820ce7fd"
   }
  ],
  "events": [
   {
    "kind": "granted",
-   "at": 1790230035,
-   "txHash": "304360a0a8185257a18e260a1b48dbe9e7d6746f029d2916a24c8ce117acc6cc",
+   "at": 1790396232,
+   "txHash": "50ba7ec9c95a49aa02c8bb99a0a937e823777cf8ce2453220998b7764ce59c33",
    "mandate": {
-    "id": "0x1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+    "id": "0xd985d1085eeb8200bda388df1bae67386af84e57d7f913ed5107b0266c9e8863",
     "budget": 9900000,
     "perTxCap": 8000000,
-    "deadline": 1790233632,
+    "deadline": 1790399826,
     "merchants": [
      "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
      "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"
@@ -160,57 +183,76 @@
   },
   {
    "kind": "paid",
-   "receiptHash": "a3979caaf684ed2e4ea4b257e4cf409c9382d3c1c0394326a869e0985fa2496b",
+   "receiptHash": "d74e1f292024f30b70f033bd083e4a1cf34bb300cfbb420d96ff81b493fb135b",
    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
    "amount": 4800000,
    "fee": 200000,
-   "at": 1790230041,
-   "txHash": "14d696c38d4aefa3503754093deef91e2a58ca876e839d7d05a69ee565ab393f"
+   "at": 1790396298,
+   "txHash": "e67cc9b87a591d0c70dbb5fe8ed892209bca206579c7da09a3ef77e5a2224f48"
   },
   {
    "kind": "blocked",
-   "receiptHash": "06a3710106484ea63c9279a3adfc5992087c292d31c11467e7bb6e6f33eed766",
+   "receiptHash": "ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
    "merchant": "TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh",
    "amount": 1800000,
    "fee": 0,
-   "at": 1790230098,
-   "txHash": "dfabe354f7f527177d29f085c326b90752e69e1f2214cf629627409bbf6f601b",
+   "at": 1790396361,
+   "txHash": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
    "reason": "MERCHANT_NOT_ALLOWED"
   },
   {
    "kind": "blocked",
-   "receiptHash": "2b11732603439270792add03c0af7920b2d3daa61a1a030b2aa12a68a7af5cde",
+   "receiptHash": "af8385d8ee76593e123e5391b4148a79e227fef3877888fddb57975fec984c72",
    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
    "amount": 4800000,
    "fee": 200000,
-   "at": 1790230155,
-   "txHash": "9a1fe129669d67089d36146fdeaff37a49a0414dc6d028447174deb928e6f64a",
+   "at": 1790396424,
+   "txHash": "f1d088dfc40b7d63f1b1fb03730f5c6c60b6ad6de6c7c7f9e3d5fcdc03720d26",
    "reason": "OVER_BUDGET_WITH_FEES"
   },
   {
+   "kind": "blocked",
+   "receiptHash": "d74e1f292024f30b70f033bd083e4a1cf34bb300cfbb420d96ff81b493fb135b",
+   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "amount": 4800000,
+   "fee": 200000,
+   "at": 1790396655,
+   "txHash": "efcc92fb22e968d9c32a2ed0dcc9d8c63072d3f6caa21a847020e945b5452330",
+   "reason": "DUPLICATE_RECEIPT"
+  },
+  {
+   "kind": "paid",
+   "receiptHash": "f07798ddffd58c1cfe537e86e56cbd4e5f58a3ab6cf25036b4e9a938182a4f55",
+   "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+   "amount": 1000000,
+   "fee": 0,
+   "at": 1790396661,
+   "txHash": "edc7a5efadd508b9e7f3f03296d3019310af1fe1d884ae2b287d1c1bd34ea077"
+  },
+  {
    "kind": "paused",
-   "at": 1790230218,
-   "txHash": "488996eef9ecdc35f53004ccb1f7b5b1d43484fc84ebb9a7bf6a154f382a0721"
+   "at": 1790396667,
+   "txHash": "dfbe4cb8b6d7ec874de54db48a1666656e735e1694533923d856443629f164ea"
   },
   {
    "kind": "blocked",
-   "receiptHash": "bee5811f3bc5a3e797603e1ee77fee5d0efb84b26f6f3ee9eef4cc851e7f9556",
-   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
-   "amount": 2400000,
-   "fee": 200000,
-   "at": 1790230224,
-   "txHash": "5c91105ed9d0cd49ea8822ab0d30f3d5d9a34232f8020096d658befede01cffc",
+   "receiptHash": "d69b9a07fde60f95e83b2ee8b36a1759891502a5c205f76a3aa543fe3638fe16",
+   "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+   "amount": 1000000,
+   "fee": 0,
+   "at": 1790396670,
+   "txHash": "ea1481eedfb6543218dd5d4cf09d1c90bdd42622c7f4c36e1a92cdd56a26b52d",
    "reason": "PAUSED"
   },
   {
    "kind": "granted",
-   "at": 1790390091,
-   "txHash": "fa39de1d34d27213e0c6d64f97b6a47c8842ed2c9b1d6f92c39bb781fa2e9f62",
+   "at": 1790396676,
+   "txHash": "edf1f437c58e97952d43fc3d524e635fd11b9ba6409e6ecd2da029cdaf4619b7",
    "mandate": {
-    "id": "0xfa5bb3ccf84c20ea185941bbb8731d2f549511ce224030e6adf203214e38286e",
+    "id": "0x33a2d64b3d737923cc1574d322d4a7423c89c711d7b9dbc4dd4ce6bfddff6317",
     "budget": 9900000,
     "perTxCap": 8000000,
-    "deadline": 1790390235,
+    "deadline": 1790396850,
     "merchants": [
      "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
      "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"
@@ -220,23 +262,23 @@
   },
   {
    "kind": "paid",
-   "receiptHash": "a1f2902215437551e162e0b6b1a4d7d914ca9bf02994518977ae3a89d892eaae",
+   "receiptHash": "4822dcdd261ea24fefd383c3d263b74d5d0175232c7bb2505c3a68e85429ecc7",
    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
    "amount": 4800000,
    "fee": 200000,
-   "at": 1790390151,
-   "txHash": "67bcc186ae0af0fdf61060dc69ba2001361d414dd61130f8df58f406395b977d"
+   "at": 1790396682,
+   "txHash": "f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1"
   },
   {
    "kind": "blocked",
-   "receiptHash": "103e54b74f40f28265c96f98b6bd8a0b2f2e6f89795a7a3a5345a913ea373840",
+   "receiptHash": "168a28b860b679ab9a8a785bc57e07021f42d866dc4628cab0662c94820ce7fd",
    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
    "amount": 4800000,
    "fee": 200000,
-   "at": 1790390244,
-   "txHash": "ec20af5a007307c69565c6c159f6af8fe063d2a3b30238c9c161d300e3292bc1",
+   "at": 1790396859,
+   "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
    "reason": "DEADLINE_PASSED"
   }
  ],
- "generatedAt": 1790390382
+ "generatedAt": 1790396891
 }

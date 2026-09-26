@@ -43,7 +43,7 @@ describe('AC-28 the person signs grant and STOP on their machine (M0-14)', () =>
     const draft = { budget: usdt(9.9), perTxCap: usdt(8), merchants: [GPU], deadline: 5_000, paused: false };
     const g = await grantLine(chain, draft, now, sha);
     expect(chain.events.at(-1)).toMatchObject({ kind: 'granted', txHash: g.txHash, mandate: { id: g.mandate.id, budget: usdt(9.9), paused: false } });
-    expect(formatOwnerResult('grant', g.txHash, g.mandate)).toMatch(/^granted · mandate 0x[0-9a-f]{64} · 9\.90 USDT · cap 8\.00 · 1 seller · deadline 1970-01-01 01:23 UTC\ntx grant-\d+ · https:\/\/nile\.tronscan\.org\/#\/transaction\/grant-\d+$/);
+    expect(formatOwnerResult('grant', g.txHash, g.mandate)).toMatch(/^granted · mandate 0x[0-9a-f]{64} · 9\.90 USDT · cap 8\.00 · 1 seller · deadline 1970-01-01 01:23:20 UTC\ntx grant-\d+ · https:\/\/nile\.tronscan\.org\/#\/transaction\/grant-\d+$/);
     expect((await chain.pay({ merchant: GPU, amount: usdt(1), fee: 0, receiptHash: 'a' })).kind).toBe('paid');
     const stopTx = await stopAgent(chain);
     expect(formatOwnerResult('stop', stopTx)).toMatch(/^STOP signed · the vault refuses every payment until a new grant\ntx pause-\d+ ·/);

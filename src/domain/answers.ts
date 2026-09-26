@@ -31,16 +31,30 @@ function words(x: unknown, field: string): string {
   return x.trim();
 }
 
+/** Standalone numbers (not digits inside a hash or an address). */
+const NUM = /(?<![0-9A-Za-z.])\d+(?:\.\d+)?(?![0-9A-Za-z])/g;
+/** Numbers the model wrote that are not numbers of the facts it was given (it must copy numbers, not compute them — live run 2026-09-26). */
+export function strayNumbers(words: string, facts: string): string[] {
+  const allowed = new Set((facts.match(NUM) ?? []).map(Number));
+  return [...new Set((words.match(NUM) ?? []).filter((n) => !allowed.has(Number(n))))];
+}
+const grounded = (words: string, facts?: string): string | undefined => {
+  const stray = facts === undefined ? [] : strayNumbers(words, facts);
+  return stray.length ? `number not in the facts: ${stray.join(', ')}` : undefined;
+};
+
 const orNone = (x: unknown) => (x === null || x === undefined || x === '' ? undefined : x);
 
 /** F2: `{verdict, reason, explanation}` — verdict and reason must be the audit's, word for word. */
-export function checkExplanation(text: string, expect: { verdict: VerdictKind; reason?: BlockReason }): Checked<string> {
+export function checkExplanation(text: string, expect: { verdict: VerdictKind; reason?: BlockReason }, facts?: string): Checked<string> {
   try {
     const o = extractJsonObject(text);
     if (o.verdict !== expect.verdict) return { ok: false, why: `model said ${String(o.verdict)}, audit says ${expect.verdict}` };
     const reason = orNone(o.reason);
     if (reason !== expect.reason) return { ok: false, why: `model gave reason ${String(reason ?? 'none')}, audit says ${expect.reason ?? 'none'}` };
-    return { ok: true, value: words(o.explanation, 'explanation') };
+    const value = words(o.explanation, 'explanation');
+    const stray = grounded(value, facts);
+    return stray ? { ok: false, why: stray } : { ok: true, value };
   } catch (e) {
     if (e instanceof AnswerError) return { ok: false, why: e.message };
     throw e;
@@ -51,7 +65,7 @@ export type TableLine = { seq: number; verdict: VerdictKind; reason?: BlockReaso
 export type DisputeCheck = { ok: true; seq: number | null; answer: string } | { ok: false; seq: number | null; why: string };
 
 /** F3: `{seq, verdict, answer}` — seq must be a receipt of the table (or null = none), verdict must echo that line. */
-export function checkDisputeReply(text: string, table: TableLine[]): DisputeCheck {
+export function checkDisputeReply(text: string, table: TableLine[], facts?: string): DisputeCheck {
   let o: Record<string, unknown>;
   try {
     o = extractJsonObject(text);
@@ -62,7 +76,9 @@ export function checkDisputeReply(text: string, table: TableLine[]): DisputeChec
   const raw = orNone(o.seq);
   const answer = (): DisputeCheck | string => {
     try {
-      return words(o.answer, 'answer');
+      const a = words(o.answer, 'answer');
+      const stray = grounded(a, facts);
+      return stray ? { ok: false, seq: null, why: stray } : a;
     } catch (e) {
       return { ok: false, seq: null, why: (e as Error).message };
     }

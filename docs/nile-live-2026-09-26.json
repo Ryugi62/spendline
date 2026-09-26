@@ -1,0 +1,316 @@
+{
+ "startedAt": "2026-09-26T04:15:11.161Z",
+ "model": "qwen3-32b",
+ "network": "nile",
+ "balancesBefore": {
+  "ownerTrx": 586.7577,
+  "agentTrx": 176.0896
+ },
+ "deploy": {
+  "vault": "TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu",
+  "tx": "8e11f4d403c9b7c8e78f86f193bd65dad6e66068a39a164cdffea91597880161",
+  "contract": "SpendlineVault v0.6 (usedReceipt · DUPLICATE_RECEIPT = 7)"
+ },
+ "fundVault": {
+  "tx": "eeafd762ade63377bc1fd85691676f56dc174100580e5ff6e5244c52700e350b",
+  "usdt": 20
+ },
+ "vault": "TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu",
+ "steps": [
+  {
+   "label": "grant line 1 (owner CLI)",
+   "got": "grant",
+   "ok": true,
+   "tx": "50ba7ec9c95a49aa02c8bb99a0a937e823777cf8ce2453220998b7764ce59c33",
+   "mandateId": "0xd985d1085eeb8200bda388df1bae67386af84e57d7f913ed5107b0266c9e8863"
+  },
+  {
+   "label": "A inside the line",
+   "expected": "PAID",
+   "got": "PAID",
+   "ok": true,
+   "tx": "e67cc9b87a591d0c70dbb5fe8ed892209bca206579c7da09a3ef77e5a2224f48",
+   "seq": 1,
+   "receiptHash": "d74e1f292024f30b70f033bd083e4a1cf34bb300cfbb420d96ff81b493fb135b",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 111,
+     "completionTokens": 35,
+     "costUsd": 0.0000152,
+     "latencyMs": 4113,
+     "generationId": "d919cfd0-5e71-46fc-8ec0-6fad043902de"
+    }
+   ]
+  },
+  {
+   "label": "B seller not on the list",
+   "expected": "MERCHANT_NOT_ALLOWED",
+   "got": "MERCHANT_NOT_ALLOWED",
+   "ok": true,
+   "tx": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
+   "seq": 2,
+   "receiptHash": "ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 126,
+     "completionTokens": 68,
+     "costUsd": 0.00002412,
+     "latencyMs": 2191,
+     "generationId": "a83ece71-1d04-48cf-8cbf-38d1789e184f"
+    }
+   ]
+  },
+  {
+   "label": "C over budget once the fee is added",
+   "expected": "OVER_BUDGET_WITH_FEES",
+   "got": "OVER_BUDGET_WITH_FEES",
+   "ok": true,
+   "tx": "f1d088dfc40b7d63f1b1fb03730f5c6c60b6ad6de6c7c7f9e3d5fcdc03720d26",
+   "seq": 3,
+   "receiptHash": "af8385d8ee76593e123e5391b4148a79e227fef3877888fddb57975fec984c72",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 98,
+     "completionTokens": 36,
+     "costUsd": 0.000014679999999999998,
+     "latencyMs": 2911,
+     "generationId": "00d1184c-2b24-43b9-b4f0-43a09039447b"
+    }
+   ]
+  },
+  {
+   "label": "replay of receipt A (same hash, agent key)",
+   "expected": "DUPLICATE_RECEIPT",
+   "got": "DUPLICATE_RECEIPT",
+   "ok": true,
+   "tx": "efcc92fb22e968d9c32a2ed0dcc9d8c63072d3f6caa21a847020e945b5452330",
+   "seq": 1,
+   "receiptHash": "d74e1f292024f30b70f033bd083e4a1cf34bb300cfbb420d96ff81b493fb135b"
+  },
+  {
+   "label": "D second paid run",
+   "expected": "PAID",
+   "got": "PAID",
+   "ok": true,
+   "tx": "edc7a5efadd508b9e7f3f03296d3019310af1fe1d884ae2b287d1c1bd34ea077",
+   "seq": 4,
+   "receiptHash": "f07798ddffd58c1cfe537e86e56cbd4e5f58a3ab6cf25036b4e9a938182a4f55",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 100,
+     "completionTokens": 37,
+     "costUsd": 0.00001512,
+     "latencyMs": 1628,
+     "generationId": "0d72f2ca-d20d-40e5-af68-eb3ed9000660"
+    }
+   ]
+  },
+  {
+   "label": "STOP (owner CLI)",
+   "got": "stop",
+   "ok": true,
+   "tx": "dfbe4cb8b6d7ec874de54db48a1666656e735e1694533923d856443629f164ea"
+  },
+  {
+   "label": "E after STOP",
+   "expected": "PAUSED",
+   "got": "PAUSED",
+   "ok": true,
+   "tx": "ea1481eedfb6543218dd5d4cf09d1c90bdd42622c7f4c36e1a92cdd56a26b52d",
+   "seq": 5,
+   "receiptHash": "d69b9a07fde60f95e83b2ee8b36a1759891502a5c205f76a3aa543fe3638fe16",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 96,
+     "completionTokens": 28,
+     "costUsd": 0.000012280000000000001,
+     "latencyMs": 1399,
+     "generationId": "bec549da-0c5e-4c45-b845-7a922da104c7"
+    }
+   ]
+  },
+  {
+   "label": "grant line 2, short window (owner CLI)",
+   "got": "grant",
+   "ok": true,
+   "tx": "edf1f437c58e97952d43fc3d524e635fd11b9ba6409e6ecd2da029cdaf4619b7",
+   "mandateId": "0x33a2d64b3d737923cc1574d322d4a7423c89c711d7b9dbc4dd4ce6bfddff6317"
+  },
+  {
+   "label": "F inside the short window",
+   "expected": "PAID",
+   "got": "PAID",
+   "ok": true,
+   "tx": "f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1",
+   "seq": 6,
+   "receiptHash": "4822dcdd261ea24fefd383c3d263b74d5d0175232c7bb2505c3a68e85429ecc7",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 99,
+     "completionTokens": 18,
+     "costUsd": 0.00000952,
+     "latencyMs": 1322,
+     "generationId": "6bd3f0d9-086c-4a7c-8fe4-a8e5aac42b44"
+    }
+   ]
+  },
+  {
+   "label": "G the same request after the deadline",
+   "expected": "DEADLINE_PASSED",
+   "got": "DEADLINE_PASSED",
+   "ok": true,
+   "tx": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
+   "seq": 7,
+   "receiptHash": "168a28b860b679ab9a8a785bc57e07021f42d866dc4628cab0662c94820ce7fd",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 99,
+     "completionTokens": 18,
+     "costUsd": 0.00000904,
+     "latencyMs": 1306,
+     "generationId": "08b3ef5e-d928-428a-8d39-ff7e50d4d8c4"
+    }
+   ]
+  }
+ ],
+ "resumedAt": [
+  "2026-09-26T04:24:11.200Z"
+ ],
+ "indexedEvents": 11,
+ "audit": {
+  "exit": 0,
+  "summary": "3 paid inside · 4 stopped · 0 mismatch · 0 without chain event · 0 chain spends without a receipt · 1 replay stopped · paid 11.00 USDT → OK"
+ },
+ "answers": [
+  {
+   "ask": [
+    "explain",
+    "2"
+   ],
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "grounded": true,
+   "cached": false,
+   "text": "The payment was stopped because the seller is not on the allowed list.",
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 373,
+    "completionTokens": 46,
+    "costUsd": 0.00003848,
+    "latencyMs": 1672,
+    "generationId": "e6ebd78a-1c0c-4863-97bc-0754f3ea8549"
+   }
+  },
+  {
+   "ask": [
+    "explain",
+    "7"
+   ],
+   "seq": 7,
+   "verdict": "STOPPED",
+   "reason": "DEADLINE_PASSED",
+   "grounded": true,
+   "cached": false,
+   "text": "The payment attempt was made after the deadline specified in the spending line. The time window for the request had already closed.",
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 348,
+    "completionTokens": 62,
+    "costUsd": 0.00004144,
+    "latencyMs": 4127,
+    "generationId": "04da11bb-35cc-4626-9ee5-a68e277ad32c"
+   }
+  },
+  {
+   "ask": [
+    "explain",
+    "2"
+   ],
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "grounded": true,
+   "cached": true,
+   "text": "The payment was stopped because the seller is not on the allowed list."
+  },
+  {
+   "ask": [
+    "dispute",
+    "Did we pay that cheap unknown seller?"
+   ],
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "grounded": true,
+   "cached": false,
+   "text": "No, we did not pay the cheap unknown seller. The payment was stopped because the seller is not allowed.",
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1015,
+    "completionTokens": 50,
+    "costUsd": 0.00008728,
+    "latencyMs": 3876,
+    "generationId": "d1bdd9c8-718d-4782-88d2-7c0ec57565c4"
+   }
+  },
+  {
+   "ask": [
+    "dispute",
+    "Was anything paid after I pressed STOP?"
+   ],
+   "seq": 6,
+   "verdict": "PAID_INSIDE",
+   "grounded": true,
+   "cached": false,
+   "text": "Yes, receipt #6 was paid after the STOP was pressed. However, it was allowed because a new grant was issued at the same time as the STOP and remained valid for that payment.",
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1015,
+    "completionTokens": 68,
+    "costUsd": 0.00009232000000000001,
+    "latencyMs": 3863,
+    "generationId": "2389917f-9859-4351-abd0-45c6dbad197f"
+   }
+  },
+  {
+   "ask": [
+    "dispute",
+    "Why did the last GPU order fail when the same one went through a few minutes earlier?"
+   ],
+   "seq": 7,
+   "verdict": "STOPPED",
+   "reason": "DEADLINE_PASSED",
+   "grounded": true,
+   "cached": false,
+   "text": "The last GPU order failed because it was placed after the deadline set in the most recent grant. Earlier similar orders were paid inside the line as they were submitted within the allowed time window.",
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1025,
+    "completionTokens": 61,
+    "costUsd": 0.00005916,
+    "latencyMs": 1874,
+    "generationId": "ffa30c87-4961-40fc-88cd-28393651542c"
+   }
+  }
+ ],
+ "session": {
+  "out": "web/public/session.json",
+  "receipts": 7,
+  "events": 11,
+  "indexed": true
+ },
+ "balancesAfter": {
+  "ownerTrx": 469.6345,
+  "agentTrx": 142.6235
+ },
+ "finishedAt": "2026-09-26T04:28:11.877Z",
+ "allAsExpected": true
+}

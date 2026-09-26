@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { FakeLlm, MemoryAnswerLog } from '../src/adapters/memory';
-import { dispute } from '../src/application/dispute';
+import { dispute, stopStateAt } from '../src/application/dispute';
 import { labels, sha, threeReceipts } from './answers-fixture';
 
 const deps = (replies: string[]) => ({ llm: new FakeLlm(replies), log: new MemoryAnswerLog(), hash: sha, labels });
@@ -66,5 +66,53 @@ describe('AC-24 F3 dispute — Kiln finds the receipt, the audit gives the verdi
     expect(prompt).toContain('seq | time | request words | seller | total | verdict | reason | STOP in force');
     expect(prompt).toMatch(/#2 \|.* \| STOPPED \| MERCHANT_NOT_ALLOWED \| no/);
     expect(prompt).toMatch(/line events \(oldest first\):\n.*line granted: budget 9\.90 USDT.*\n.*STOP pressed \(tx stop-1\)/);
+  });
+
+  it('live finding 2026-09-26: STOP 04:24:27 and a re-grant 04:24:36 looked simultaneous at minute resolution → times carry seconds', async () => {
+    const rec = await threeReceipts();
+    const d = deps(['{"seq":null,"verdict":null,"answer":"none"}']);
+    await dispute(d, { ...rec, events: [...rec.events, { kind: 'paused', at: 1_207, txHash: 'stop-1' }] }, 'Was anything paid after I pressed STOP?');
+    const prompt = d.llm.seen[0][0].content;
+    expect(prompt).toContain('1970-01-01 00:20:07 UTC · STOP pressed (tx stop-1)');
+    expect(prompt).toMatch(/#1 \| 1970-01-01 00:16:40 UTC \|/);
+  });
+
+  it('the cache key carries the prompt version, so a better prompt is never answered from an older prompt\'s log entry', async () => {
+    const rec = await threeReceipts();
+    const d = deps(['{"seq":1,"verdict":"PAID_INSIDE","answer":"Yes."}']);
+    await dispute(d, rec, 'Was the GPU Shop payment inside the line?');
+    expect((await d.log.all())[0].key).toMatch(/^F3v\d+:/);
+  });
+
+  it('live finding 2026-09-26 (2): the model misordered STOP / re-grant times → the code states each receipt\'s STOP relation', () => {
+    const m = { id: '0xm', budget: 1, perTxCap: 1, deadline: 9_999, merchants: [], paused: false };
+    const events = [
+      { kind: 'granted' as const, mandate: m, at: 100, txHash: 'g1' },
+      { kind: 'paused' as const, at: 200, txHash: 's1' },
+      { kind: 'granted' as const, mandate: { ...m, id: '0xm2' }, at: 209, txHash: 'g2' },
+    ];
+    expect(stopStateAt(events, 150)).toBe('line granted 1970-01-01 00:01:40 UTC — no STOP since');
+    expect(stopStateAt(events, 205)).toBe('STOP in force since 1970-01-01 00:03:20 UTC');
+    expect(stopStateAt(events, 212)).toBe('line granted 1970-01-01 00:03:29 UTC — this grant lifted the STOP of 1970-01-01 00:03:20 UTC');
+  });
+
+  it('the table carries that column, so "paid after STOP?" has a code-written answer to copy', async () => {
+    const rec = await threeReceipts();
+    const d = deps(['{"seq":null,"verdict":null,"answer":"none"}']);
+    await dispute(d, rec, 'Was anything paid after I pressed STOP?');
+    const prompt = d.llm.seen[0][0].content;
+    expect(prompt).toContain('| STOP in force | line and STOP at that moment');
+    expect(prompt).toMatch(/#1 \|.*\| no \| line granted 1970-01-01 00:16:40 UTC — no STOP since/);
+  });
+
+  it('live finding 2026-09-26 (3): "paid 12 seconds after the grant" (it was 3) → a number not in the facts is not shown; the template carries the STOP relation', async () => {
+    const rec = await threeReceipts();
+    const bad = await dispute(deps(['{"seq":1,"verdict":"PAID_INSIDE","answer":"Yes, it was paid 12 seconds after the grant."}']), rec, 'When was the GPU Shop paid?');
+    expect(bad.grounded).toBe(false);
+    expect(bad.rejected).toMatch(/number not in the facts: 12/);
+    expect(bad.text).toMatch(/Paid inside your line: 5\.00 USDT to GPU Shop/);
+    expect(bad.text).toMatch(/At that moment: line granted 1970-01-01 00:16:40 UTC — no STOP since\./);
+    const ok = await dispute(deps(['{"seq":1,"verdict":"PAID_INSIDE","answer":"Yes — receipt #1, 5.00 USDT at 00:16:40 UTC on 1970-01-01, inside the line."}']), rec, 'When was the GPU Shop paid?');
+    expect(ok.grounded).toBe(true);
   });
 });

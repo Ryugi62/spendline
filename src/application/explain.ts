@@ -18,12 +18,15 @@ export type AnswerDeps = { llm: LlmPort; log: AnswerLog; hash: Hasher; labels?: 
 
 export const EXPLAIN_SYSTEM = [
   'You explain one past payment attempt of an AI purchasing agent to the person who set its spending line.',
-  'Use ONLY the facts given. At most two short sentences, plain words, no advice.',
+  'Use ONLY the facts given, and copy numbers from them — do not compute new ones. At most two short sentences, plain words, no advice.',
   'Reply with ONE JSON object and nothing else: {"verdict": "<copy the verdict fact>", "reason": "<copy the reason code, or null>", "explanation": "<at most two sentences>"}',
   '/no_think',
 ].join('\n');
 
-export const utc = (t: number) => new Date(t * 1000).toISOString().replace('T', ' ').replace(/:\d\d\.\d{3}Z$/, ' UTC');
+/** To the second: a STOP and a re-grant 9 s apart looked simultaneous at minute resolution (live run 2026-09-26). */
+export const utc = (t: number) => new Date(t * 1000).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
+/** Bumped whenever the F2 prompt or its facts change, so the answers log never serves an answer written for an older prompt. */
+export const EXPLAIN_VERSION = 3; // v3: facts carry seconds and "left before"; numbers must come from the facts
 export const sellerName = (addr: string, labels?: Record<string, string>) => (labels?.[addr] ? `${labels[addr]} (${addr})` : addr);
 
 export function explainFacts(r: Receipt, v: Verdict, labels?: Record<string, string>): string[] {
@@ -38,6 +41,7 @@ export function explainFacts(r: Receipt, v: Verdict, labels?: Record<string, str
       ? `line in force: budget ${fmtUsdt(v.line.budget)} USDT · per-payment cap ${fmtUsdt(v.line.perTxCap)} USDT · deadline ${utc(v.line.deadline)} · STOP pressed: ${v.line.paused ? 'yes' : 'no'}`
       : 'line in force: unknown (no chain event for this receipt)',
     `spent before this attempt: ${v.spentBefore === undefined ? 'unknown' : `${fmtUsdt(v.spentBefore)} USDT`}`,
+    `left before this attempt: ${v.spentBefore === undefined || !v.line ? 'unknown' : `${fmtUsdt(Math.max(0, v.line.budget - v.spentBefore))} USDT`}`,
     `verdict: ${v.verdict}`,
     `reason: ${v.reason ? `${v.reason} (${REASON_TEXT[v.reason]})` : 'none'}`,
     `chain tx: ${v.txHash ?? 'none'}`,
@@ -68,20 +72,21 @@ export const fromLog = (a: AnswerRecord): Answer => {
 export async function explain(d: AnswerDeps, rec: PublicRecord, seq: number): Promise<Answer> {
   const r = rec.receipts.find((x) => x.seq === seq);
   if (!r) return { flow: 'F2_explain', seq: null, text: `No receipt #${seq} in this record.`, grounded: false, cached: false };
-  const key = `F2:${r.hash}`;
+  const key = `F2v${EXPLAIN_VERSION}:${r.hash}`;
   const hit = await d.log.find(key);
   if (hit) return fromLog(hit);
 
   const v = audit({ mandates: [], receipts: rec.receipts, events: rec.events, hash: d.hash }).verdicts.find((x) => x.seq === seq)!;
+  const facts = explainFacts(r, v, d.labels).join('\n');
   const { text, usage } = await d.llm.chat(
     'F2_explain',
     [
       { role: 'system', content: EXPLAIN_SYSTEM },
-      { role: 'user', content: explainFacts(r, v, d.labels).join('\n') },
+      { role: 'user', content: facts },
     ],
     { maxTokens: 200, thinking: false },
   );
-  const c = checkExplanation(text, { verdict: v.verdict, reason: v.reason });
+  const c = checkExplanation(text, { verdict: v.verdict, reason: v.reason }, facts);
   const answer: Answer = {
     flow: 'F2_explain',
     seq,

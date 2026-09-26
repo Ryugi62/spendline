@@ -47,6 +47,7 @@ describe('AC-23 F2 explain — Kiln phrases, the audit decides', () => {
     expect(again).toMatchObject({ cached: true, text: first.text, grounded: true, seq: 1 });
     expect(again.usage).toBeUndefined();
     expect(await d.log.all()).toHaveLength(1);
+    expect((await d.log.all())[0].key).toMatch(/^F2v\d+:/);
   });
 
   it('an unknown receipt number makes no call', async () => {
@@ -69,5 +70,11 @@ describe('AC-23 F2 explain — Kiln phrases, the audit decides', () => {
     expect(formatAnswer(await explain(d, rec, 2))).toMatch(/answered from the answers log — 0 Kiln calls/);
     const rejected = formatAnswer(await explain(deps(['{"verdict":"PAID_INSIDE","explanation":"paid"}']), rec, 2));
     expect(rejected).toMatch(/model reply not shown — model said PAID_INSIDE, audit says STOPPED/);
+  });
+  it('a number in the explanation that is not in the facts (e.g. a made-up amount) is not shown', async () => {
+    const rec = await threeReceipts();
+    const a = await explain(deps(['{"verdict":"STOPPED","reason":"OVER_BUDGET_WITH_FEES","explanation":"You had 3.10 USDT left, so it was refused."}']), rec, 3);
+    expect(a.grounded).toBe(false);
+    expect(a.rejected).toMatch(/number not in the facts: 3\.10/);
   });
 });
