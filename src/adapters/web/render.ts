@@ -106,7 +106,11 @@ export function renderReceipt(v: ReceiptView, fmt: Fmt): string {
   if (v.kind === 'missing')
     return page('feed', `<div class="empty"><p class="title">No receipt #${v.seq}</p><p>It isn't in this record. Go back to the feed and pick one.</p></div>`, `<a class="cta" href="#/feed">Back to the feed</a>`);
   const tone = v.status === 'paid' ? 'ok' : v.status === 'stopped' ? 'no' : 'warn';
-  const calls = v.flows.length;
+  const cost = v.kilnCalls
+    ? `${v.kilnCalls} Kiln call${v.kilnCalls > 1 ? 's' : ''} · ${v.tokens} tokens`
+    : v.standInCalls
+      ? 'scripted stand-in — no Kiln call (template test run)'
+      : 'no model call recorded';
   const flows = v.flows.map((f) => `<li>${esc(f.flow)} · ${f.promptTokens}+${f.completionTokens} tokens · ${f.latencyMs} ms · $${f.costUsd} · <code>${esc(f.generationId || '-')}</code></li>`).join('');
   return page(
     'feed',
@@ -116,7 +120,7 @@ export function renderReceipt(v: ReceiptView, fmt: Fmt): string {
 <div><dt>What was asked</dt><dd>“${esc(v.words)}”</dd></div>
 <div><dt>Seller</dt><dd><code title="${esc(v.merchant)}">${esc(short(v.merchant))}</code></dd></div>
 <div><dt>Amount</dt><dd>${fmtUsdt(v.amount)} + fee ${fmtUsdt(v.fee)} USDT</dd></div>
-<div><dt>Thinking it cost</dt><dd>${calls ? `${calls} Kiln call${calls > 1 ? 's' : ''} · ${v.tokens} tokens` : 'no model call recorded'}</dd></div>
+<div><dt>Thinking it cost</dt><dd>${esc(cost)}</dd></div>
 </dl></section>
 <details class="proof"><summary>Proof — hashes, tx and tokens</summary><dl class="facts mono">
 <div><dt>Receipt hash</dt><dd>${esc(v.hash)}</dd></div><div><dt>Previous hash</dt><dd>${esc(v.prevHash)}</dd></div>
@@ -129,11 +133,20 @@ ${flows ? `<ul class="flows">${flows}</ul>` : ''}<pre>${esc(v.json)}</pre></deta
 // ── Audit ───────────────────────────────────────────────────────────────────────
 export function renderAudit(v: AuditView, fmt: Fmt, o: { source: string; at?: number; error?: string }): string {
   const n = v.rows.length;
-  const verdict = v.ok ? `<p class="verdict ok">All ${n} receipts check out</p>` : `<p class="verdict no">${v.problems} of ${n} need a look</p>`;
+  const lost = v.orphans.length;
+  const verdict = v.ok
+    ? `<p class="verdict ok">All ${n} receipts check out</p>`
+    : `<p class="verdict no">${lost ? `${lost} on-chain spend${lost > 1 ? 's' : ''} with no receipt${v.problems > lost ? ` · ${v.problems - lost} of ${n} receipts need a look` : ''}` : `${v.problems} of ${n} need a look`}</p>`;
   const rows = v.rows
     .map(
       (r) => `<li><a class="row" href="#/receipt/${r.seq}"><span class="chip ${r.status}">${CHIP[r.status]}</span><span class="row-main"><span class="words">#${r.seq} · ${esc(r.reasonText)}</span>
 <span class="meta">${r.txHash ? `tx ${esc(short(r.txHash))}` : 'no on-chain event'}${r.status === 'problem' ? ` · ${esc(r.label)}` : ''}</span></span></a></li>`,
+    )
+    .join('');
+  const orphans = v.orphans
+    .map(
+      (o) => `<li><a class="row" href="${txUrl(o.txHash)}" target="_blank" rel="noopener"><span class="chip problem">${CHIP.problem}</span><span class="row-main"><span class="words">${esc(o.reasonText)}</span>
+<span class="meta">${o.kind} ${fmtUsdt(o.total)} USDT · tx ${esc(short(o.txHash))}</span></span></a></li>`,
     )
     .join('');
   return page(
@@ -141,11 +154,12 @@ export function renderAudit(v: AuditView, fmt: Fmt, o: { source: string; at?: nu
     `<section class="hero"><p class="label">Rebuilt from public records only</p><p class="big">${v.problems} <span class="unit">problem${v.problems === 1 ? '' : 's'}</span></p>${verdict}</section>
 <p class="sub">${esc(v.chainLine)} · paid ${fmtUsdt(v.totalPaid)} USDT in total</p>
 ${o.error ? `<p class="banner no" role="alert">${esc(o.error)}</p>` : ''}
-<section><h2 class="section-title">Receipt by receipt</h2><ul class="rows">${rows}</ul></section>
+<section><h2 class="section-title">Receipt by receipt</h2><ul class="rows">${rows}${orphans}</ul></section>
 <details class="proof"><summary>How this is checked</summary><ol class="how">
 <li>Each receipt's hash is recomputed and must chain to the one before it.</li>
 <li>Each receipt is matched, by that hash, to the vault's public event (paid or stopped).</li>
-<li>The rule is re-run with the line in force at that moment — grants and STOPs included — and must agree with the chain.</li></ol>
+<li>The rule is re-run with the line in force at that moment — grants and STOPs included — and must agree with the chain.</li>
+<li>Every paid or stopped event of the vault must belong to exactly one receipt — a spend with no receipt is a problem.</li></ol>
 <p class="hint">Same check without this page, no key needed: <code>npm run audit -- docs/receipts-nile.jsonl --vault T…</code></p>
 <p class="hint">Records: ${esc(o.source)}${o.at ? ` · fetched ${esc(fmt.time(o.at))}` : ''}</p></details>
 <input type="file" id="receipts-file" accept=".jsonl,.json,application/json" hidden>`,

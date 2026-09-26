@@ -6,4 +6,4 @@ hash chain: intact
 #4 STOPPED PAUSED · tx 5c91105ed9d0cd49ea8822ab0d30f3d5d9a34232f8020096d658befede01cffc · stopped on-chain: PAUSED
 #5 PAID_INSIDE · tx 67bcc186ae0af0fdf61060dc69ba2001361d414dd61130f8df58f406395b977d · paid, and the mandate allowed it at that time
 #6 STOPPED DEADLINE_PASSED · tx ec20af5a007307c69565c6c159f6af8fe063d2a3b30238c9c161d300e3292bc1 · stopped on-chain: DEADLINE_PASSED
-2 paid inside · 4 stopped · 0 mismatch · 0 without chain event · paid 10.00 USDT → OK
+2 paid inside · 4 stopped · 0 mismatch · 0 without chain event · 0 chain spends without a receipt · paid 10.00 USDT → OK

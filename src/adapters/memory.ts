@@ -1,7 +1,7 @@
 import type { ChainEvent } from '../domain/audit';
 import { evaluate, type Mandate } from '../domain/mandate';
 import type { Receipt } from '../domain/receipt';
-import type { Flow } from '../domain/tokenLedger';
+import { STAND_IN_PREFIX, type Flow } from '../domain/tokenLedger';
 import type { CatalogPort, ChainPort, ChatMessage, LlmPort, Offer, PayCall, PayOutcome, ReceiptStore } from '../application/ports';
 
 /** Test doubles. MemoryChain mirrors SpendlineVault.sol: same evaluate(), stops are events, not reverts. */
@@ -11,7 +11,7 @@ export class FakeLlm implements LlmPort {
   async chat(flow: Flow, messages: ChatMessage[]) {
     const text = this.replies[this.i++] ?? '{}';
     const promptTokens = messages.reduce((n, m) => n + Math.ceil(m.content.length / 4), 0);
-    return { text, usage: { flow, promptTokens, completionTokens: Math.ceil(text.length / 4), costUsd: 0, latencyMs: 0, generationId: `fake-${this.i}` } };
+    return { text, usage: { flow, promptTokens, completionTokens: Math.ceil(text.length / 4), costUsd: 0, latencyMs: 0, generationId: `${STAND_IN_PREFIX}${this.i}` } };
   }
 }
 

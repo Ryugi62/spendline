@@ -62,10 +62,10 @@ export function countVerdicts(verdicts: Verdict[]): VerdictCounts {
   return { paidInside: n('PAID_INSIDE'), stopped: n('STOPPED'), mismatch: n('MISMATCH'), noEvent: n('NO_CHAIN_EVENT') };
 }
 
-/** Problems a reader must look at: a broken hash chain, a chain outcome the policy disagrees with, a receipt the chain never saw. */
+/** Problems a reader must look at: a broken hash chain, a chain outcome the policy disagrees with, a receipt the chain never saw, a chain spend no receipt accounts for. */
 export const problemCount = (res: AuditResult): number => {
   const c = countVerdicts(res.verdicts);
-  return c.mismatch + c.noEvent + (res.chain.ok ? 0 : 1);
+  return c.mismatch + c.noEvent + res.unreceipted.length + (res.chain.ok ? 0 : 1);
 };
 export const auditExitCode = (res: AuditResult): 0 | 1 => (problemCount(res) === 0 ? 0 : 1);
 
@@ -75,7 +75,10 @@ export function formatAuditReport(res: AuditResult, o: { vault: string; source: 
     `Spendline audit · vault ${o.vault} · ${res.verdicts.length} receipts · events: ${o.source}`,
     `hash chain: ${res.chain.ok ? 'intact' : `BROKEN at #${res.chain.brokenAt}`}`,
     ...res.verdicts.map((v) => `#${v.seq} ${v.verdict}${v.reason ? ` ${v.reason}` : ''} · tx ${v.txHash ?? '-'} · ${v.why}`),
-    `${c.paidInside} paid inside · ${c.stopped} stopped · ${c.mismatch} mismatch · ${c.noEvent} without chain event · paid ${fmtUsdt(res.totalPaid)} USDT → ${
+    ...res.unreceipted.map((u) => `! ${u.kind.toUpperCase()} ${fmtUsdt(u.amount + u.fee)} USDT · tx ${u.txHash} · no receipt: ${u.why}`),
+    `${c.paidInside} paid inside · ${c.stopped} stopped · ${c.mismatch} mismatch · ${c.noEvent} without chain event · ${res.unreceipted.length} chain spend${
+      res.unreceipted.length === 1 ? '' : 's'
+    } without a receipt · paid ${fmtUsdt(res.totalPaid)} USDT → ${
       auditExitCode(res) === 0 ? 'OK' : 'PROBLEMS'
     }`,
   ];

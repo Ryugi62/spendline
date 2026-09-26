@@ -82,6 +82,10 @@ R1 — web UI skeleton, 4 screens (Grant · Feed · Receipt · Audit). Everythin
 - AC-19 Given an audit result When `auditView` Then the first value is the problem count (mismatch + no event + broken chain), then per-receipt rows.
 - AC-20 Rendered screens: exactly one primary bottom CTA each, details collapsed by default, the number rendered before the verdict line, HTML-escaped user text; `index.html` has a viewport meta and no external font / CDN request.
 
+## 6c. M0 mock-review fixes (2026-09-26)
+- AC-21 Given a vault `Paid` / `SpendBlocked` event whose receipt hash is in no receipt of the file (or a second event carrying the same receipt hash) When audit Then it is listed as a chain spend without a receipt, counts as a problem, and the CLI exits 1. (Without this, dropping the *last* receipt keeps the hash chain intact and the audit said OK while money had left the vault.)
+- AC-22 Given a receipt whose flow usage came from the scripted stand-in (generation id `fake-N`, used by the 2026-09-24 template smoke) When the receipt screen renders Then it says "scripted stand-in — no Kiln call", never "N Kiln calls"; only usage with a real `X-Neocloud-Generation-Id` counts as a Kiln call.
+
 UI acceptance (Toss checklist → this product): mobile first (390 px no horizontal scroll, 1280 px intact) · Grant is a step form, ≤ 2 questions per step · titles ≥ 22 px bold, body 15–16 px, captions 13 px · sections ≥ 24 px apart, cards radius ≥ 16 px, ≤ 1 shadow · one fixed bottom CTA ≥ 52 px · number first (≥ 28 px) · proofs in `<details>` · short friendly copy, jargon glossed once · white + blue #3182F6 + ok / warn / stop colours, body contrast ≥ 4.5:1, dark mode minimal · system fonts, no CDN. Checked by tests (AC-20) + captures 390 / 1280.
 
 ## 7. Architecture (Clean)
@@ -100,3 +104,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 ## 10. Changelog
 - v0.1 2026-09-24 template + domain core (Jarvis, pre-hackathon; disclosed in README).
 - v0.5 2026-09-26 §6b: keyless audit CLI (R7), mandate history in audit, deadline stop on Nile (R2), UI skeleton (R1) — pre-hackathon, disclosed in README.
+- v0.5.1 2026-09-26 §6c (M0 mock review): audit lists chain spends without a receipt (AC-21) · scripted stand-in usage is labelled, not counted as Kiln (AC-22) · README states user, AI-vs-code split, enforcement point, chain read/write/settle.

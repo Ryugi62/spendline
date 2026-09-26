@@ -2,7 +2,7 @@ import { audit, type AuditResult, type ChainEvent, type Verdict } from '../domai
 import type { BlockReason, Mandate } from '../domain/mandate';
 import { usdt } from '../domain/money';
 import type { Hasher, Receipt } from '../domain/receipt';
-import type { UsageRecord } from '../domain/tokenLedger';
+import { isKilnCall, type UsageRecord } from '../domain/tokenLedger';
 import { countVerdicts, problemCount, type VerdictCounts } from './auditRecords';
 
 /**
@@ -101,6 +101,11 @@ export type ReceiptView =
       prevHash: string;
       mandateId: string;
       flows: UsageRecord[];
+      /** usage with a real Kiln generation id (AC-22) */
+      kilnCalls: number;
+      /** usage from the scripted stand-in of the template smoke — shown as such, never as Kiln */
+      standInCalls: number;
+      /** tokens of Kiln calls only */
       tokens: number;
       json: string;
     };
@@ -128,14 +133,17 @@ export function receiptView(s: Session, seq: number, hash: Hasher): ReceiptView 
     prevHash: r.prevHash,
     mandateId: r.mandateId,
     flows: r.flows,
-    tokens: r.flows.reduce((n, f) => n + f.promptTokens + f.completionTokens, 0),
+    kilnCalls: r.flows.filter(isKilnCall).length,
+    standInCalls: r.flows.filter((f) => !isKilnCall(f)).length,
+    tokens: r.flows.filter(isKilnCall).reduce((n, f) => n + f.promptTokens + f.completionTokens, 0),
     json: JSON.stringify(r, null, 1),
   };
 }
 
 // ── Audit ───────────────────────────────────────────────────────────────────────
 export type AuditRow = { seq: number; label: string; status: RowStatus; reason?: BlockReason; reasonText: string; txHash?: string };
-export type AuditView = { problems: number; ok: boolean; chainLine: string; counts: VerdictCounts; totalPaid: number; rows: AuditRow[] };
+export type OrphanRow = { kind: 'paid' | 'blocked'; total: number; txHash: string; reasonText: string };
+export type AuditView = { problems: number; ok: boolean; chainLine: string; counts: VerdictCounts; totalPaid: number; rows: AuditRow[]; orphans: OrphanRow[] };
 
 const LABEL: Record<Verdict['verdict'], string> = { PAID_INSIDE: 'Paid inside', STOPPED: 'Stopped', MISMATCH: 'Mismatch', NO_CHAIN_EVENT: 'Not on chain' };
 export function auditView(res: AuditResult): AuditView {
@@ -147,5 +155,6 @@ export function auditView(res: AuditResult): AuditView {
     counts: countVerdicts(res.verdicts),
     totalPaid: res.totalPaid,
     rows: res.verdicts.map((v) => ({ seq: v.seq, label: LABEL[v.verdict], status: statusOf(v), reason: v.reason, reasonText: reasonOf(v), txHash: v.txHash })),
+    orphans: res.unreceipted.map((u) => ({ kind: u.kind, total: u.amount + u.fee, txHash: u.txHash, reasonText: `On-chain spend with no receipt — ${u.why}` })),
   };
 }

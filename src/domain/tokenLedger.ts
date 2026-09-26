@@ -10,6 +10,11 @@ export type UsageRecord = {
   generationId: string;
 };
 
+/** Scripted test double (FakeLlm) marks its usage with this generation-id prefix. It is never a Kiln call. */
+export const STAND_IN_PREFIX = 'fake-';
+/** A Kiln call is usage that carries a real `X-Neocloud-Generation-Id` (Kiln sends one per metered response). */
+export const isKilnCall = (u: UsageRecord): boolean => u.generationId !== '' && !u.generationId.startsWith(STAND_IN_PREFIX);
+
 export type FlowTotals = { calls: number; promptTokens: number; completionTokens: number; costUsd: number; latencyMs: number };
 const zero = (): FlowTotals => ({ calls: 0, promptTokens: 0, completionTokens: 0, costUsd: 0, latencyMs: 0 });
 

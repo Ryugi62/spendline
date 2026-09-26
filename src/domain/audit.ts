@@ -17,7 +17,9 @@ export type Verdict = {
 };
 
 export type AuditInput = { mandates: Mandate[]; receipts: Receipt[]; events: ChainEvent[]; hash: Hasher };
-export type AuditResult = { chain: { ok: true } | { ok: false; brokenAt: number }; verdicts: Verdict[]; totalPaid: number };
+/** A vault spend event that no receipt accounts for (unknown hash, or the same hash seen again). */
+export type Unreceipted = { kind: 'paid' | 'blocked'; receiptHash: string; merchant: string; amount: number; fee: number; at: number; txHash: string; why: string };
+export type AuditResult = { chain: { ok: true } | { ok: false; brokenAt: number }; verdicts: Verdict[]; totalPaid: number; unreceipted: Unreceipted[] };
 
 /**
  * Rebuild every verdict from receipts + public chain events only. No keys, no API, no trust in the operator's UI.
@@ -48,7 +50,16 @@ export function audit({ mandates, receipts, events, hash }: AuditInput): AuditRe
     if (e.kind === 'paid' || e.kind === 'blocked') pausedAtSpend.set(e.receiptHash, paused);
     else paused = e.kind === 'paused'; // resumed or granted → false
   }
-  const byHash = new Map(spends.map((e) => [e.receiptHash, e]));
+  // First event per receipt hash is the one a receipt is matched to; any other spend event is unaccounted for (AC-21).
+  const known = new Set(receipts.map((r) => r.hash));
+  const byHash = new Map<string, (typeof spends)[number]>();
+  const unreceipted: Unreceipted[] = [];
+  for (const e of spends) {
+    const { kind, receiptHash, merchant, amount, fee, at, txHash } = e;
+    if (!known.has(receiptHash)) unreceipted.push({ kind, receiptHash, merchant, amount, fee, at, txHash, why: 'no receipt carries this hash' });
+    else if (byHash.has(receiptHash)) unreceipted.push({ kind, receiptHash, merchant, amount, fee, at, txHash, why: 'second chain event for the same receipt' });
+    else byHash.set(receiptHash, e);
+  }
   const spentBy = new Map<string, number>(); // grant resets spent, so it is counted per mandate
   let totalPaid = 0;
   const addPaid = (id: string, v: number) => {
@@ -84,5 +95,5 @@ export function audit({ mandates, receipts, events, hash }: AuditInput): AuditRe
       });
     }
   }
-  return { chain, verdicts, totalPaid };
+  return { chain, verdicts, totalPaid, unreceipted };
 }
