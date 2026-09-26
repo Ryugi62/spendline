@@ -93,7 +93,7 @@ The Korean site says "first commit after 19:00" on 2026-09-28; the global organi
 ## Known limits (stated, not hidden)
 - One vault holds one line at a time: a new grant replaces the old line and resets `spent` (the audit replays grants, so history stays checkable).
 - Two different transactions in the same block are ordered as TronGrid returns them; the recorded runs are seconds apart — 9 vault events in 9 distinct blocks (checked 2026-09-26).
-- Energy is an estimate, never a measurement: Kiln exposes no power telemetry, so Wh = assumed card power × measured wall time, and the assumption travels with every number.
+- Energy is an estimate, never a measurement: Kiln exposes no power telemetry, so Wh = assumed card power (RNGD 180 W TDP — "180W TDP", furiosa.ai/rngd, checked 2026-09-26) × measured wall time, and the assumption travels with every number.
 - Receipts #1–#4 used a scripted stand-in for the model (see the Kiln row); the event run replaces them with live Kiln calls.
 
 ## Layout
