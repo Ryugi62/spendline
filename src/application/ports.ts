@@ -19,6 +19,8 @@ export interface ChainPort {
   now(): Promise<number>;
   pay(call: PayCall): Promise<PayOutcome>;
   pause(): Promise<string>;
+  /** UC-1. Owner only. Replaces the line, resets spent, unpauses (SpendlineVault.grant). */
+  grant(m: Mandate): Promise<string>;
 }
 
 export type Offer = { merchant: string; item: string; unitPrice: number; fee: number; label: string };

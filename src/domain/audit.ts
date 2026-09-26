@@ -38,9 +38,16 @@ export function audit({ mandates, receipts, events, hash }: AuditInput): AuditRe
   const spends = events.filter((e): e is Extract<ChainEvent, { receiptHash: string }> => e.kind === 'paid' || e.kind === 'blocked');
   const lineOf = new Map(mandates.map((m) => [m.id, m]));
   for (const g of events) if (g.kind === 'granted') lineOf.set(g.mandate.id, g.mandate);
-  /** STOP / RESUME / a new grant (which unpauses, like SpendlineVault.grant) replayed up to the spend. Same-second ties count the toggle first. */
-  const toggles = events.filter((e) => e.kind === 'paused' || e.kind === 'resumed' || e.kind === 'granted').sort((a, b) => a.at - b.at);
-  const pausedAt = (t: number) => toggles.filter((x) => x.at <= t).reduce((_, x) => x.kind === 'paused', false);
+  /**
+   * STOP / RESUME / a new grant (which unpauses, like SpendlineVault.grant) replayed in chain order up to each spend.
+   * Order = time, and inside the same second the source order (a pay and a STOP can share a block; guessing "toggle first" was wrong).
+   */
+  const pausedAtSpend = new Map<string, boolean>();
+  let paused = false;
+  for (const { e } of events.map((e, i) => ({ e, i })).sort((a, b) => a.e.at - b.e.at || a.i - b.i)) {
+    if (e.kind === 'paid' || e.kind === 'blocked') pausedAtSpend.set(e.receiptHash, paused);
+    else paused = e.kind === 'paused'; // resumed or granted → false
+  }
   const byHash = new Map(spends.map((e) => [e.receiptHash, e]));
   const spentBy = new Map<string, number>(); // grant resets spent, so it is counted per mandate
   let totalPaid = 0;
@@ -58,7 +65,7 @@ export function audit({ mandates, receipts, events, hash }: AuditInput): AuditRe
     }
     const same = ev.merchant === r.request.merchant && ev.amount === r.request.amount && ev.fee === r.request.fee;
     const spent = spentBy.get(m.id) ?? 0;
-    const policy = evaluate({ ...m, paused: m.paused || pausedAt(ev.at) }, spent, { ...r.request, at: ev.at });
+    const policy = evaluate({ ...m, paused: m.paused || (pausedAtSpend.get(ev.receiptHash) ?? false) }, spent, { ...r.request, at: ev.at });
     if (!same) {
       verdicts.push({ seq: r.seq, receiptHash: r.hash, verdict: 'MISMATCH', txHash: ev.txHash, why: 'chain event differs from the receipt (merchant/amount/fee)' });
     } else if (ev.kind === 'paid' && policy.kind === 'allow') {

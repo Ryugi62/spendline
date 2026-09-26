@@ -1,0 +1,9 @@
+Spendline audit · vault TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF · 6 receipts · events: https://nile.trongrid.io (public, no key)
+hash chain: intact
+#1 PAID_INSIDE · tx 14d696c38d4aefa3503754093deef91e2a58ca876e839d7d05a69ee565ab393f · paid, and the mandate allowed it at that time
+#2 STOPPED MERCHANT_NOT_ALLOWED · tx dfabe354f7f527177d29f085c326b90752e69e1f2214cf629627409bbf6f601b · stopped on-chain: MERCHANT_NOT_ALLOWED
+#3 STOPPED OVER_BUDGET_WITH_FEES · tx 9a1fe129669d67089d36146fdeaff37a49a0414dc6d028447174deb928e6f64a · stopped on-chain: OVER_BUDGET_WITH_FEES
+#4 STOPPED PAUSED · tx 5c91105ed9d0cd49ea8822ab0d30f3d5d9a34232f8020096d658befede01cffc · stopped on-chain: PAUSED
+#5 PAID_INSIDE · tx 67bcc186ae0af0fdf61060dc69ba2001361d414dd61130f8df58f406395b977d · paid, and the mandate allowed it at that time
+#6 STOPPED DEADLINE_PASSED · tx ec20af5a007307c69565c6c159f6af8fe063d2a3b30238c9c161d300e3292bc1 · stopped on-chain: DEADLINE_PASSED
+2 paid inside · 4 stopped · 0 mismatch · 0 without chain event · paid 10.00 USDT → OK

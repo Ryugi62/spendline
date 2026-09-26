@@ -1,0 +1,64 @@
+{
+ "vault": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+ "windowS": 150,
+ "startedAt": "2026-09-26T02:34:43.763Z",
+ "llm": "kiln qwen3-32b (live)",
+ "grant": {
+  "tx": "fa39de1d34d27213e0c6d64f97b6a47c8842ed2c9b1d6f92c39bb781fa2e9f62",
+  "mandateId": "0xfa5bb3ccf84c20ea185941bbb8731d2f549511ce224030e6adf203214e38286e",
+  "deadline": 1790390235,
+  "chainNowAtGrant": 1790390085
+ },
+ "chainNowAfterWait": 1790390238,
+ "runs": [
+  {
+   "label": "inside the window",
+   "seq": 5,
+   "at": 1790390148,
+   "preview": {
+    "kind": "allow"
+   },
+   "outcome": {
+    "kind": "paid",
+    "txHash": "67bcc186ae0af0fdf61060dc69ba2001361d414dd61130f8df58f406395b977d",
+    "at": 1790390151
+   },
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 104,
+     "completionTokens": 41,
+     "costUsd": 0.0000198,
+     "latencyMs": 3332,
+     "generationId": "4e6aeeb5-4060-4529-b437-b334ffa4b176"
+    }
+   ]
+  },
+  {
+   "label": "same request after the deadline",
+   "seq": 6,
+   "at": 1790390238,
+   "preview": {
+    "kind": "block",
+    "reason": "DEADLINE_PASSED"
+   },
+   "outcome": {
+    "kind": "blocked",
+    "reason": "DEADLINE_PASSED",
+    "txHash": "ec20af5a007307c69565c6c159f6af8fe063d2a3b30238c9c161d300e3292bc1",
+    "at": 1790390244
+   },
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 104,
+     "completionTokens": 37,
+     "costUsd": 0.000015759999999999998,
+     "latencyMs": 1515,
+     "generationId": "0e0e0dcb-8a5d-4cd2-9690-fa68c43d9064"
+    }
+   ]
+  }
+ ],
+ "finishedAt": "2026-09-26T02:38:19.538Z"
+}

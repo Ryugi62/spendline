@@ -54,6 +54,14 @@ export class TronChain implements ChainPort {
     return (await this.c(this.owner)).pause().send({ feeLimit: FEE_LIMIT });
   }
 
+  async grant(m: Mandate): Promise<string> {
+    if (!this.owner) throw new Error('owner key required for grant');
+    const txHash: string = await (await this.c(this.owner)).grant(hex32(m.id), m.budget, m.perTxCap, m.deadline, m.merchants).send({ feeLimit: FEE_LIMIT });
+    const info = await this.waitInfo(txHash);
+    if (info.receipt?.result && info.receipt.result !== 'SUCCESS') throw new Error(`grant tx ${txHash} failed: ${info.receipt.result}`);
+    return txHash;
+  }
+
   /** Public events for the auditor — needs no key at all in principle; any TronWeb instance works. */
   async events(): Promise<ChainEvent[]> {
     const out: ChainEvent[] = [];

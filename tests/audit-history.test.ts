@@ -52,3 +52,20 @@ describe('audit replays the mandate history (AC-10, AC-11)', () => {
     expect(res.verdicts[0].verdict).toBe('PAID_INSIDE');
   });
 });
+
+describe('same-second pay and STOP keep the chain order (found writing the R2 scenario 2026-09-26)', () => {
+  it('pay then STOP in the same second → PAID_INSIDE; STOP then pay in the same second → STOPPED(PAUSED)', () => {
+    const rs = sealAll([body(1, m1.id, usdt(1), 100), body(2, m1.id, usdt(1), 200)]);
+    const grant: ChainEvent = { kind: 'granted', mandate: m1, at: 50, txHash: 'g1' };
+    const payThenStop: ChainEvent[] = [
+      grant,
+      { kind: 'paid', receiptHash: rs[0].hash, merchant: 'TGpuShop', amount: usdt(1), fee: usdt(0.2), at: 100, txHash: 't1' },
+      { kind: 'paused', at: 100, txHash: 'p1' },
+      { kind: 'resumed', at: 200, txHash: 'r1' },
+      { kind: 'paused', at: 200, txHash: 'p2' },
+      { kind: 'blocked', receiptHash: rs[1].hash, merchant: 'TGpuShop', amount: usdt(1), fee: usdt(0.2), at: 200, reason: 'PAUSED', txHash: 't2' },
+    ];
+    const res = audit({ mandates: [], receipts: rs, events: payThenStop, hash: sha });
+    expect(res.verdicts.map((v) => `${v.verdict}:${v.reason ?? ''}`)).toEqual(['PAID_INSIDE:', 'STOPPED:PAUSED']);
+  });
+});

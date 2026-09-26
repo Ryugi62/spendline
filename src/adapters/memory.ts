@@ -25,6 +25,15 @@ export class MemoryChain implements ChainPort {
   async spent() { return this.spentMicro; }
   async now() { return this.clock; }
   async pause() { this.m.paused = true; const txHash = `pause-${++this.tx}`; this.events.push({ kind: 'paused', at: this.clock, txHash }); return txHash; }
+  /** Same effects as SpendlineVault.grant: new line, spent = 0, paused = false, one public event. */
+  async grant(m: Mandate) {
+    this.m = { ...m, paused: false };
+    this.spentMicro = 0;
+    const txHash = `grant-${++this.tx}`;
+    this.events.push({ kind: 'granted', mandate: { ...this.m }, at: this.clock, txHash });
+    return txHash;
+  }
+  advance(seconds: number) { this.clock += seconds; }
   async pay(c: PayCall): Promise<PayOutcome> {
     const txHash = `mem-${++this.tx}`;
     const d = evaluate(this.m, this.spentMicro, { merchant: c.merchant, amount: c.amount, fee: c.fee, at: this.clock });
