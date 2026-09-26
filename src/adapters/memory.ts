@@ -37,9 +37,11 @@ export class MemoryChain implements ChainPort {
     return txHash;
   }
   advance(seconds: number) { this.clock += seconds; }
+  private used = new Set<string>();
   async pay(c: PayCall): Promise<PayOutcome> {
     const txHash = `mem-${++this.tx}`;
-    const d = evaluate(this.m, this.spentMicro, { merchant: c.merchant, amount: c.amount, fee: c.fee, at: this.clock });
+    const d = evaluate(this.m, this.spentMicro, { merchant: c.merchant, amount: c.amount, fee: c.fee, at: this.clock }, this.used.has(c.receiptHash));
+    this.used.add(c.receiptHash);
     if (d.kind === 'allow') {
       this.spentMicro += c.amount + c.fee;
       this.events.push({ kind: 'paid', receiptHash: c.receiptHash, merchant: c.merchant, amount: c.amount, fee: c.fee, at: this.clock, txHash });

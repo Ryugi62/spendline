@@ -18,6 +18,7 @@ export const REASON_TEXT: Record<BlockReason, string> = {
   INVALID_AMOUNT: 'Amount was zero or less',
   OVER_TX_CAP: 'Over your per-payment cap',
   OVER_BUDGET_WITH_FEES: 'Would pass your budget once fees are added',
+  DUPLICATE_RECEIPT: 'This receipt was already used — the vault decides each receipt once',
 };
 export const txUrl = (tx: string) => `https://nile.tronscan.org/#/transaction/${tx}`;
 export const isTronAddress = (s: string) => /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(s); // format check; the vault is the real gate
@@ -143,7 +144,8 @@ export function receiptView(s: Session, seq: number, hash: Hasher): ReceiptView 
 // ── Audit ───────────────────────────────────────────────────────────────────────
 export type AuditRow = { seq: number; label: string; status: RowStatus; reason?: BlockReason; reasonText: string; txHash?: string };
 export type OrphanRow = { kind: 'paid' | 'blocked'; total: number; txHash: string; reasonText: string };
-export type AuditView = { problems: number; ok: boolean; chainLine: string; counts: VerdictCounts; totalPaid: number; rows: AuditRow[]; orphans: OrphanRow[] };
+export type ReplayRow = { seq: number; total: number; txHash: string; reasonText: string };
+export type AuditView = { problems: number; ok: boolean; chainLine: string; counts: VerdictCounts; totalPaid: number; rows: AuditRow[]; orphans: OrphanRow[]; replays: ReplayRow[] };
 
 const LABEL: Record<Verdict['verdict'], string> = { PAID_INSIDE: 'Paid inside', STOPPED: 'Stopped', MISMATCH: 'Mismatch', NO_CHAIN_EVENT: 'Not on chain' };
 export function auditView(res: AuditResult): AuditView {
@@ -156,5 +158,6 @@ export function auditView(res: AuditResult): AuditView {
     totalPaid: res.totalPaid,
     rows: res.verdicts.map((v) => ({ seq: v.seq, label: LABEL[v.verdict], status: statusOf(v), reason: v.reason, reasonText: reasonOf(v), txHash: v.txHash })),
     orphans: res.unreceipted.map((u) => ({ kind: u.kind, total: u.amount + u.fee, txHash: u.txHash, reasonText: `On-chain spend with no receipt — ${u.why}` })),
+    replays: (res.replays ?? []).map((x) => ({ seq: x.seq, total: x.amount + x.fee, txHash: x.txHash, reasonText: `Replay of receipt #${x.seq} — stopped on-chain, nothing paid` })),
   };
 }

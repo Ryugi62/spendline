@@ -149,12 +149,18 @@ export function renderAudit(v: AuditView, fmt: Fmt, o: { source: string; at?: nu
 <span class="meta">${o.kind} ${fmtUsdt(o.total)} USDT · tx ${esc(short(o.txHash))}</span></span></a></li>`,
     )
     .join('');
+  const replays = (v.replays ?? [])
+    .map(
+      (x) => `<li><a class="row" href="${txUrl(x.txHash)}" target="_blank" rel="noopener"><span class="chip stopped">${CHIP.stopped}</span><span class="row-main"><span class="words">${esc(x.reasonText)}</span>
+<span class="meta">${fmtUsdt(x.total)} USDT asked again · tx ${esc(short(x.txHash))}</span></span></a></li>`,
+    )
+    .join('');
   return page(
     'audit',
     `<section class="hero"><p class="label">Rebuilt from public records only</p><p class="big">${v.problems} <span class="unit">problem${v.problems === 1 ? '' : 's'}</span></p>${verdict}</section>
 <p class="sub">${esc(v.chainLine)} · paid ${fmtUsdt(v.totalPaid)} USDT in total</p>
 ${o.error ? `<p class="banner no" role="alert">${esc(o.error)}</p>` : ''}
-<section><h2 class="section-title">Receipt by receipt</h2><ul class="rows">${rows}${orphans}</ul></section>
+<section><h2 class="section-title">Receipt by receipt</h2><ul class="rows">${rows}${replays}${orphans}</ul></section>
 <details class="proof"><summary>How this is checked</summary><ol class="how">
 <li>Each receipt's hash is recomputed and must chain to the one before it.</li>
 <li>Each receipt is matched, by that hash, to the vault's public event (paid or stopped).</li>

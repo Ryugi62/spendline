@@ -76,9 +76,10 @@ export function formatAuditReport(res: AuditResult, o: { vault: string; source: 
     `hash chain: ${res.chain.ok ? 'intact' : `BROKEN at #${res.chain.brokenAt}`}`,
     ...res.verdicts.map((v) => `#${v.seq} ${v.verdict}${v.reason ? ` ${v.reason}` : ''} · tx ${v.txHash ?? '-'} · ${v.why}`),
     ...res.unreceipted.map((u) => `! ${u.kind.toUpperCase()} ${fmtUsdt(u.amount + u.fee)} USDT · tx ${u.txHash} · no receipt: ${u.why}`),
+    ...(res.replays ?? []).map((x) => `~ replay of #${x.seq} stopped on-chain DUPLICATE_RECEIPT · tx ${x.txHash} · the vault decides a receipt once`),
     `${c.paidInside} paid inside · ${c.stopped} stopped · ${c.mismatch} mismatch · ${c.noEvent} without chain event · ${res.unreceipted.length} chain spend${
       res.unreceipted.length === 1 ? '' : 's'
-    } without a receipt · paid ${fmtUsdt(res.totalPaid)} USDT → ${
+    } without a receipt${(res.replays ?? []).length ? ` · ${res.replays.length} replay${res.replays.length === 1 ? '' : 's'} stopped` : ''} · paid ${fmtUsdt(res.totalPaid)} USDT → ${
       auditExitCode(res) === 0 ? 'OK' : 'PROBLEMS'
     }`,
   ];

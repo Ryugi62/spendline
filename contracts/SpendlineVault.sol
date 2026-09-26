@@ -7,7 +7,8 @@ interface ITRC20 {
 }
 
 /// @title SpendlineVault — pays only inside the line the user drew; every stop is an on-chain event.
-/// @notice Check order and reason codes MUST match src/domain/mandate.ts (BLOCK_REASONS, 1-based).
+/// @notice Reason codes MUST match src/domain/mandate.ts BLOCK_REASONS (1-based, append-only); check order MUST match CHECK_ORDER.
+/// v0.6: a receipt hash is decided once — a second pay() with the same hash is SpendBlocked(DUPLICATE_RECEIPT).
 contract SpendlineVault {
     uint8 public constant PAUSED = 1;
     uint8 public constant DEADLINE_PASSED = 2;
@@ -15,6 +16,7 @@ contract SpendlineVault {
     uint8 public constant INVALID_AMOUNT = 4;
     uint8 public constant OVER_TX_CAP = 5;
     uint8 public constant OVER_BUDGET_WITH_FEES = 6;
+    uint8 public constant DUPLICATE_RECEIPT = 7;
 
     address public owner;
     address public agent;
@@ -28,6 +30,7 @@ contract SpendlineVault {
     uint256 public spent;
     bool public paused;
     mapping(address => bool) public allowed;
+    mapping(bytes32 => bool) public usedReceipt;
     address[] private merchantList;
 
     event MandateGranted(bytes32 indexed mandateId, uint256 budget, uint256 perTxCap, uint256 deadline, address[] merchants);
@@ -79,8 +82,9 @@ contract SpendlineVault {
         emit Resumed(msg.sender);
     }
 
-    /// Same order as evaluate() in the domain. 0 = allowed.
-    function check(address merchant, uint256 amount, uint256 fee) public view returns (uint8) {
+    /// Same order as evaluate() in the domain (CHECK_ORDER). 0 = allowed.
+    function check(address merchant, uint256 amount, uint256 fee, bytes32 receiptHash) public view returns (uint8) {
+        if (usedReceipt[receiptHash]) return DUPLICATE_RECEIPT;
         if (paused) return PAUSED;
         if (block.timestamp > deadline) return DEADLINE_PASSED;
         if (!allowed[merchant]) return MERCHANT_NOT_ALLOWED;
@@ -92,7 +96,8 @@ contract SpendlineVault {
 
     /// Stops are events, not reverts: refusing is a correct outcome and belongs on the record.
     function pay(address merchant, uint256 amount, uint256 fee, bytes32 receiptHash) external onlyAgent returns (bool) {
-        uint8 reason = check(merchant, amount, fee);
+        uint8 reason = check(merchant, amount, fee, receiptHash);
+        usedReceipt[receiptHash] = true; // paid or stopped, this receipt has had its one decision
         if (reason != 0) {
             emit SpendBlocked(receiptHash, mandateId, merchant, amount, fee, reason);
             return false;
