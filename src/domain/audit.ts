@@ -14,6 +14,9 @@ export type Verdict = {
   reason?: BlockReason;
   txHash?: string;
   why: string;
+  /** The line in force when the chain decided (paused = STOP in force), and what that mandate had spent before — the facts F2 / F3 may use. */
+  line?: Mandate;
+  spentBefore?: number;
 };
 
 export type AuditInput = { mandates: Mandate[]; receipts: Receipt[]; events: ChainEvent[]; hash: Hasher };
@@ -76,14 +79,16 @@ export function audit({ mandates, receipts, events, hash }: AuditInput): AuditRe
     }
     const same = ev.merchant === r.request.merchant && ev.amount === r.request.amount && ev.fee === r.request.fee;
     const spent = spentBy.get(m.id) ?? 0;
-    const policy = evaluate({ ...m, paused: m.paused || (pausedAtSpend.get(ev.receiptHash) ?? false) }, spent, { ...r.request, at: ev.at });
+    const line: Mandate = { ...m, paused: m.paused || (pausedAtSpend.get(ev.receiptHash) ?? false) };
+    const policy = evaluate(line, spent, { ...r.request, at: ev.at });
+    const facts = { line, spentBefore: spent };
     if (!same) {
-      verdicts.push({ seq: r.seq, receiptHash: r.hash, verdict: 'MISMATCH', txHash: ev.txHash, why: 'chain event differs from the receipt (merchant/amount/fee)' });
+      verdicts.push({ seq: r.seq, receiptHash: r.hash, verdict: 'MISMATCH', txHash: ev.txHash, why: 'chain event differs from the receipt (merchant/amount/fee)', ...facts });
     } else if (ev.kind === 'paid' && policy.kind === 'allow') {
       addPaid(m.id, ev.amount + ev.fee);
-      verdicts.push({ seq: r.seq, receiptHash: r.hash, verdict: 'PAID_INSIDE', txHash: ev.txHash, why: 'paid, and the mandate allowed it at that time' });
+      verdicts.push({ seq: r.seq, receiptHash: r.hash, verdict: 'PAID_INSIDE', txHash: ev.txHash, why: 'paid, and the mandate allowed it at that time', ...facts });
     } else if (ev.kind === 'blocked' && policy.kind === 'block' && policy.reason === ev.reason) {
-      verdicts.push({ seq: r.seq, receiptHash: r.hash, verdict: 'STOPPED', reason: ev.reason, txHash: ev.txHash, why: `stopped on-chain: ${ev.reason}` });
+      verdicts.push({ seq: r.seq, receiptHash: r.hash, verdict: 'STOPPED', reason: ev.reason, txHash: ev.txHash, why: `stopped on-chain: ${ev.reason}`, ...facts });
     } else {
       if (ev.kind === 'paid') addPaid(m.id, ev.amount + ev.fee);
       verdicts.push({
@@ -92,6 +97,7 @@ export function audit({ mandates, receipts, events, hash }: AuditInput): AuditRe
         verdict: 'MISMATCH',
         txHash: ev.txHash,
         why: `chain said ${ev.kind}${ev.kind === 'blocked' ? `(${ev.reason})` : ''} but policy says ${policy.kind === 'allow' ? 'allow' : `block(${policy.reason})`}`,
+        ...facts,
       });
     }
   }

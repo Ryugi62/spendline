@@ -1,3 +1,4 @@
+import type { VerdictKind } from '../domain/answers';
 import type { ChainEvent } from '../domain/audit';
 import type { BlockReason, Mandate } from '../domain/mandate';
 import type { Receipt } from '../domain/receipt';
@@ -36,4 +37,28 @@ export interface ReceiptStore {
 /** Public chain events for one vault. Keyless by contract: an auditor must never need a key to read the record. */
 export interface EventSource {
   events(vault: string): Promise<ChainEvent[]>;
+}
+
+/** An F2 / F3 answer. `text` is the model's words only when it echoed the audit (grounded); otherwise the code's template. */
+export type Answer = {
+  flow: 'F2_explain' | 'F3_dispute';
+  seq: number | null;
+  question?: string;
+  verdict?: VerdictKind;
+  reason?: BlockReason;
+  text: string;
+  grounded: boolean;
+  /** why the model's reply was not shown */
+  rejected?: string;
+  txHash?: string;
+  /** the Kiln call that produced it — absent when answered from the log */
+  usage?: UsageRecord;
+  cached: boolean;
+};
+export type AnswerRecord = Omit<Answer, 'cached'> & { key: string };
+/** Append-only answers log; doubles as the cache (UC-5 "on demand only, cached"). */
+export interface AnswerLog {
+  find(key: string): Promise<AnswerRecord | undefined>;
+  append(a: AnswerRecord): Promise<void>;
+  all(): Promise<AnswerRecord[]>;
 }

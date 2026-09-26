@@ -1,4 +1,4 @@
-# Spendline — SPEC (SDD, v0.5 2026-09-26)
+# Spendline — SPEC (SDD, v0.6 2026-09-26)
 
 > GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum "Agent Finance" track · Challenge B (covers A's condition checks).
 > Brief (verbatim source): https://docs.google.com/document/d/13qh7oePGl7Flrl-Zh_A6hfr02L266PvS — model changed to **Qwen3-32B** (Bricksum, TG 2026-09-22).
@@ -52,6 +52,7 @@ Essence: not "an agent that can pay" but "**a payment that can prove it was allo
 | UC-3 stop | human presses STOP | pause tx | further `pay` → blocked PAUSED |
 | UC-4 audit | receipts file (`.jsonl`, one receipt per line, or a run JSON `{vault, receipts}`) + public chain events | verdict per receipt | no private data, no API key, no `.env`; the line in force is rebuilt from `MandateGranted` events, not from current contract state |
 | UC-5 explain | receipt id | plain-language explanation | F2 on demand only, cached |
+| UC-6 dispute | a teammate's question | the receipt it is about + the audit verdict + tx | F3 once, cached; verdict from audit only |
 
 ## 6. Acceptance criteria (each → ≥1 test)
 - AC-1 Given budget 10 USDT, spent 0, request 9.8 + fee 0.4 When evaluate Then block OVER_BUDGET_WITH_FEES.
@@ -86,6 +87,25 @@ R1 — web UI skeleton, 4 screens (Grant · Feed · Receipt · Audit). Everythin
 - AC-21 Given a vault `Paid` / `SpendBlocked` event whose receipt hash is in no receipt of the file (or a second event carrying the same receipt hash) When audit Then it is listed as a chain spend without a receipt, counts as a problem, and the CLI exits 1. (Without this, dropping the *last* receipt keeps the hash chain intact and the audit said OK while money had left the vault.)
 - AC-22 Given a receipt whose flow usage came from the scripted stand-in (generation id `fake-N`, used by the 2026-09-24 template smoke) When the receipt screen renders Then it says "scripted stand-in — no Kiln call", never "N Kiln calls"; only usage with a real `X-Neocloud-Generation-Id` counts as a Kiln call.
 
+## 6d. v0.6 — M0 open items closed before the event (2026-09-26)
+F2 · F3 — Kiln flows beyond F1 (UC-5 explain, UC-6 dispute). The model reads and writes words; every fact it may use is computed by code from `audit()`, and its answer must **echo the audit verdict** or it is not shown.
+- AC-23 Given a receipt When `explain` (F2) Then exactly one Kiln call with code-built facts (amount, fee, seller, verdict, reason, the line in force, spent before); the reply is JSON `{verdict, reason?, explanation}`; a verdict / reason that differs from the audit → the code's template text, marked "model answer rejected"; the same receipt again → answered from the answers log, 0 calls.
+- AC-24 Given a teammate's question When `dispute` (F3) Then exactly one Kiln call picks the receipt (`{seq, verdict, answer}`) from a code-built table of audited receipts; the verdict shown always comes from the audit (never the model); unknown seq → "no receipt matches"; verdict echo differs → template; the same question on the same record → cached, 0 calls.
+UC-6 dispute: question text + receipts + public events → `{seq, verdict, answer, tx}` · F3 once, cached.
+
+M0-19 — one receipt, one decision on-chain.
+- AC-25 Given a receipt hash already passed to `pay()` When `pay()` again Then `SpendBlocked(…, DUPLICATE_RECEIPT)` (code 7, checked **first**, codes 1–6 unchanged so old vault events still decode); `evaluate(…, receiptUsed = true)` → DUPLICATE_RECEIPT; the audit lists a second `SpendBlocked(DUPLICATE_RECEIPT)` for a known receipt as a replay stopped on-chain (not a problem), while a second `Paid` stays a problem (AC-21).
+
+M0-11 · M0-12 — efficiency in numbers.
+- AC-26 Given usage records When `flowReport` Then per flow: calls, prompt / completion tokens, USD, median and total latency, Wh (card watts × wall time, assumption text attached), generation ids; stand-in usage is excluded and counted separately; calls per purchase = F1 calls / receipts.
+- AC-27 Given paired A/B runs (same request, `/no_think` vs thinking) When `abSummary` Then per arm n, JSON parse rate, median completion tokens, median latency, median Wh, and the share of pairs whose parsed intents are identical; n < 10 is reported as "n below 10".
+
+M0-14 · M0-15 — the person signs, the agent takes one line.
+- AC-28 Given the JSON the Grant screen copies (`Omit<Mandate,'id'>`, micro-USDT) When `npm run grant -- mandate.json` Then it validates like `grantDraft` (plain-language errors), derives the mandate id, and the owner key signs `grant()` → `MandateGranted`; `npm run stop` signs `pause()` → `Paused`, after which `pay()` → PAUSED. The STOP sheet and the Grant step name these commands.
+- AC-29 Given one request line When `npm run agent -- "<request>"` Then UC-2 runs with live Kiln (no stand-in fallback), the receipt is appended to the receipts file continuing its hash chain, one report line says paid / stopped + reason + tx link + Kiln tokens, and `web/public/session.json` is rebuilt from public records (unless `--no-ui`).
+
+Physical (M0-13): a new vault with AC-25 on Nile; every run's F1 on live Kiln (a Kiln failure aborts the run — no stand-in); grant and STOP through the owner CLI, purchases through the agent CLI; runs: paid ×≥2 · MERCHANT_NOT_ALLOWED · OVER_BUDGET_WITH_FEES · a replayed receipt hash → DUPLICATE_RECEIPT · STOP → PAUSED · re-grant with a short window → paid → DEADLINE_PASSED; keyless audit 0 problems; F2 ×≥2 and F3 ×≥2 live → `docs/tokens-by-flow.md`.
+
 UI acceptance (Toss checklist → this product): mobile first (390 px no horizontal scroll, 1280 px intact) · Grant is a step form, ≤ 2 questions per step · titles ≥ 22 px bold, body 15–16 px, captions 13 px · sections ≥ 24 px apart, cards radius ≥ 16 px, ≤ 1 shadow · one fixed bottom CTA ≥ 52 px · number first (≥ 28 px) · proofs in `<details>` · short friendly copy, jargon glossed once · white + blue #3182F6 + ok / warn / stop colours, body contrast ≥ 4.5:1, dark mode minimal · system fonts, no CDN. Checked by tests (AC-20) + captures 390 / 1280.
 
 ## 7. Architecture (Clean)
@@ -105,3 +125,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 - v0.1 2026-09-24 template + domain core (Jarvis, pre-hackathon; disclosed in README).
 - v0.5 2026-09-26 §6b: keyless audit CLI (R7), mandate history in audit, deadline stop on Nile (R2), UI skeleton (R1) — pre-hackathon, disclosed in README.
 - v0.5.1 2026-09-26 §6c (M0 mock review): audit lists chain spends without a receipt (AC-21) · scripted stand-in usage is labelled, not counted as Kiln (AC-22) · README states user, AI-vs-code split, enforcement point, chain read/write/settle.
+- v0.6 2026-09-26 §6d (M0 open items, pre-hackathon, disclosed): F2 explain · F3 dispute on Kiln (AC-23/24) · vault refuses a reused receipt hash (AC-25) · per-flow token / Wh report and /no_think A/B (AC-26/27) · owner CLI signs grant / STOP (AC-28) · agent CLI, one request line → receipt (AC-29) · live Nile rerun with every model call on Kiln.

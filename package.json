@@ -20,7 +20,9 @@
     "ui": "vite web",
     "ui:build": "vite build web",
     "ui:data": "tsx scripts/ui-data.ts",
-    "ui:capture": "tsx scripts/capture-ui.ts"
+    "ui:capture": "tsx scripts/capture-ui.ts",
+    "explain": "tsx src/infrastructure/answers-cli.ts explain",
+    "dispute": "tsx src/infrastructure/answers-cli.ts dispute"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

@@ -1,0 +1,26 @@
+{
+ "note": "Nile test sellers (public addresses). Prices in micro-USDT (6 decimals). GPU Shop and Kiln credits are the two sellers the demo line lists; Unknown seller is cheaper and NOT listed \u2014 the vault must stop it.",
+ "offers": [
+  {
+   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "item": "gpu-hours",
+   "unitPrice": 2400000,
+   "fee": 200000,
+   "label": "GPU Shop"
+  },
+  {
+   "merchant": "TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh",
+   "item": "gpu-hours",
+   "unitPrice": 900000,
+   "fee": 0,
+   "label": "Unknown seller"
+  },
+  {
+   "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+   "item": "inference-credits",
+   "unitPrice": 1000000,
+   "fee": 0,
+   "label": "Kiln credits"
+  }
+ ]
+}
