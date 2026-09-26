@@ -9,7 +9,7 @@
  "deploy": {
   "vault": "TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu",
   "tx": "8e11f4d403c9b7c8e78f86f193bd65dad6e66068a39a164cdffea91597880161",
-  "contract": "SpendlineVault v0.6 (usedReceipt · DUPLICATE_RECEIPT = 7)"
+  "contract": "SpendlineVault v0.6 (usedReceipt \u00b7 DUPLICATE_RECEIPT = 7)"
  },
  "fundVault": {
   "tx": "eeafd762ade63377bc1fd85691676f56dc174100580e5ff6e5244c52700e350b",
@@ -37,7 +37,7 @@
      "flow": "F1_intent",
      "promptTokens": 111,
      "completionTokens": 35,
-     "costUsd": 0.0000152,
+     "costUsd": 1.52e-05,
      "latencyMs": 4113,
      "generationId": "d919cfd0-5e71-46fc-8ec0-6fad043902de"
     }
@@ -56,7 +56,7 @@
      "flow": "F1_intent",
      "promptTokens": 126,
      "completionTokens": 68,
-     "costUsd": 0.00002412,
+     "costUsd": 2.412e-05,
      "latencyMs": 2191,
      "generationId": "a83ece71-1d04-48cf-8cbf-38d1789e184f"
     }
@@ -75,7 +75,7 @@
      "flow": "F1_intent",
      "promptTokens": 98,
      "completionTokens": 36,
-     "costUsd": 0.000014679999999999998,
+     "costUsd": 1.4679999999999998e-05,
      "latencyMs": 2911,
      "generationId": "00d1184c-2b24-43b9-b4f0-43a09039447b"
     }
@@ -103,7 +103,7 @@
      "flow": "F1_intent",
      "promptTokens": 100,
      "completionTokens": 37,
-     "costUsd": 0.00001512,
+     "costUsd": 1.512e-05,
      "latencyMs": 1628,
      "generationId": "0d72f2ca-d20d-40e5-af68-eb3ed9000660"
     }
@@ -128,7 +128,7 @@
      "flow": "F1_intent",
      "promptTokens": 96,
      "completionTokens": 28,
-     "costUsd": 0.000012280000000000001,
+     "costUsd": 1.2280000000000001e-05,
      "latencyMs": 1399,
      "generationId": "bec549da-0c5e-4c45-b845-7a922da104c7"
     }
@@ -154,7 +154,7 @@
      "flow": "F1_intent",
      "promptTokens": 99,
      "completionTokens": 18,
-     "costUsd": 0.00000952,
+     "costUsd": 9.52e-06,
      "latencyMs": 1322,
      "generationId": "6bd3f0d9-086c-4a7c-8fe4-a8e5aac42b44"
     }
@@ -173,7 +173,7 @@
      "flow": "F1_intent",
      "promptTokens": 99,
      "completionTokens": 18,
-     "costUsd": 0.00000904,
+     "costUsd": 9.04e-06,
      "latencyMs": 1306,
      "generationId": "08b3ef5e-d928-428a-8d39-ff7e50d4d8c4"
     }
@@ -186,7 +186,7 @@
  "indexedEvents": 11,
  "audit": {
   "exit": 0,
-  "summary": "3 paid inside · 4 stopped · 0 mismatch · 0 without chain event · 0 chain spends without a receipt · 1 replay stopped · paid 11.00 USDT → OK"
+  "summary": "3 paid inside \u00b7 4 stopped \u00b7 0 mismatch \u00b7 0 without chain event \u00b7 0 chain spends without a receipt \u00b7 1 replay stopped \u00b7 paid 11.00 USDT \u2192 OK"
  },
  "answers": [
   {
@@ -204,7 +204,7 @@
     "flow": "F2_explain",
     "promptTokens": 373,
     "completionTokens": 46,
-    "costUsd": 0.00003848,
+    "costUsd": 3.848e-05,
     "latencyMs": 1672,
     "generationId": "e6ebd78a-1c0c-4863-97bc-0754f3ea8549"
    }
@@ -224,7 +224,7 @@
     "flow": "F2_explain",
     "promptTokens": 348,
     "completionTokens": 62,
-    "costUsd": 0.00004144,
+    "costUsd": 4.144e-05,
     "latencyMs": 4127,
     "generationId": "04da11bb-35cc-4626-9ee5-a68e277ad32c"
    }
@@ -256,7 +256,7 @@
     "flow": "F3_dispute",
     "promptTokens": 1015,
     "completionTokens": 50,
-    "costUsd": 0.00008728,
+    "costUsd": 8.728e-05,
     "latencyMs": 3876,
     "generationId": "d1bdd9c8-718d-4782-88d2-7c0ec57565c4"
    }
@@ -275,7 +275,7 @@
     "flow": "F3_dispute",
     "promptTokens": 1015,
     "completionTokens": 68,
-    "costUsd": 0.00009232000000000001,
+    "costUsd": 9.232000000000001e-05,
     "latencyMs": 3863,
     "generationId": "2389917f-9859-4351-abd0-45c6dbad197f"
    }
@@ -295,7 +295,7 @@
     "flow": "F3_dispute",
     "promptTokens": 1025,
     "completionTokens": 61,
-    "costUsd": 0.00005916,
+    "costUsd": 5.916e-05,
     "latencyMs": 1874,
     "generationId": "ffa30c87-4961-40fc-88cd-28393651542c"
    }
@@ -312,5 +312,28 @@
   "agentTrx": 142.6235
  },
  "finishedAt": "2026-09-26T04:28:11.877Z",
- "allAsExpected": true
+ "allAsExpected": true,
+ "byHand": [
+  {
+   "what": "vault top-up (owner, 20 test USDT) \u2014 the vault held 9.00 USDT after 11.00 paid",
+   "tx": "e5b4e2452aa52de41a3d128406469e7700a79f1b80319f5aaaee902c7af707a7"
+  },
+  {
+   "what": "npm run grant -- docs/live/mandate-3.json (line 3, deadline 2026-09-30 03:00:00 UTC)",
+   "tx": "01ec6b0716ea297e6ea166cf9ca9304b4af8a56dddba8cd468f3ee96778121c8",
+   "seconds": 5,
+   "mandateId": "0x375013bf899f79439eba9663690f5069fd4cd748d889291d60140a6b161171da"
+  },
+  {
+   "what": "npm run agent -- \"Need 1 GPU hour for a quick eval before the demo\" (default mode: session.json rebuilt)",
+   "tx": "98d3281f2cc30a5f0c7e609f4231300e0867da29fff0c9d7c47d81dd03d10c0d",
+   "seq": 8,
+   "got": "PAID",
+   "seconds": 11
+  },
+  {
+   "what": "npm run grant -- <bad file> (fractional budget, cap > budget, 0x address, past deadline) \u2192 4 plain-language errors, exit 1, nothing signed"
+  }
+ ],
+ "answersNote": "F2/F3 were re-asked after two grounding fixes (prompt v2..v4); every call is in docs/answers-nile-live.jsonl and counted in docs/tokens-by-flow.md"
 }

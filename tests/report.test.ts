@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatFlowReport } from '../src/application/report';
+import { formatFlowReport, revisionNotes } from '../src/application/report';
 import { flowReport, median } from '../src/domain/flowReport';
 import type { UsageRecord } from '../src/domain/tokenLedger';
 
@@ -50,5 +50,12 @@ describe('AC-26 per-flow Kiln report (M0-11)', () => {
     expect(md).toMatch(/assumption, not a measurement/i);
     expect(md).toMatch(/RNGD TDP/);
     expect(md).toContain('g5');
+  });
+
+  it('revisionNotes: F2 / F3 calls are broken down by prompt version, so "12 F3 calls for 3 questions" reads as 3 × 4 revisions', () => {
+    const keys = ['F3:a', 'F3:b', 'F3v2:a', 'F3v2:b', 'F2:r1', 'F2v3:r1'];
+    expect(revisionNotes(keys)).toEqual(['F2 explain: 2 calls = v1 ×1 · v3 ×1 (one call per receipt per prompt version)', 'F3 dispute: 4 calls = v1 ×2 · v2 ×2 (one call per question per prompt version)']);
+    const md = formatFlowReport(flowReport(records, { purchases: 3 }), { title: 't', sources: [], wattsSource: 'x', notes: ['NOTE-1'] });
+    expect(md).toContain('- NOTE-1');
   });
 });

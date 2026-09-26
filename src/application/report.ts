@@ -14,7 +14,19 @@ function line(r: FlowRow): string {
   return `| ${NAME[r.flow]} | ${WHAT[r.flow]} | ${r.calls} | ${r.promptTokens} | ${r.completionTokens} | ${r.totalTokens} | ${usd(r.costUsd)} | ${s(r.latencyMedianMs)} | ${s(r.latencyTotalMs)} | ${r.wh.toFixed(4)} | ${r.whPerCall.toFixed(4)} |`;
 }
 
-export function formatFlowReport(r: FlowReport, o: { title: string; sources: string[]; wattsSource: string }): string {
+/** Answers-log keys are `F2v<n>:…` / `F3v<n>:…` (plain `F2:` / `F3:` = v1). Every revision was asked on live Kiln, so every call counts. */
+export function revisionNotes(keys: string[]): string[] {
+  const out: string[] = [];
+  for (const [flow, name, per] of [['F2', 'F2 explain', 'receipt'], ['F3', 'F3 dispute', 'question']] as const) {
+    const vs = keys.map((k) => k.match(new RegExp(`^${flow}(?:v(\\d+))?:`))).filter(Boolean).map((m) => Number(m![1] ?? 1));
+    if (!vs.length) continue;
+    const by = [...new Set(vs)].sort((a, b) => a - b).map((v) => `v${v} ×${vs.filter((x) => x === v).length}`);
+    out.push(`${name}: ${vs.length} calls = ${by.join(' · ')} (one call per ${per} per prompt version)`);
+  }
+  return out;
+}
+
+export function formatFlowReport(r: FlowReport, o: { title: string; sources: string[]; wattsSource: string; notes?: string[] }): string {
   const t = r.total;
   const perPurchaseWh = r.rows[0].calls ? r.rows[0].whPerCall : 0;
   return [
@@ -30,6 +42,7 @@ export function formatFlowReport(r: FlowReport, o: { title: string; sources: str
     `- LLM calls per purchase: **${r.callsPerPurchase.toFixed(2)}** (${r.rows[0].calls} F1 calls / ${r.purchases} receipts) — the design limit is 2. Offer choice, money math, the rule and the receipt are code: no call is spent on them.`,
     '- F2 and F3 run only when a person asks, and the same question on the same record is answered from the answers log with 0 calls.',
     `- Energy per purchase (F1, est.): **${perPurchaseWh.toFixed(4)} Wh**.`,
+    ...(o.notes ?? []).map((n) => `- ${n}`),
     '',
     '## Energy — an assumption, not a measurement',
     `Kiln exposes no power telemetry, so Wh = ${r.npuWatts} W × measured wall time ÷ 3600 per call. ${r.npuWatts} W source: ${o.wattsSource}. It is an upper bound: ${r.assumption}. Wall time is measured at the client, so it also includes network time.`,

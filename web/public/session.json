@@ -162,6 +162,29 @@
    ],
    "prevHash": "4822dcdd261ea24fefd383c3d263b74d5d0175232c7bb2505c3a68e85429ecc7",
    "hash": "168a28b860b679ab9a8a785bc57e07021f42d866dc4628cab0662c94820ce7fd"
+  },
+  {
+   "seq": 8,
+   "mandateId": "0x375013bf899f79439eba9663690f5069fd4cd748d889291d60140a6b161171da",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 2400000,
+    "fee": 200000,
+    "at": 1790397291
+   },
+   "intentText": "Need 1 GPU hour for a quick eval before the demo",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 102,
+     "completionTokens": 22,
+     "costUsd": 0.000011,
+     "latencyMs": 1346,
+     "generationId": "1985998e-c88d-4ed3-806e-713c7fd5ef24"
+    }
+   ],
+   "prevHash": "168a28b860b679ab9a8a785bc57e07021f42d866dc4628cab0662c94820ce7fd",
+   "hash": "08137d5ed3a068c3644b6da0a7ded300b7be91dafed2ccc2691252eed0d1155f"
   }
  ],
  "events": [
@@ -278,7 +301,32 @@
    "at": 1790396859,
    "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
    "reason": "DEADLINE_PASSED"
+  },
+  {
+   "kind": "granted",
+   "at": 1790397288,
+   "txHash": "01ec6b0716ea297e6ea166cf9ca9304b4af8a56dddba8cd468f3ee96778121c8",
+   "mandate": {
+    "id": "0x375013bf899f79439eba9663690f5069fd4cd748d889291d60140a6b161171da",
+    "budget": 9900000,
+    "perTxCap": 8000000,
+    "deadline": 1790737200,
+    "merchants": [
+     "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+     "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"
+    ],
+    "paused": false
+   }
+  },
+  {
+   "kind": "paid",
+   "receiptHash": "08137d5ed3a068c3644b6da0a7ded300b7be91dafed2ccc2691252eed0d1155f",
+   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "amount": 2400000,
+   "fee": 200000,
+   "at": 1790397294,
+   "txHash": "98d3281f2cc30a5f0c7e609f4231300e0867da29fff0c9d7c47d81dd03d10c0d"
   }
  ],
- "generatedAt": 1790396891
+ "generatedAt": 1790397301
 }

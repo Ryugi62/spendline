@@ -89,8 +89,8 @@ R1 — web UI skeleton, 4 screens (Grant · Feed · Receipt · Audit). Everythin
 
 ## 6d. v0.6 — M0 open items closed before the event (2026-09-26)
 F2 · F3 — Kiln flows beyond F1 (UC-5 explain, UC-6 dispute). The model reads and writes words; every fact it may use is computed by code from `audit()`, and its answer must **echo the audit verdict** or it is not shown.
-- AC-23 Given a receipt When `explain` (F2) Then exactly one Kiln call with code-built facts (amount, fee, seller, verdict, reason, the line in force, spent before); the reply is JSON `{verdict, reason?, explanation}`; a verdict / reason that differs from the audit → the code's template text, marked "model answer rejected"; the same receipt again → answered from the answers log, 0 calls.
-- AC-24 Given a teammate's question When `dispute` (F3) Then exactly one Kiln call picks the receipt (`{seq, verdict, answer}`) from a code-built table of audited receipts; the verdict shown always comes from the audit (never the model); unknown seq → "no receipt matches"; verdict echo differs → template; the same question on the same record → cached, 0 calls.
+- AC-23 Given a receipt When `explain` (F2) Then exactly one Kiln call with code-built facts (amount, fee, seller, verdict, reason, the line in force, spent before); the reply is JSON `{verdict, reason?, explanation}`; a verdict / reason that differs from the audit → the code's template text, marked "model answer rejected"; the same receipt again → answered from the answers log, 0 calls. A standalone number in the reply that is not a number of the facts → not shown (the model copies numbers, it does not compute them). Cache keys carry the prompt version.
+- AC-24 Given a teammate's question When `dispute` (F3) Then exactly one Kiln call picks the receipt (`{seq, verdict, answer}`) from a code-built table of audited receipts; the verdict shown always comes from the audit (never the model); unknown seq → "no receipt matches"; verdict echo differs → template; the same question on the same record → cached, 0 calls. Each row carries the code-computed STOP relation at that moment (`stopStateAt`: STOP in force since T / line granted T — this grant lifted the STOP of S) and times to the second; the number rule of AC-23 applies.
 UC-6 dispute: question text + receipts + public events → `{seq, verdict, answer, tx}` · F3 once, cached.
 
 M0-19 — one receipt, one decision on-chain.
@@ -115,7 +115,7 @@ src/domain/ ← src/application/ ← src/adapters/ (kiln, tron, memory, jsonl) �
 Domain imports nothing outside domain. Check: `grep -rn "adapters\|infrastructure\|tronweb\|node:" src/domain src/application` → 0.
 
 ## 8. Non-functional
-Kiln calls: retry 429/5xx with `x-ratelimit-reset`; ≤2 LLM calls per purchase; every call logged with generation id. Chain: wait for receipt, record energy used.
+Kiln calls: retry 429/5xx with `x-ratelimit-reset`; ≤2 LLM calls per purchase; every call logged with generation id. Chain: build → sign → broadcast split so a network error is retried safely (rebuild after a failed build, re-send the same signed tx after a failed broadcast; `pay()` cannot pay twice anyway, AC-25); the decision is read from the block-included tx info log, not the solidified node (≈60 s) or the event API (≈50 s).
 
 ## 9. Physical verification
 Nile: deploy vault → grant → 2 paid + 3 blocked + 1 STOP → tronscan links in README. R2 (deadline) and the R7 CLI are run against the same vault; UI captures at 390 / 1280. Kiln: live F1 on qwen3-32b, token report from real `usage`.
@@ -125,4 +125,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 - v0.1 2026-09-24 template + domain core (Jarvis, pre-hackathon; disclosed in README).
 - v0.5 2026-09-26 §6b: keyless audit CLI (R7), mandate history in audit, deadline stop on Nile (R2), UI skeleton (R1) — pre-hackathon, disclosed in README.
 - v0.5.1 2026-09-26 §6c (M0 mock review): audit lists chain spends without a receipt (AC-21) · scripted stand-in usage is labelled, not counted as Kiln (AC-22) · README states user, AI-vs-code split, enforcement point, chain read/write/settle.
-- v0.6 2026-09-26 §6d (M0 open items, pre-hackathon, disclosed): F2 explain · F3 dispute on Kiln (AC-23/24) · vault refuses a reused receipt hash (AC-25) · per-flow token / Wh report and /no_think A/B (AC-26/27) · owner CLI signs grant / STOP (AC-28) · agent CLI, one request line → receipt (AC-29) · live Nile rerun with every model call on Kiln.
+- v0.6 2026-09-26 §6d (M0 open items, pre-hackathon, disclosed; live answers added the number rule and the STOP relation to AC-23/24): F2 explain · F3 dispute on Kiln (AC-23/24) · vault refuses a reused receipt hash (AC-25) · per-flow token / Wh report and /no_think A/B (AC-26/27) · owner CLI signs grant / STOP (AC-28) · agent CLI, one request line → receipt (AC-29) · live Nile rerun with every model call on Kiln.

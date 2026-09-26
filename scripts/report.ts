@@ -4,7 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { readJsonl } from '../src/adapters/files';
 import { parseReceiptsFile } from '../src/application/auditRecords';
 import type { AnswerRecord } from '../src/application/ports';
-import { formatAb, formatFlowReport } from '../src/application/report';
+import { formatAb, formatFlowReport, revisionNotes } from '../src/application/report';
 import { abSummary, flowReport, type AbPair } from '../src/domain/flowReport';
 import { flag, LIVE_ANSWERS, LIVE_RECEIPTS } from '../src/infrastructure/runtime';
 
@@ -22,6 +22,10 @@ let md = formatFlowReport(report, {
   title: 'Kiln tokens by flow — Spendline live run on TRON Nile (2026-09-26, qwen3-32b)',
   sources: [receiptsFile, answersFile],
   wattsSource: 'FuriosaAI RNGD card TDP — "180W TDP", furiosa.ai/rngd, checked 2026-09-26',
+  notes: [
+    ...revisionNotes(answers.filter((a) => a.usage).map((a) => a.key)),
+    'Prompt revisions came from live answers: v1 → times to the second and a code-written STOP relation → numbers only from the facts (see the commit log).',
+  ],
 });
 if (existsSync(abFile)) {
   const ab = JSON.parse(readFileSync(abFile, 'utf8')) as { date: string; pairs: AbPair[] };
