@@ -60,6 +60,7 @@ ${field('deadline', 'Last moment a payment can go through', `<input id="deadline
 <li>Everything after <b>${esc(fmt.time(d.deadline))}</b></li>
 <li>Everything, the moment you press STOP</li></ul>
 <p class="hint">Stops are written on-chain as events, so anyone can check them later.</p></section>
+<p class="hint">Copy it, save it as <code>mandate.json</code>, and run <code>npm run grant -- mandate.json</code> — your owner key signs it on your machine.</p>
 <details class="proof"><summary>What gets signed</summary><p class="hint">vault.grant(mandateId, budget, perTxCap, deadline, merchants) — amounts in micro-USDT. Your owner key signs it on your machine; this page never holds keys.</p><pre>${esc(JSON.stringify(args, null, 1))}</pre></details>`;
   }
   const cta = s.step < 4 ? `<button class="cta" data-action="next" type="button">Next</button>` : `<button class="cta" data-action="copy-mandate" type="button">Copy the mandate</button>`;
@@ -89,7 +90,7 @@ export function renderFeed(v: FeedView, fmt: Fmt): string {
     .join('');
   const problems = v.problems ? `<p class="banner warn">${v.problems} record${v.problems > 1 ? 's' : ''} don't add up — open Audit to see which.</p>` : '';
   const sheet = `<dialog class="sheet" id="stop-sheet" aria-labelledby="stop-title"><p class="title" id="stop-title">STOP is signed with your owner key</p>
-<p>So it happens on your machine, never in this page. In this preview the button isn't wired to a signer yet (next version).</p>
+<p>So it happens on your machine, never in this page: run <code>npm run stop</code> there. It signs <code>vault.pause()</code>, and from that block on every payment is stopped on-chain as PAUSED until you grant a new line.</p>
 ${v.lastStopTx ? `<p>A STOP pressed on this vault is on-chain as a public event: <a href="${txUrl(v.lastStopTx)}" target="_blank" rel="noopener">${short(v.lastStopTx)}</a>${v.stopTx ? '' : ' (before the current line was granted)'}.</p>` : '<p>No STOP has been pressed on this vault yet.</p>'}
 <form method="dialog"><button class="sheet-btn" type="submit">Got it</button></form></dialog>`;
   return page(

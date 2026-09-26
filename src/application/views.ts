@@ -11,6 +11,9 @@ import { countVerdicts, problemCount, type VerdictCounts } from './auditRecords'
  */
 export type Session = { vault: string; network: 'nile'; receipts: Receipt[]; events: ChainEvent[]; generatedAt: number };
 
+/** The public record the UI reads: receipts file + the vault's public events. */
+export const sessionOf = (file: { receipts: Receipt[] }, vault: string, events: ChainEvent[], generatedAt: number): Session => ({ vault, network: 'nile', receipts: file.receipts, events, generatedAt });
+
 export const REASON_TEXT: Record<BlockReason, string> = {
   PAUSED: 'You pressed STOP',
   DEADLINE_PASSED: 'Your time window had closed',

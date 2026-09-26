@@ -4,7 +4,8 @@ import { reasonFromCode, type Mandate } from '../domain/mandate';
 import type { ChainPort, PayCall, PayOutcome } from '../application/ports';
 
 /** TRON Nile adapter for SpendlineVault. The agent key signs pay(); the owner key (optional) signs grant/pause. */
-export type TronConfig = { fullHost: string; agentKey: string; ownerKey?: string; vault: string; abi: unknown[] };
+/** agentKey signs pay(); ownerKey signs grant/pause. Either may be absent: the owner's machine needs no agent key and vice versa. */
+export type TronConfig = { fullHost: string; agentKey?: string; ownerKey?: string; vault: string; abi: unknown[] };
 const FEE_LIMIT = 150_000_000; // 150 TRX max burn per call on Nile
 
 const hex32 = (h: string) => '0x' + h.replace(/^0x/, '').padStart(64, '0');
@@ -13,7 +14,9 @@ export class TronChain implements ChainPort {
   private agent: TronWeb;
   private owner?: TronWeb;
   constructor(private cfg: TronConfig) {
-    this.agent = new TronWeb({ fullHost: cfg.fullHost, privateKey: cfg.agentKey });
+    const reader = cfg.agentKey ?? cfg.ownerKey;
+    if (!reader) throw new Error('TronChain needs the agent key or the owner key');
+    this.agent = new TronWeb({ fullHost: cfg.fullHost, privateKey: reader }); // signs pay() when it is the agent key; otherwise reads only
     if (cfg.ownerKey) this.owner = new TronWeb({ fullHost: cfg.fullHost, privateKey: cfg.ownerKey });
   }
   private async c(tw: TronWeb = this.agent) {
@@ -37,6 +40,7 @@ export class TronChain implements ChainPort {
   async now() { return Number(await (await this.c()).nowTs().call()); }
 
   async pay(call: PayCall): Promise<PayOutcome> {
+    if (!this.cfg.agentKey) throw new Error('agent key required for pay');
     const c = await this.c();
     const txHash: string = await c.pay(call.merchant, call.amount, call.fee, hex32(call.receiptHash)).send({ feeLimit: FEE_LIMIT });
     const info = await this.waitInfo(txHash);

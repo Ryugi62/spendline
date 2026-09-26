@@ -1,5 +1,7 @@
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
-import type { AnswerLog, AnswerRecord, CatalogPort, Offer } from '../application/ports';
+import { parseReceiptsFile } from '../application/auditRecords';
+import type { AnswerLog, AnswerRecord, CatalogPort, Offer, ReceiptStore } from '../application/ports';
+import type { Receipt } from '../domain/receipt';
 
 /** Append-only JSON-lines files. Everything written here is public record (no keys, no private data). */
 export class JsonlFileError extends Error {}
@@ -42,4 +44,15 @@ export class JsonCatalog implements CatalogPort {
   static fromFile(path: string) { return new JsonCatalog(JSON.parse(readFileSync(path, 'utf8'))); }
   async offers(item: string) { return this.list.filter((o) => o.item === item); }
   labels(): Record<string, string> { return Object.fromEntries(this.list.map((o) => [o.merchant, o.label])); }
+}
+
+/** receipts.jsonl as the agent's store: every run appends one line and continues the hash chain already in the file. */
+export class JsonlReceiptStore implements ReceiptStore {
+  constructor(private path: string) {}
+  async all(): Promise<Receipt[]> {
+    if (!existsSync(this.path)) return [];
+    const text = readFileSync(this.path, 'utf8');
+    return text.trim() ? parseReceiptsFile(text).receipts : [];
+  }
+  async append(r: Receipt) { appendJsonl(this.path, r); }
 }

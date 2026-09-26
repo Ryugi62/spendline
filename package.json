@@ -1,6 +1,6 @@
 {
   "name": "spendline",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
@@ -22,7 +22,12 @@
     "ui:data": "tsx scripts/ui-data.ts",
     "ui:capture": "tsx scripts/capture-ui.ts",
     "explain": "tsx src/infrastructure/answers-cli.ts explain",
-    "dispute": "tsx src/infrastructure/answers-cli.ts dispute"
+    "dispute": "tsx src/infrastructure/answers-cli.ts dispute",
+    "grant": "tsx src/infrastructure/owner-cli.ts grant",
+    "stop": "tsx src/infrastructure/owner-cli.ts stop",
+    "agent": "tsx src/infrastructure/agent-cli.ts",
+    "report": "tsx scripts/report.ts",
+    "ab:no-think": "tsx scripts/ab-no-think.ts"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

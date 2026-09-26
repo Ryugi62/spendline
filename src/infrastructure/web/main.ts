@@ -83,7 +83,7 @@ app.addEventListener('click', async (ev) => {
   }
   if (action === 'copy-mandate' && grant.draft) {
     await navigator.clipboard?.writeText(JSON.stringify(grant.draft, null, 1)).catch(() => undefined);
-    btn.textContent = 'Copied — sign it on your machine';
+    btn.textContent = 'Copied — save as mandate.json, then npm run grant -- mandate.json';
   }
   if (action === 'stop') (document.getElementById('stop-sheet') as HTMLDialogElement | null)?.showModal();
   if (action === 'reload') load();
