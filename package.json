@@ -1,6 +1,6 @@
 {
   "name": "spendline",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
@@ -16,7 +16,11 @@
     "smoke:kiln": "tsx scripts/smoke-kiln.ts",
     "smoke:nile": "tsx scripts/smoke-nile.ts",
     "video": "node scripts/record-video.mjs",
-    "audit": "tsx src/infrastructure/audit-cli.ts"
+    "audit": "tsx src/infrastructure/audit-cli.ts",
+    "ui": "vite web",
+    "ui:build": "vite build web",
+    "ui:data": "tsx scripts/ui-data.ts",
+    "ui:capture": "tsx scripts/capture-ui.ts"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",
@@ -24,9 +28,11 @@
     "solc": "^0.8.30",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
+    "vite": "^7.3.6",
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@noble/hashes": "^1.4.0",
     "tronweb": "^6.5.1"
   }
 }
