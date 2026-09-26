@@ -1,3 +1,4 @@
+import type { ChainEvent } from '../domain/audit';
 import type { BlockReason, Mandate } from '../domain/mandate';
 import type { Receipt } from '../domain/receipt';
 import type { Flow, UsageRecord } from '../domain/tokenLedger';
@@ -28,4 +29,9 @@ export interface CatalogPort {
 export interface ReceiptStore {
   all(): Promise<Receipt[]>;
   append(r: Receipt): Promise<void>;
+}
+
+/** Public chain events for one vault. Keyless by contract: an auditor must never need a key to read the record. */
+export interface EventSource {
+  events(vault: string): Promise<ChainEvent[]>;
 }

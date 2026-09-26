@@ -15,7 +15,8 @@
     "compile:contract": "node scripts/compile-contract.mjs",
     "smoke:kiln": "tsx scripts/smoke-kiln.ts",
     "smoke:nile": "tsx scripts/smoke-nile.ts",
-    "video": "node scripts/record-video.mjs"
+    "video": "node scripts/record-video.mjs",
+    "audit": "tsx src/infrastructure/audit-cli.ts"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

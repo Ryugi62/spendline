@@ -1,4 +1,4 @@
-# Spendline — SPEC (SDD, v0.1 2026-09-24)
+# Spendline — SPEC (SDD, v0.5 2026-09-26)
 
 > GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum "Agent Finance" track · Challenge B (covers A's condition checks).
 > Brief (verbatim source): https://docs.google.com/document/d/13qh7oePGl7Flrl-Zh_A6hfr02L266PvS — model changed to **Qwen3-32B** (Bricksum, TG 2026-09-22).
@@ -36,6 +36,8 @@ Essence: not "an agent that can pay" but "**a payment that can prove it was allo
 | Flow | a named place where the LLM is called (F1 intent, F2 explain, F3 dispute) | `Flow` |
 | Token ledger | per-flow token / cost / latency / generation-id totals | `TokenLedger` |
 | Audit | rebuild verdicts from receipts + chain events only | `audit()` |
+| Event source | where public chain events come from (TronGrid, or a saved JSON) — keyless | `EventSource` |
+| Session | the public record the UI reads: vault, receipts, chain events | `Session` |
 
 ## 4. Domain model
 - Value objects: `Mandate`, `SpendRequest`, `Decision`, `Usage`. Entity: `Receipt` (seq, prevHash, hash). Aggregate: receipt chain.
@@ -48,7 +50,7 @@ Essence: not "an agent that can pay" but "**a payment that can prove it was allo
 | UC-1 grant | budget, cap, merchants, deadline | mandate tx | only the owner key |
 | UC-2 purchase | teammate's request text | receipt (paid or blocked) | F1 once → deterministic offer pick → vault `pay` always called (stops are recorded) |
 | UC-3 stop | human presses STOP | pause tx | further `pay` → blocked PAUSED |
-| UC-4 audit | receipts.jsonl + chain | verdict per receipt | no private data, no API key needed |
+| UC-4 audit | receipts file (`.jsonl`, one receipt per line, or a run JSON `{vault, receipts}`) + public chain events | verdict per receipt | no private data, no API key, no `.env`; the line in force is rebuilt from `MandateGranted` events, not from current contract state |
 | UC-5 explain | receipt id | plain-language explanation | F2 on demand only, cached |
 
 ## 6. Acceptance criteria (each → ≥1 test)
@@ -62,6 +64,26 @@ Essence: not "an agent that can pay" but "**a payment that can prove it was allo
 - AC-8 Given latency and tokens with assumption npuWatts When estimateEnergy Then Wh = watts × seconds / 3600 and the assumption text is returned with the number.
 - AC-9 Given the LLM returns prose around JSON When parseIntent Then the JSON object is extracted and validated, else a typed error (no response_format on Kiln).
 
+## 6b. v0.5 acceptance (build items R1 · R2 · R7)
+R7 — audit anyone can run (UC-4 as a CLI, `npm run audit -- <receipts file> [--vault T…] [--events file.json]`):
+- AC-10 Given two grants (m1, then m2) When audit Then spent is counted per mandate, and a grant clears an earlier STOP (as `SpendlineVault.grant` sets `paused = false`).
+- AC-11 Given `granted` chain events When audit Then the mandate for each receipt comes from those events (the `mandates` argument is only a fallback).
+- AC-12 Given a `.jsonl` receipts file or a run JSON When parsed Then receipts (+ vault if present) are returned; a bad line Then a typed error naming the line number.
+- AC-13 Given an audit result When reported Then one line per receipt (seq, verdict, reason, tx) + a summary line; exit code 0 only if the hash chain is intact and every receipt is PAID_INSIDE or STOPPED.
+- AC-14 Given TronGrid event payloads (shape measured 2026-09-26: `mandateId` without `0x`, addresses `0x`+40 hex, `merchants` one newline-joined string) When decoded Then chain events with base58 merchants and `0x`-prefixed mandate ids; pages follow `meta.fingerprint`; no key, no TronWeb signer.
+- AC-15 Given no `.env` and no key in the working directory When the CLI runs with `--events` Then it prints the report (keyless path is tested, not assumed).
+
+R2 — deadline stop measured once on Nile: grant m2 with a deadline a few minutes out → one paid run inside it → the same request after it → `SpendBlocked(DEADLINE_PASSED)`; the R7 CLI rebuilds every receipt (m1 + m2) with 0 mismatches. Unit side is AC-3.
+
+R1 — web UI skeleton, 4 screens (Grant · Feed · Receipt · Audit). Everything shown is rebuilt from public records by `audit()` — the UI never trusts the operator. No keys in the browser (non-goal), so Grant ends in a mandate to sign locally and STOP shows the recorded on-chain STOP until the local signer lands (v0.9).
+- AC-16 Given grant form values When `grantDraft` Then a mandate in micro-USDT, or plain-language errors (budget ≤ 0, cap ≤ 0 or > budget, no merchant, a merchant that is not a TRON address, deadline not in the future).
+- AC-17 Given a session (receipts + chain events) When `feedView` Then the first value is spent / budget of the latest mandate, rows newest first with paid / stopped + plain-language reason; no receipts Then an empty state.
+- AC-18 Given a session and a seq When `receiptView` Then amount first, one verdict line, the request words, a Nile tronscan link, and hash / token details for a collapsed section; unknown seq Then a not-found state.
+- AC-19 Given an audit result When `auditView` Then the first value is the problem count (mismatch + no event + broken chain), then per-receipt rows.
+- AC-20 Rendered screens: exactly one primary bottom CTA each, details collapsed by default, the number rendered before the verdict line, HTML-escaped user text; `index.html` has a viewport meta and no external font / CDN request.
+
+UI acceptance (Toss checklist → this product): mobile first (390 px no horizontal scroll, 1280 px intact) · Grant is a step form, ≤ 2 questions per step · titles ≥ 22 px bold, body 15–16 px, captions 13 px · sections ≥ 24 px apart, cards radius ≥ 16 px, ≤ 1 shadow · one fixed bottom CTA ≥ 52 px · number first (≥ 28 px) · proofs in `<details>` · short friendly copy, jargon glossed once · white + blue #3182F6 + ok / warn / stop colours, body contrast ≥ 4.5:1, dark mode minimal · system fonts, no CDN. Checked by tests (AC-20) + captures 390 / 1280.
+
 ## 7. Architecture (Clean)
 ```
 src/domain/ ← src/application/ ← src/adapters/ (kiln, tron, memory, jsonl) ← src/infrastructure/ (config, cli, composition root)
@@ -72,8 +94,9 @@ Domain imports nothing outside domain. Check: `grep -rn "adapters\|infrastructur
 Kiln calls: retry 429/5xx with `x-ratelimit-reset`; ≤2 LLM calls per purchase; every call logged with generation id. Chain: wait for receipt, record energy used.
 
 ## 9. Physical verification
-Nile: deploy vault → grant → 2 paid + 3 blocked + 1 STOP → tronscan links in README. Kiln: live F1 on qwen3-32b, token report from real `usage`.
+Nile: deploy vault → grant → 2 paid + 3 blocked + 1 STOP → tronscan links in README. R2 (deadline) and the R7 CLI are run against the same vault; UI captures at 390 / 1280. Kiln: live F1 on qwen3-32b, token report from real `usage`.
 Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 
 ## 10. Changelog
 - v0.1 2026-09-24 template + domain core (Jarvis, pre-hackathon; disclosed in README).
+- v0.5 2026-09-26 §6b: keyless audit CLI (R7), mandate history in audit, deadline stop on Nile (R2), UI skeleton (R1) — pre-hackathon, disclosed in README.

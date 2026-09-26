@@ -1,0 +1,201 @@
+{
+ "source": "https://nile.trongrid.io/v1/contracts/TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF/events?limit=3&order_by=block_timestamp,asc (measured 2026-09-26, public, no key)",
+ "pages": [
+  {
+   "data": [
+    {
+     "block_number": 71234838,
+     "block_timestamp": 1790230035000,
+     "caller_contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "event_index": 0,
+     "event_name": "MandateGranted",
+     "result": {
+      "0": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "1": "9900000",
+      "2": "8000000",
+      "3": "1790233632",
+      "4": "0x5617316339fc5b5938a22952c3c75de9871a812d\n0x442afb285e891c0a146252dc2d19cdc80033a48f",
+      "mandateId": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "perTxCap": "8000000",
+      "deadline": "1790233632",
+      "merchants": "0x5617316339fc5b5938a22952c3c75de9871a812d\n0x442afb285e891c0a146252dc2d19cdc80033a48f",
+      "budget": "9900000"
+     },
+     "result_type": {
+      "mandateId": "bytes32",
+      "perTxCap": "uint256",
+      "deadline": "uint256",
+      "merchants": "address[]",
+      "budget": "uint256"
+     },
+     "event": "MandateGranted(bytes32 indexed mandateId, uint256 budget, uint256 perTxCap, uint256 deadline, address[] merchants)",
+     "transaction_id": "304360a0a8185257a18e260a1b48dbe9e7d6746f029d2916a24c8ce117acc6cc"
+    },
+    {
+     "block_number": 71234840,
+     "block_timestamp": 1790230041000,
+     "caller_contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "event_index": 2,
+     "event_name": "Paid",
+     "result": {
+      "0": "a3979caaf684ed2e4ea4b257e4cf409c9382d3c1c0394326a869e0985fa2496b",
+      "1": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "2": "0x5617316339fc5b5938a22952c3c75de9871a812d",
+      "amount": "4800000",
+      "3": "4800000",
+      "4": "200000",
+      "5": "5000000",
+      "receiptHash": "a3979caaf684ed2e4ea4b257e4cf409c9382d3c1c0394326a869e0985fa2496b",
+      "spentAfter": "5000000",
+      "mandateId": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "fee": "200000",
+      "merchant": "0x5617316339fc5b5938a22952c3c75de9871a812d"
+     },
+     "result_type": {
+      "amount": "uint256",
+      "receiptHash": "bytes32",
+      "spentAfter": "uint256",
+      "mandateId": "bytes32",
+      "fee": "uint256",
+      "merchant": "address"
+     },
+     "event": "Paid(bytes32 indexed receiptHash, bytes32 indexed mandateId, address merchant, uint256 amount, uint256 fee, uint256 spentAfter)",
+     "transaction_id": "14d696c38d4aefa3503754093deef91e2a58ca876e839d7d05a69ee565ab393f"
+    },
+    {
+     "block_number": 71234859,
+     "block_timestamp": 1790230098000,
+     "caller_contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "event_index": 0,
+     "event_name": "SpendBlocked",
+     "result": {
+      "0": "06a3710106484ea63c9279a3adfc5992087c292d31c11467e7bb6e6f33eed766",
+      "1": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "reason": "3",
+      "2": "0xb8afa1a0f96e208d0f8e699b2aa63a28a370cfda",
+      "amount": "1800000",
+      "3": "1800000",
+      "4": "0",
+      "5": "3",
+      "receiptHash": "06a3710106484ea63c9279a3adfc5992087c292d31c11467e7bb6e6f33eed766",
+      "mandateId": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "fee": "0",
+      "merchant": "0xb8afa1a0f96e208d0f8e699b2aa63a28a370cfda"
+     },
+     "result_type": {
+      "reason": "uint8",
+      "amount": "uint256",
+      "receiptHash": "bytes32",
+      "mandateId": "bytes32",
+      "fee": "uint256",
+      "merchant": "address"
+     },
+     "event": "SpendBlocked(bytes32 indexed receiptHash, bytes32 indexed mandateId, address merchant, uint256 amount, uint256 fee, uint8 reason)",
+     "transaction_id": "dfabe354f7f527177d29f085c326b90752e69e1f2214cf629627409bbf6f601b"
+    }
+   ],
+   "success": true,
+   "meta": {
+    "at": 1790389852037,
+    "fingerprint": "338QzdkRE5vxs7zSxXtcqQxPVBgnjEFhU3yCrskV2q7643srfzEurvdm8Ycj7QDBK8CVYENKu8qtTtdWavNcRkPnsQyE9kJ5UxKkwdN3ukU16FoGodiQj4s9rTgwPa6rNsXDdorGVkQ9gNYM1zgepwgx7G5KMpJhwmPhMDJ3T2Xuw7hSfUyMjbyWumJkZiuCck63k3pK2RBexcQUcUnzEnwZM4KKziN",
+    "links": {
+     "next": "https://nile.trongrid.io/v1/contracts/TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF/events?limit=3&order_by=block_timestamp,asc&fingerprint=338QzdkRE5vxs7zSxXtcqQxPVBgnjEFhU3yCrskV2q7643srfzEurvdm8Ycj7QDBK8CVYENKu8qtTtdWavNcRkPnsQyE9kJ5UxKkwdN3ukU16FoGodiQj4s9rTgwPa6rNsXDdorGVkQ9gNYM1zgepwgx7G5KMpJhwmPhMDJ3T2Xuw7hSfUyMjbyWumJkZiuCck63k3pK2RBexcQUcUnzEnwZM4KKziN"
+    },
+    "page_size": 3
+   }
+  },
+  {
+   "data": [
+    {
+     "block_number": 71234878,
+     "block_timestamp": 1790230155000,
+     "caller_contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "event_index": 0,
+     "event_name": "SpendBlocked",
+     "result": {
+      "0": "2b11732603439270792add03c0af7920b2d3daa61a1a030b2aa12a68a7af5cde",
+      "1": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "reason": "6",
+      "2": "0x5617316339fc5b5938a22952c3c75de9871a812d",
+      "amount": "4800000",
+      "3": "4800000",
+      "4": "200000",
+      "5": "6",
+      "receiptHash": "2b11732603439270792add03c0af7920b2d3daa61a1a030b2aa12a68a7af5cde",
+      "mandateId": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "fee": "200000",
+      "merchant": "0x5617316339fc5b5938a22952c3c75de9871a812d"
+     },
+     "result_type": {
+      "reason": "uint8",
+      "amount": "uint256",
+      "receiptHash": "bytes32",
+      "mandateId": "bytes32",
+      "fee": "uint256",
+      "merchant": "address"
+     },
+     "event": "SpendBlocked(bytes32 indexed receiptHash, bytes32 indexed mandateId, address merchant, uint256 amount, uint256 fee, uint8 reason)",
+     "transaction_id": "9a1fe129669d67089d36146fdeaff37a49a0414dc6d028447174deb928e6f64a"
+    },
+    {
+     "block_number": 71234897,
+     "block_timestamp": 1790230218000,
+     "caller_contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "event_index": 0,
+     "event_name": "Paused",
+     "result": {
+      "0": "0xd8923fa5dae9412ece2d368ad8172b8228a446b9",
+      "by": "0xd8923fa5dae9412ece2d368ad8172b8228a446b9"
+     },
+     "result_type": {
+      "by": "address"
+     },
+     "event": "Paused(address by)",
+     "transaction_id": "488996eef9ecdc35f53004ccb1f7b5b1d43484fc84ebb9a7bf6a154f382a0721"
+    },
+    {
+     "block_number": 71234899,
+     "block_timestamp": 1790230224000,
+     "caller_contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "contract_address": "TNw1jzJ8NXHmhvwNhLRjLTiBzosu3GXAqF",
+     "event_index": 0,
+     "event_name": "SpendBlocked",
+     "result": {
+      "0": "bee5811f3bc5a3e797603e1ee77fee5d0efb84b26f6f3ee9eef4cc851e7f9556",
+      "1": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "reason": "1",
+      "2": "0x5617316339fc5b5938a22952c3c75de9871a812d",
+      "amount": "2400000",
+      "3": "2400000",
+      "4": "200000",
+      "5": "1",
+      "receiptHash": "bee5811f3bc5a3e797603e1ee77fee5d0efb84b26f6f3ee9eef4cc851e7f9556",
+      "mandateId": "1a13ae1a67e6e5e953416c741814132e509a83c2dc80804b7d5a126281f162aa",
+      "fee": "200000",
+      "merchant": "0x5617316339fc5b5938a22952c3c75de9871a812d"
+     },
+     "result_type": {
+      "reason": "uint8",
+      "amount": "uint256",
+      "receiptHash": "bytes32",
+      "mandateId": "bytes32",
+      "fee": "uint256",
+      "merchant": "address"
+     },
+     "event": "SpendBlocked(bytes32 indexed receiptHash, bytes32 indexed mandateId, address merchant, uint256 amount, uint256 fee, uint8 reason)",
+     "transaction_id": "5c91105ed9d0cd49ea8822ab0d30f3d5d9a34232f8020096d658befede01cffc"
+    }
+   ],
+   "success": true,
+   "meta": {
+    "at": 1790389852698,
+    "page_size": 3
+   }
+  }
+ ]
+}
