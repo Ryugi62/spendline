@@ -125,6 +125,13 @@ and the video, deck and pitch must say only what the record says.
   five acceptance criteria' evidence, who pays / where it plugs in, and what is not done; every number in the slide text is a fact or a stated
   assumption (the AC-23 number rule, applied to our own copy). `npm run deck` renders `docs/deck.pdf` (1 page per slide, checked) and
   `docs/qa.md` (10 judge questions, answers under the same number rule).
+M1 mock review (2026-09-28) — Kiln tool calling, the organizers' own pointer ("Qwen3-32B Tool Call Parser", GWDC TG; the model was switched *because* of tool calling):
+- AC-33 Given F1 When the purchase runs Then the Kiln request carries one tool `propose_purchase` (JSON-schema parameters: item ∈ catalog items, quantity > 0,
+  optional maxUnitPrice, optional merchantHint) with `tool_choice: "auto"` (the only mode qwen3-32b supports); a returned tool call's `arguments` are validated
+  by the same `parseIntent`; a reply in text instead of a call goes down the text-JSON path; the F1 usage records `via: "tool_call" | "text"`. Other flows send no tools.
+- AC-34 Given the same 12 requests in both arms (tool call · text JSON, `/no_think` both, order alternating) When `abSummary` Then per arm parse rate, median prompt / output tokens,
+  latency, Wh and same-JSON pairs. Decision rule fixed before the run: production = tool call **iff** its parse rate ≥ the text arm's and same JSON ≥ 11 / 12 and its median latency
+  ≤ 1.2 × the text arm's; otherwise text JSON stays and the report says why. Written to `docs/ab-tool-call-<date>.json` and `docs/tokens-by-flow.md`.
 - Physical: UI captures re-taken on the live record (390 / 1280, 0 sideways scroll) · `docs/video/spendline-demo.mp4` ≤ 3:00 ·
   `docs/video/spendline-pitch.mp4` ≤ 5:00 (deck slides + the same narration pipeline) · `docs/deck.pdf`.
 

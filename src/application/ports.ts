@@ -5,9 +5,12 @@ import type { Receipt } from '../domain/receipt';
 import type { Flow, UsageRecord } from '../domain/tokenLedger';
 
 export type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
-export type ChatOptions = { maxTokens?: number; thinking?: boolean };
+/** A function the model may call (OpenAI-compatible `tools`; qwen3-32b on Kiln: tool_choice auto only). */
+export type ToolSpec = { name: string; description: string; parameters: Record<string, unknown> };
+export type ToolCall = { name: string; arguments: string };
+export type ChatOptions = { maxTokens?: number; thinking?: boolean; tools?: ToolSpec[] };
 export interface LlmPort {
-  chat(flow: Flow, messages: ChatMessage[], opts?: ChatOptions): Promise<{ text: string; usage: UsageRecord }>;
+  chat(flow: Flow, messages: ChatMessage[], opts?: ChatOptions): Promise<{ text: string; usage: UsageRecord; toolCall?: ToolCall }>;
 }
 
 export type PayCall = { merchant: string; amount: number; fee: number; receiptHash: string };

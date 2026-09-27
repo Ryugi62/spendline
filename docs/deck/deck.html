@@ -30,6 +30,7 @@ code{font:16px ui-monospace,Menlo,monospace;background:#f2f4f6;border-radius:6px
 <section class="slide" id="kiln"><h2>Kiln integration &amp; efficiency</h2><div class="stats"><div><p class="num">1.00</p><p>LLM call per purchase<br><small>design limit 2</small></p></div>
 <div><p class="num">26</p><p>live Kiln calls in 3 flows<br><small>18,490 tokens · $0.0014723</small></p></div>
 <div><p class="num">0.10<span> Wh</span></p><p>per purchase (est.)<br><small>3.33 Wh in total</small></p></div></div>
+<p class="lead">F1 is a Kiln tool call (<code>propose_purchase</code>, the Qwen3-32B tool parser) — chosen over JSON-in-text by a rule we fixed before a live A/B.</p>
 <p class="lead">/no_think A/B, n = 12: median 36 vs 223 output tokens · 0.95 vs 3.50 s · same JSON 12/12 → 84% fewer tokens.</p>
 <p class="note">Energy is an estimate, never a measurement: 180 W (RNGD card TDP, furiosa.ai/rngd) × measured wall time. Tokens by flow, generation ids: docs/tokens-by-flow.md.</p><p class="foot">Spendline · 5 / 11</p></section>
 <section class="slide" id="chain"><h2>Blockchain integration — read · write · settle</h2><ul class="big-list"><li><b>Agent reads</b> the line: budget, per-payment cap, sellers, deadline, paused, spent.</li>
@@ -59,5 +60,5 @@ code{font:16px ui-monospace,Menlo,monospace;background:#f2f4f6;border-radius:6px
 npm run audit -- docs/receipts-nile-live.jsonl --vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu
 npm run report     # tokens · USD · latency · Wh by flow
 npm run ui         # Grant · Feed · Receipt · Audit</pre>
-<p class="lead">124 tests · every model call on live Kiln · every stop on-chain.</p>
+<p class="lead">132 tests · every model call on live Kiln · every stop on-chain.</p>
 <p class="kicker">Spendline — a payment that can prove it was allowed.</p><p class="foot">Spendline · 11 / 11</p></section></body></html>

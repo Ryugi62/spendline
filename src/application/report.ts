@@ -1,4 +1,4 @@
-import type { AbSummary, FlowReport, FlowRow } from '../domain/flowReport';
+import { toolCallDecision, type AbSummary, type FlowReport, type FlowRow } from '../domain/flowReport';
 
 /** Markdown for docs/tokens-by-flow.md (M0-11) and its /no_think section (M0-12). Numbers come from domain/flowReport only. */
 const WHAT: Record<string, string> = {
@@ -67,6 +67,27 @@ export function formatAb(a: AbSummary, o: { file: string; date: string }): strin
     '',
     `- Same JSON (item · quantity · price cap · seller hint): ${a.sameJson} / ${a.n} pairs.`,
     `- \`/no_think\` saves ${a.completionSavedPct.toFixed(0)}% of median output tokens and ${a.latencySavedPct.toFixed(0)}% of median latency (≈ the same share of estimated Wh).`,
+    '',
+  ].join('\n');
+}
+
+/** AC-34: tool call (arm `off`) vs text JSON (arm `on`), and the decision the pre-registered rule makes. */
+export function formatToolAb(a: AbSummary, o: { file: string; date: string }): string {
+  const pct = (x: number) => `${Math.round(x * 100)}%`;
+  const armRow = (name: string, x: AbSummary['off']) =>
+    `| ${name} | ${x.n} | ${pct(x.parseRate)} | ${x.medianPrompt} | ${x.medianCompletion} | ${s(x.medianLatencyMs)} | ${x.medianWh.toFixed(4)} | ${usd(x.costUsd)} |`;
+  const d = toolCallDecision(a);
+  return [
+    `## F1 tool call vs text JSON — n = ${a.n} pairs${a.note ? ` (${a.note})` : ''}`,
+    `Same F1 request, once as a Kiln tool call (\`propose_purchase\`, tool_choice auto) and once as JSON in the text reply, both \`/no_think\`, pairs in alternating order, ${o.date}. Raw calls with generation ids: \`${o.file}\`.`,
+    '',
+    '| Arm | n | Intent parsed | Median prompt tokens | Median output tokens | Median latency | Median Wh (est.) | USD total |',
+    '|---|---:|---:|---:|---:|---:|---:|---:|',
+    armRow('tool call `propose_purchase`', a.off),
+    armRow('JSON in the text reply', a.on),
+    '',
+    `- Same intent (item · quantity · price cap · seller hint): ${a.sameJson} / ${a.n} pairs.`,
+    `- Rule fixed before the run (SPEC AC-34): tool call only if it parses as often, agrees on ≥ 11 / 12 and is not > 1.2× slower. **Production: ${d.production === 'tool_call' ? 'tool call' : 'text JSON'}** — ${d.why}.`,
     '',
   ].join('\n');
 }

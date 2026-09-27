@@ -1,4 +1,4 @@
-import type { ChatMessage, ChatOptions, LlmPort } from '../application/ports';
+import type { ChatMessage, ChatOptions, LlmPort, ToolCall } from '../application/ports';
 import type { Flow, UsageRecord } from '../domain/tokenLedger';
 
 /**
@@ -28,7 +28,8 @@ export class KilnLlm implements LlmPort {
     const msgs = messages.map((m) => ({ ...m }));
     const lastUser = [...msgs].reverse().find((m) => m.role === 'user');
     if (lastUser && opts.thinking !== undefined && !/\/(no_)?think\b/.test(lastUser.content)) lastUser.content += opts.thinking ? ' /think' : ' /no_think';
-    const body = JSON.stringify({ model: this.model, messages: msgs, max_tokens: opts.maxTokens ?? 512, stream: false });
+    const tools = opts.tools?.length ? { tools: opts.tools.map((t) => ({ type: 'function', function: t })), tool_choice: 'auto' } : {};
+    const body = JSON.stringify({ model: this.model, messages: msgs, max_tokens: opts.maxTokens ?? 512, stream: false, ...tools });
     for (let attempt = 0; ; attempt++) {
       const t0 = this.now();
       const res = await this.f(`${this.base}/chat/completions`, {
@@ -44,7 +45,7 @@ export class KilnLlm implements LlmPort {
       }
       if (!res.ok) throw new Error(`Kiln ${res.status}: ${(await res.text()).slice(0, 300)}`);
       const j = (await res.json()) as {
-        choices: { message: { content: string | null } }[];
+        choices: { message: { content: string | null; tool_calls?: { function?: { name?: string; arguments?: string } }[] } }[];
         usage?: { prompt_tokens?: number; completion_tokens?: number; cost?: number };
       };
       const text = stripThink(j.choices?.[0]?.message?.content ?? '');
@@ -57,7 +58,9 @@ export class KilnLlm implements LlmPort {
         generationId: res.headers.get('x-neocloud-generation-id') ?? '',
       };
       this.records.push(usage);
-      return { text, usage };
+      const fn = j.choices?.[0]?.message?.tool_calls?.[0]?.function;
+      const toolCall: ToolCall | undefined = fn?.name ? { name: fn.name, arguments: fn.arguments ?? '{}' } : undefined;
+      return toolCall ? { text, usage, toolCall } : { text, usage };
     }
   }
 }

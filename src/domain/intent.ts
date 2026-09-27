@@ -2,6 +2,23 @@
 export type Intent = { item: string; quantity: number; maxUnitPrice?: number; merchantHint?: string; note?: string };
 export class IntentError extends Error {}
 
+/**
+ * Kiln 2026-09-28: with tools offered, qwen3-32b sometimes answers with the hermes-style call as plain content
+ * (`{"name": "propose_purchase", "arguments": {...}}`) instead of `tool_calls`. Returns that call's arguments as JSON text.
+ */
+export function leakedToolCall(text: string, name: string): string | undefined {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start < 0 || end <= start) return undefined;
+  try {
+    const o = JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
+    const args = o.arguments;
+    return o.name === name && args && typeof args === 'object' && !Array.isArray(args) ? JSON.stringify(args) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function parseIntent(text: string): Intent {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');

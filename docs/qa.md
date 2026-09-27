@@ -3,7 +3,7 @@
 Every number here comes from the public record (`npm run audit`, `docs/tokens-by-flow.md`) or is a stated assumption; `tests/pitch.test.ts` fails the build if one does not.
 
 ### Q1 (Kiln) Is Kiln doing real work, or is it decoration?
-Every purchase starts with one Kiln call (flow F1): the request words become `{item, quantity, maxUnitPrice?, merchantHint?}`, and that JSON decides which seller and how much. The seller hint is how "buy from that cheap seller" reached the vault and was stopped (receipt #2). F2 explains a receipt and F3 settles a teammate's question. 26 live calls in 3 flows, each with its Kiln generation id in [docs/tokens-by-flow.md](tokens-by-flow.md).
+Every purchase starts with one Kiln call (flow F1): the request words become `{item, quantity, maxUnitPrice?, merchantHint?}`, and that JSON decides which seller and how much. The seller hint is how "buy from that cheap seller" reached the vault and was stopped (receipt #2). Since v0.7, F1 is a Kiln tool call (`propose_purchase`, Qwen3-32B's tool parser — the organizers' pointer); we measured it against JSON-in-text before switching, and found and handled a case where Kiln returns the call as plain text ([docs/tokens-by-flow.md](tokens-by-flow.md)). F2 explains a receipt and F3 settles a teammate's question. 26 live calls in 3 flows, each with its Kiln generation id in [docs/tokens-by-flow.md](tokens-by-flow.md).
 
 ### Q2 (Kiln) Why only one call per purchase — wouldn't a planning loop be smarter?
 The decision that matters (pay or not) is a rule, so it is code and chain, not a model: the offer choice, the micro-USDT math and the receipt cost 0 calls. 1.00 LLM call per purchase against a design limit of 2. Every call not made is energy not spent.

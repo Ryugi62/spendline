@@ -4,7 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { readJsonl } from '../src/adapters/files';
 import { parseReceiptsFile } from '../src/application/auditRecords';
 import type { AnswerRecord } from '../src/application/ports';
-import { formatAb, formatFlowReport, revisionNotes } from '../src/application/report';
+import { formatAb, formatFlowReport, formatToolAb, revisionNotes } from '../src/application/report';
 import { abSummary, flowReport, type AbPair } from '../src/domain/flowReport';
 import { flag, LIVE_ANSWERS, LIVE_RECEIPTS } from '../src/infrastructure/runtime';
 
@@ -30,6 +30,13 @@ let md = formatFlowReport(report, {
 if (existsSync(abFile)) {
   const ab = JSON.parse(readFileSync(abFile, 'utf8')) as { date: string; pairs: AbPair[] };
   md += '\n' + formatAb(abSummary(ab.pairs), { file: abFile, date: ab.date });
+}
+for (const run of ['run1', 'run2']) {
+  const file = `docs/ab-tool-call-2026-09-28-${run}.json`;
+  if (!existsSync(file)) continue;
+  const t = JSON.parse(readFileSync(file, 'utf8')) as { date: string; note?: string; pairs: AbPair[] };
+  md += '\n' + formatToolAb(abSummary(t.pairs), { file, date: t.date }).replace('## F1 tool call vs text JSON', `## F1 tool call vs text JSON (${run})`);
+  if (t.note) md += `- ${t.note}\n`;
 }
 md += `\nRegenerate: \`npm run report\` (reads the files above; no key).\n`;
 writeFileSync(out, md);

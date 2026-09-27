@@ -59,6 +59,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
       html: `<div class="stats"><div><p class="num">${f.callsPerPurchase}</p><p>LLM call per purchase<br><small>design limit 2</small></p></div>
 <div><p class="num">${f.kilnCalls}</p><p>live Kiln calls in ${f.flows} flows<br><small>${f.tokens} tokens · $${f.usd}</small></p></div>
 <div><p class="num">${f.whPerPurchase}<span> Wh</span></p><p>per purchase (est.)<br><small>${f.wh} Wh in total</small></p></div></div>
+<p class="lead">F1 is a Kiln tool call (<code>propose_purchase</code>, the Qwen3-32B tool parser) — chosen over JSON-in-text by a rule we fixed before a live A/B.</p>
 <p class="lead">/no_think A/B, n = ${f.ab.n}: median ${f.ab.offTokens} vs ${f.ab.onTokens} output tokens · ${f.ab.offSeconds} vs ${f.ab.onSeconds} s · same JSON ${f.ab.sameJson}/${f.ab.n} → ${f.ab.tokensSavedPct}% fewer tokens.</p>
 <p class="note">Energy is an estimate, never a measurement: 180 W (RNGD card TDP, furiosa.ai/rngd) × measured wall time. Tokens by flow, generation ids: docs/tokens-by-flow.md.</p>`,
     },

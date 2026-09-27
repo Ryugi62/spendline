@@ -104,3 +104,17 @@ export function abSummary(pairs: AbPair[], npuWatts = 180): AbSummary {
     note: pairs.length < 10 ? 'n below 10' : undefined,
   };
 }
+
+/** AC-34 decision rule, fixed before the live run. `off` = tool-call arm, `on` = text-JSON arm. */
+export function toolCallDecision(a: AbSummary): { production: 'tool_call' | 'text'; why: string } {
+  const ratio = a.on.medianLatencyMs ? a.off.medianLatencyMs / a.on.medianLatencyMs : 1;
+  const checks = [
+    [a.off.parseRate >= a.on.parseRate, `parse rate ${Math.round(a.off.parseRate * 100)}% vs ${Math.round(a.on.parseRate * 100)}%`],
+    [a.sameJson >= 11, `same JSON ${a.sameJson} / ${a.n}`],
+    [ratio <= 1.2, `median latency ${ratio.toFixed(2)}× the text arm`],
+  ] as const;
+  const failed = checks.filter(([ok]) => !ok).map(([, w]) => w);
+  return failed.length
+    ? { production: 'text', why: `text JSON stays: ${failed.join(' · ')}` }
+    : { production: 'tool_call', why: `tool call: ${checks.map(([, w]) => w).join(' · ')}` };
+}

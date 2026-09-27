@@ -35,4 +35,28 @@ Same F1 request, sent once with Qwen3's `/no_think` soft switch and once with th
 - Same JSON (item · quantity · price cap · seller hint): 12 / 12 pairs.
 - `/no_think` saves 84% of median output tokens and 73% of median latency (≈ the same share of estimated Wh).
 
+## F1 tool call vs text JSON (run1) — n = 12 pairs
+Same F1 request, once as a Kiln tool call (`propose_purchase`, tool_choice auto) and once as JSON in the text reply, both `/no_think`, pairs in alternating order, 2026-09-28. Raw calls with generation ids: `docs/ab-tool-call-2026-09-28-run1.json`.
+
+| Arm | n | Intent parsed | Median prompt tokens | Median output tokens | Median latency | Median Wh (est.) | USD total |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| tool call `propose_purchase` | 12 | 83% | 322.5 | 40 | 1.00 s | 0.0500 | $0.0003190 |
+| JSON in the text reply | 12 | 100% | 104.5 | 33 | 0.95 s | 0.0478 | $0.0001991 |
+
+- Same intent (item · quantity · price cap · seller hint): 9 / 12 pairs.
+- Rule fixed before the run (SPEC AC-34): tool call only if it parses as often, agrees on ≥ 11 / 12 and is not > 1.2× slower. **Production: text JSON** — text JSON stays: parse rate 83% vs 100% · same JSON 9 / 12.
+- run1: parser read tool_calls only; 2 of 12 tool-arm replies carried the call as plain text ({"name","arguments"}) and failed to parse → leakedToolCall added before run2 (prompt and rule unchanged)
+
+## F1 tool call vs text JSON (run2) — n = 12 pairs
+Same F1 request, once as a Kiln tool call (`propose_purchase`, tool_choice auto) and once as JSON in the text reply, both `/no_think`, pairs in alternating order, 2026-09-28. Raw calls with generation ids: `docs/ab-tool-call-2026-09-28-run2.json`.
+
+| Arm | n | Intent parsed | Median prompt tokens | Median output tokens | Median latency | Median Wh (est.) | USD total |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| tool call `propose_purchase` | 12 | 100% | 322.5 | 40 | 1.03 s | 0.0515 | $0.0003176 |
+| JSON in the text reply | 12 | 100% | 104.5 | 33.5 | 0.90 s | 0.0451 | $0.0001924 |
+
+- Same intent (item · quantity · price cap · seller hint): 12 / 12 pairs.
+- Rule fixed before the run (SPEC AC-34): tool call only if it parses as often, agrees on ≥ 11 / 12 and is not > 1.2× slower. **Production: tool call** — tool call: parse rate 100% vs 100% · same JSON 12 / 12 · median latency 1.14× the text arm.
+- run2: leaked calls parsed (tool_call_in_text) — the rule picks the tool call. Price of that choice: ≈3× prompt tokens (the tool schema rides along) and ≈1.6× USD per F1 call; in run1 the text arm once invented a price cap the request never stated (maxUnitPrice 50 for "just one" dataset), the tool arm did not · run2 tool-arm paths: tool_calls 11, leaked into text 0, plain JSON 1
+
 Regenerate: `npm run report` (reads the files above; no key).

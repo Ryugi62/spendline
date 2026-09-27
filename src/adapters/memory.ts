@@ -2,19 +2,26 @@ import type { ChainEvent } from '../domain/audit';
 import { evaluate, type Mandate } from '../domain/mandate';
 import type { Receipt } from '../domain/receipt';
 import { STAND_IN_PREFIX, type Flow } from '../domain/tokenLedger';
-import type { AnswerLog, AnswerRecord, CatalogPort, ChainPort, ChatMessage, LlmPort, Offer, PayCall, PayOutcome, ReceiptStore } from '../application/ports';
+import type { AnswerLog, AnswerRecord, CatalogPort, ChainPort, ChatMessage, ChatOptions, LlmPort, Offer, PayCall, PayOutcome, ReceiptStore, ToolSpec } from '../application/ports';
 
 /** Test doubles. MemoryChain mirrors SpendlineVault.sol: same evaluate(), stops are events, not reverts. */
 export class FakeLlm implements LlmPort {
   private i = 0;
   /** every prompt it was sent, in order (tests read what the model would have seen) */
   readonly seen: ChatMessage[][] = [];
-  constructor(private replies: string[]) {}
-  async chat(flow: Flow, messages: ChatMessage[]) {
+  /** the tools offered with each call */
+  readonly tools: ToolSpec[][] = [];
+  /** a string = a text reply; `{tool, arguments}` = a tool call (AC-33) */
+  constructor(private replies: (string | { tool: string; arguments: string })[]) {}
+  async chat(flow: Flow, messages: ChatMessage[], opts: ChatOptions = {}) {
     this.seen.push(messages.map((m) => ({ ...m })));
-    const text = this.replies[this.i++] ?? '{}';
+    this.tools.push(opts.tools ?? []);
+    const r = this.replies[this.i++] ?? '{}';
+    const text = typeof r === 'string' ? r : '';
+    const out = typeof r === 'string' ? text : r.arguments;
     const promptTokens = messages.reduce((n, m) => n + Math.ceil(m.content.length / 4), 0);
-    return { text, usage: { flow, promptTokens, completionTokens: Math.ceil(text.length / 4), costUsd: 0, latencyMs: 0, generationId: `${STAND_IN_PREFIX}${this.i}` } };
+    const usage = { flow, promptTokens, completionTokens: Math.ceil(out.length / 4), costUsd: 0, latencyMs: 0, generationId: `${STAND_IN_PREFIX}${this.i}` };
+    return typeof r === 'string' ? { text, usage } : { text, usage, toolCall: { name: r.tool, arguments: r.arguments } };
   }
 }
 

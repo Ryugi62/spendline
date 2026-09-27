@@ -29,7 +29,8 @@
     "report": "tsx scripts/report.ts",
     "ab:no-think": "tsx scripts/ab-no-think.ts",
     "video:stage": "tsx scripts/video-stage.ts",
-    "deck": "tsx scripts/deck.ts"
+    "deck": "tsx scripts/deck.ts",
+    "ab:tool-call": "tsx scripts/ab-tool-call.ts"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

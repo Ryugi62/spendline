@@ -8,6 +8,8 @@ export type UsageRecord = {
   costUsd: number;
   latencyMs: number;
   generationId: string;
+  /** F1 only (AC-33): the intent came from a Kiln tool call, a tool call leaked into the text, or JSON in the text reply */
+  via?: 'tool_call' | 'tool_call_in_text' | 'text';
 };
 
 /** Scripted test double (FakeLlm) marks its usage with this generation-id prefix. It is never a Kiln call. */

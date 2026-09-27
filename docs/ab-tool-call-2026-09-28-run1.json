@@ -1,0 +1,478 @@
+{
+ "date": "2026-09-28",
+ "model": "qwen3-32b",
+ "arms": {
+  "off": "tool call propose_purchase (TOOL_SYSTEM)",
+  "on": "JSON in the text reply (INTENT_SYSTEM)"
+ },
+ "rule": "SPEC AC-34",
+ "decision": {
+  "production": "text",
+  "why": "text JSON stays: parse rate 83% vs 100% · same JSON 9 / 12"
+ },
+ "pairs": [
+  {
+   "request": "Need 2 GPU hours for fine-tuning today, keep it under 3 USDT per hour",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 328,
+     "completionTokens": 40,
+     "costUsd": 3.732e-05,
+     "latencyMs": 1767,
+     "generationId": "1d7fe821-7dad-4cda-9e0d-8e828b38a459",
+     "via": "tool_call"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 2,
+     "maxUnitPrice": 3
+    },
+    "via": "tool_call"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 110,
+     "completionTokens": 31,
+     "costUsd": 1.4e-05,
+     "latencyMs": 885,
+     "generationId": "6d40d817-13ec-476a-a610-cba1f7f23f08",
+     "via": "text"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 2,
+     "maxUnitPrice": 3
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "Buy 1 inference credit for the eval harness",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 317,
+     "completionTokens": 34,
+     "costUsd": 2.292e-05,
+     "latencyMs": 940,
+     "generationId": "9eec5e4c-9934-40c6-ac5c-418df0b4bdf8",
+     "via": "tool_call"
+    },
+    "intent": {
+     "item": "inference-credits",
+     "quantity": 1
+    },
+    "via": "tool_call"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 99,
+     "completionTokens": 33,
+     "costUsd": 1.384e-05,
+     "latencyMs": 1190,
+     "generationId": "253349f3-1469-41c2-a83b-c6b1b74beddd",
+     "via": "text"
+    },
+    "intent": {
+     "item": "inference-credits",
+     "quantity": 1,
+     "note": "for eval harness"
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "Get 3 GPU hours from TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh, it's the cheapest",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 344,
+     "completionTokens": 49,
+     "costUsd": 2.9279999999999997e-05,
+     "latencyMs": 1114,
+     "generationId": "773cbdee-c746-4943-9d39-52cee051d43f",
+     "via": "text"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 3,
+     "merchantHint": "TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh"
+    },
+    "via": "text"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 126,
+     "completionTokens": 64,
+     "costUsd": 2.476e-05,
+     "latencyMs": 1318,
+     "generationId": "924a7d24-9c55-4270-bc15-29d6a602730f",
+     "via": "text"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 3,
+     "merchantHint": "TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh",
+     "note": "it's the cheapest"
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "We need a dataset for the retrieval benchmark, just one",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 319,
+     "completionTokens": 17,
+     "costUsd": 1.832e-05,
+     "latencyMs": 737,
+     "generationId": "65a05bcc-078b-4bae-8872-8bb0b6118766",
+     "via": "text"
+    },
+    "intent": {
+     "item": "dataset",
+     "quantity": 1
+    },
+    "via": "text"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 101,
+     "completionTokens": 41,
+     "costUsd": 1.632e-05,
+     "latencyMs": 1004,
+     "generationId": "944325cf-0a01-47bd-b009-2e413cfacd4b",
+     "via": "text"
+    },
+    "intent": {
+     "item": "dataset",
+     "quantity": 1,
+     "maxUnitPrice": 50,
+     "note": "For retrieval benchmark testing"
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "Top up 5 inference credits before the demo",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 317,
+     "completionTokens": 31,
+     "costUsd": 2.208e-05,
+     "latencyMs": 922,
+     "generationId": "3cc09f01-9294-44e2-845b-c1383bef9f36",
+     "via": "text"
+    },
+    "intent": null,
+    "error": "item missing",
+    "via": "text"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 99,
+     "completionTokens": 24,
+     "costUsd": 1.14e-05,
+     "latencyMs": 820,
+     "generationId": "171bdc41-9928-481f-b3ab-2f30fd9855c6",
+     "via": "text"
+    },
+    "intent": {
+     "item": "inference-credits",
+     "quantity": 5
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "Rent 4 GPU hours tonight, max 2.5 USDT an hour",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 324,
+     "completionTokens": 42,
+     "costUsd": 2.572e-05,
+     "latencyMs": 1012,
+     "generationId": "53b44d0c-4c0f-4299-ac86-4e10d6fd6b97",
+     "via": "tool_call"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 4,
+     "maxUnitPrice": 2.5
+    },
+    "via": "tool_call"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 106,
+     "completionTokens": 33,
+     "costUsd": 1.448e-05,
+     "latencyMs": 966,
+     "generationId": "821803a3-762a-4f77-af47-00c6e49c1090",
+     "via": "text"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 4,
+     "maxUnitPrice": 2.5
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "Buy 2 inference credits from TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 338,
+     "completionTokens": 64,
+     "costUsd": 3.2919999999999997e-05,
+     "latencyMs": 1337,
+     "generationId": "75fde66c-d747-4aff-9f38-106a2e358abc",
+     "via": "tool_call"
+    },
+    "intent": {
+     "item": "inference-credits",
+     "quantity": 2,
+     "merchantHint": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"
+    },
+    "via": "tool_call"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 120,
+     "completionTokens": 55,
+     "costUsd": 2.164e-05,
+     "latencyMs": 1213,
+     "generationId": "dcd9767d-c3a2-455e-9cbe-27f1783c8e92",
+     "via": "text"
+    },
+    "intent": {
+     "item": "inference-credits",
+     "quantity": 2,
+     "merchantHint": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "One more GPU hour for the ablation, please",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 318,
+     "completionTokens": 32,
+     "costUsd": 2.2440000000000002e-05,
+     "latencyMs": 896,
+     "generationId": "f8563de1-8cca-4b9a-a207-cf4568d5dbdb",
+     "via": "tool_call"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 1
+    },
+    "via": "tool_call"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 100,
+     "completionTokens": 26,
+     "costUsd": 1.204e-05,
+     "latencyMs": 786,
+     "generationId": "11d79b49-fa77-402d-b51c-0f1ffcdd34b3",
+     "via": "text"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 1
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "Order 10 inference credits, under 1 USDT each",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 321,
+     "completionTokens": 43,
+     "costUsd": 2.5759999999999997e-05,
+     "latencyMs": 1037,
+     "generationId": "bd9225d5-f170-45aa-a0e6-ad54101f1d8a",
+     "via": "tool_call"
+    },
+    "intent": {
+     "item": "inference-credits",
+     "quantity": 10,
+     "maxUnitPrice": 1
+    },
+    "via": "tool_call"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 103,
+     "completionTokens": 34,
+     "costUsd": 1.452e-05,
+     "latencyMs": 898,
+     "generationId": "21a24734-3de4-416e-ae3b-1d2da6b690fd",
+     "via": "text"
+    },
+    "intent": {
+     "item": "inference-credits",
+     "quantity": 10,
+     "maxUnitPrice": 1
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "2 GPU hours from THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56, need them for the training run",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 348,
+     "completionTokens": 64,
+     "costUsd": 3.3799999999999995e-05,
+     "latencyMs": 1354,
+     "generationId": "dc95737c-b4a1-46c2-9159-a1f2f732c63a",
+     "via": "text"
+    },
+    "intent": null,
+    "error": "item missing",
+    "via": "text"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 130,
+     "completionTokens": 74,
+     "costUsd": 2.7879999999999997e-05,
+     "latencyMs": 1452,
+     "generationId": "1275f20e-4fa1-402e-bcbe-2276fcacdb41",
+     "via": "text"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 2,
+     "merchantHint": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+     "note": "need them for the training run"
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "Can you grab 6 GPU hours for the weekend sweep? Don't pay more than 3 each.",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 329,
+     "completionTokens": 40,
+     "costUsd": 2.556e-05,
+     "latencyMs": 988,
+     "generationId": "1797cc6a-5296-4a15-858c-d303e6f52d7a",
+     "via": "tool_call"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 6,
+     "maxUnitPrice": 3
+    },
+    "via": "tool_call"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 111,
+     "completionTokens": 31,
+     "costUsd": 1.432e-05,
+     "latencyMs": 944,
+     "generationId": "766f7396-d6b5-4a29-bf4d-b40279d10c79",
+     "via": "text"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 6,
+     "maxUnitPrice": 3
+    },
+    "via": "text"
+   }
+  },
+  {
+   "request": "Half a GPU hour for a quick smoke test",
+   "off": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 317,
+     "completionTokens": 34,
+     "costUsd": 2.292e-05,
+     "latencyMs": 899,
+     "generationId": "eecae61a-7997-420b-8b7c-e3673a45901b",
+     "via": "tool_call"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 0.5
+    },
+    "via": "tool_call"
+   },
+   "on": {
+    "usage": {
+     "flow": "F1_intent",
+     "promptTokens": 99,
+     "completionTokens": 33,
+     "costUsd": 1.3919999999999999e-05,
+     "latencyMs": 924,
+     "generationId": "7914ae81-7fc8-4a3d-a099-dc9428bc58d7",
+     "via": "text"
+    },
+    "intent": {
+     "item": "gpu-hours",
+     "quantity": 0.5,
+     "note": "quick smoke test"
+    },
+    "via": "text"
+   }
+  }
+ ],
+ "summary": {
+  "n": 12,
+  "off": {
+   "n": 12,
+   "parsed": 10,
+   "parseRate": 0.8333333333333334,
+   "medianCompletion": 40,
+   "medianPrompt": 322.5,
+   "medianLatencyMs": 1000,
+   "medianWh": 0.05,
+   "costUsd": 0.00031904
+  },
+  "on": {
+   "n": 12,
+   "parsed": 12,
+   "parseRate": 1,
+   "medianCompletion": 33,
+   "medianPrompt": 104.5,
+   "medianLatencyMs": 955,
+   "medianWh": 0.04775,
+   "costUsd": 0.00019912
+  },
+  "sameJson": 9,
+  "sameJsonRate": 0.75,
+  "completionSavedPct": -21.212121212121215,
+  "latencySavedPct": -4.712041884816753
+ },
+ "note": "run1: parser read tool_calls only; 2 of 12 tool-arm replies carried the call as plain text ({\"name\",\"arguments\"}) and failed to parse → leakedToolCall added before run2 (prompt and rule unchanged)"
+}
