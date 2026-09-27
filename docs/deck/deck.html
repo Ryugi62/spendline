@@ -13,7 +13,8 @@ code{font:16px ui-monospace,Menlo,monospace;background:#f2f4f6;border-radius:6px
 .box small{font-weight:400;font-size:15px;color:#4e5968;line-height:1.4;margin-top:6px}.box.k{background:#e8f3ff}.box.v{background:#e8f7ee}.arrow{font-size:28px;color:#8b95a1}
 .foot{position:absolute;right:40px;bottom:22px;font-size:14px;color:#8b95a1}</style></head><body><section class="slide" id="title"><p class="kicker">GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum · Challenge B</p>
 <h1>Spendline</h1><p class="lead">Not “an agent that can pay” — <b>a payment that can prove it was allowed.</b></p>
-<p class="declared">Spendline is a wallet-and-policy layer for an AI purchasing agent — a person grants a USDT budget with a merchant list and a deadline, the agent (Qwen3-32B on Kiln) proposes purchases, a policy vault on TRON Nile pays only inside that line and records every stop on-chain, and anyone can reconstruct from the receipts alone whether a payment was allowed.</p><p class="foot">Spendline · 1 / 11</p></section>
+<p class="declared">Spendline is a wallet-and-policy layer for an AI purchasing agent — a person grants a USDT budget with a merchant list and a deadline, the agent (Qwen3-32B on Kiln) proposes purchases, a policy vault on TRON Nile pays only inside that line and records every stop on-chain, and anyone can reconstruct from the receipts alone whether a payment was allowed.</p>
+<p class="kicker">Taegeol Kim · solo team · github.com/Ryugi62</p><p class="foot">Spendline · 1 / 11</p></section>
 <section class="slide" id="moment"><h2>The moment: “why did we buy this?”</h2><p class="lead">A 3-person AI startup lead hands the team's weekly GPU-hour and inference-credit budget to a purchasing agent.</p>
 <ul class="big-list"><li>A teammate asks: <b>“why did we buy this?”</b></li><li>Payment rails say who paid whom — <i>not who allowed it, or under what line.</i> (the brief)</li>
 <li>The lead needs <b>one receipt</b> that answers — and someone else must be able to check it <b>without trusting the lead, the agent or this app.</b></li></ul><p class="foot">Spendline · 2 / 11</p></section>
@@ -50,6 +51,7 @@ code{font:16px ui-monospace,Menlo,monospace;background:#f2f4f6;border-radius:6px
 <section class="slide" id="value"><h2>Who pays · where it plugs in</h2><ul class="big-list"><li><b>Plugs in</b> where an agent would call a wallet: it calls <code>vault.pay(…, receiptHash)</code> instead. The person keeps the owner key; the agent key can only ask.</li>
 <li><b>Who needs it</b>: teams that let agents buy compute, credits and API time — and any finance or compliance reader who must check a payment without trusting the operator.</li>
 <li><b>Business (hypothesis, not validated)</b>: the vault and the audit stay open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>
+<li><b>Why TRON · USDT</b>: an agent's budget is money people already hold as a stablecoin; USDT settles as a plain TRC20 transfer inside <code>pay()</code>. The vault is ordinary Solidity on the TVM — nothing in it is specific to one seller or one app.</li>
 <li><b>For Kiln</b>: a reference pattern for an agent that spends — every decision through Kiln, tokens and energy reported per flow.</li></ul><p class="foot">Spendline · 9 / 11</p></section>
 <section class="slide" id="limits"><h2>Not done — stated, not hidden</h2><ul class="big-list"><li>Testnet only (TRON Nile, test USDT) — the brief asks for devnet or testnet.</li>
 <li>One line per vault; a new grant replaces the old one (the audit replays every grant).</li>
@@ -60,5 +62,5 @@ code{font:16px ui-monospace,Menlo,monospace;background:#f2f4f6;border-radius:6px
 npm run audit -- docs/receipts-nile-live.jsonl --vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu
 npm run report     # tokens · USD · latency · Wh by flow
 npm run ui         # Grant · Feed · Receipt · Audit</pre>
-<p class="lead">132 tests · every model call on live Kiln · every stop on-chain.</p>
+<p class="lead">135 tests · every model call on live Kiln · every stop on-chain.</p>
 <p class="kicker">Spendline — a payment that can prove it was allowed.</p><p class="foot">Spendline · 11 / 11</p></section></body></html>

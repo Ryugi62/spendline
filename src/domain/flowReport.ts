@@ -118,3 +118,11 @@ export function toolCallDecision(a: AbSummary): { production: 'tool_call' | 'tex
     ? { production: 'text', why: `text JSON stays: ${failed.join(' · ')}` }
     : { production: 'tool_call', why: `tool call: ${checks.map(([, w]) => w).join(' · ')}` };
 }
+
+/** M1 review: Wh over the same calls from client wall time vs Kiln's upstream time (both × card watts; both upper bounds). */
+export function serverTimeEnergy(records: UsageRecord[], npuWatts = 180) {
+  const rs = records.filter((r) => typeof r.serverMs === 'number');
+  const wallMs = rs.reduce((n, r) => n + r.latencyMs, 0);
+  const serverMs = rs.reduce((n, r) => n + (r.serverMs ?? 0), 0);
+  return { calls: rs.length, wallMs, serverMs, whWall: estimateEnergy({ latencyMs: wallMs, npuWatts }).wh, whServer: estimateEnergy({ latencyMs: serverMs, npuWatts }).wh };
+}

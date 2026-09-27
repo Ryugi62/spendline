@@ -1,3 +1,4 @@
+import { serverTimeEnergy } from '../src/domain/flowReport';
 import { describe, expect, it } from 'vitest';
 import { formatFlowReport, revisionNotes } from '../src/application/report';
 import { flowReport, median } from '../src/domain/flowReport';
@@ -57,5 +58,15 @@ describe('AC-26 per-flow Kiln report (M0-11)', () => {
     expect(revisionNotes(keys)).toEqual(['F2 explain: 2 calls = v1 ×1 · v3 ×1 (one call per receipt per prompt version)', 'F3 dispute: 4 calls = v1 ×2 · v2 ×2 (one call per question per prompt version)']);
     const md = formatFlowReport(flowReport(records, { purchases: 3 }), { title: 't', sources: [], wattsSource: 'x', notes: ['NOTE-1'] });
     expect(md).toContain('- NOTE-1');
+  });
+});
+
+describe('server-time energy (M1 review)', () => {
+  it('Wh from Kiln upstream time is reported next to the wall-time Wh, only over calls that carry it', () => {
+    const u = (latencyMs: number, serverMs?: number) => ({ flow: 'F1_intent' as const, promptTokens: 1, completionTokens: 1, costUsd: 0, latencyMs, generationId: 'g', ...(serverMs === undefined ? {} : { serverMs }) });
+    const r = serverTimeEnergy([u(1000, 400), u(2000, 600), u(3000)], 180);
+    expect(r).toMatchObject({ calls: 2, wallMs: 3000, serverMs: 1000 });
+    expect(r.whWall).toBeCloseTo(0.15, 6);
+    expect(r.whServer).toBeCloseTo(0.05, 6);
   });
 });

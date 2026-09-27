@@ -91,3 +91,19 @@ export function formatToolAb(a: AbSummary, o: { file: string; date: string }): s
     '',
   ].join('\n');
 }
+
+/** M1 review: the same calls' Wh from client wall time and from Kiln's upstream time. */
+export function formatServerEnergy(e: { calls: number; wallMs: number; serverMs: number; whWall: number; whServer: number }, o: { file: string; date: string; paths?: string }): string {
+  return [
+    `## Energy with Kiln's server-side time — n = ${e.calls} F1 calls (tool call, \`/no_think\`), ${o.date}`,
+    'Kiln returns `x-envoy-upstream-service-time` on every response: the time spent behind Kiln\'s edge. It excludes the network, so it is a tighter upper bound than client wall time — still not NPU busy time (queueing is inside it).',
+    '',
+    '| Time base | Total | Wh (est., × 180 W) | Wh per F1 call |',
+    '|---|---:|---:|---:|',
+    `| client wall time | ${s(e.wallMs)} | ${e.whWall.toFixed(4)} | ${(e.whWall / e.calls).toFixed(4)} |`,
+    `| Kiln upstream time | ${s(e.serverMs)} | ${e.whServer.toFixed(4)} | ${(e.whServer / e.calls).toFixed(4)} |`,
+    '',
+    `- Server time is ${Math.round((e.serverMs / e.wallMs) * 100)}% of wall time on these calls${o.paths ? `; ${o.paths}` : ''}. Raw: \`${o.file}\`. New receipts carry \`serverMs\` from v0.7 on.`,
+    '',
+  ].join('\n');
+}

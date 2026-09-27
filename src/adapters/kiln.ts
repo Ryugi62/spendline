@@ -57,6 +57,8 @@ export class KilnLlm implements LlmPort {
         latencyMs: Math.round(latencyMs),
         generationId: res.headers.get('x-neocloud-generation-id') ?? '',
       };
+      const server = Number(res.headers.get('x-envoy-upstream-service-time'));
+      if (res.headers.has('x-envoy-upstream-service-time') && Number.isFinite(server)) usage.serverMs = server;
       this.records.push(usage);
       const fn = j.choices?.[0]?.message?.tool_calls?.[0]?.function;
       const toolCall: ToolCall | undefined = fn?.name ? { name: fn.name, arguments: fn.arguments ?? '{}' } : undefined;

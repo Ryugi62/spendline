@@ -40,3 +40,14 @@ describe('KilnLlm adapter (contract test, no network)', () => {
     expect(stripThink('<think>a\nb</think> hello')).toBe('hello');
   });
 });
+
+describe('Kiln server-side time (M1 review: energy from client wall time includes the network)', () => {
+  it('records x-envoy-upstream-service-time as serverMs when Kiln sends it', async () => {
+    const llm = new KilnLlm({ apiKey: 'k', now: () => 0, fetchImpl: (async () => new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }], usage: {} }), { headers: { 'x-envoy-upstream-service-time': '241', 'X-Neocloud-Generation-Id': 'g' } })) as unknown as typeof fetch });
+    expect((await llm.chat('F1_intent', [{ role: 'user', content: 'x' }])).usage.serverMs).toBe(241);
+  });
+  it('leaves serverMs out when the header is missing or not a number', async () => {
+    const llm = new KilnLlm({ apiKey: 'k', now: () => 0, fetchImpl: (async () => new Response(JSON.stringify({ choices: [{ message: { content: 'ok' } }], usage: {} }), { headers: { 'x-envoy-upstream-service-time': 'n/a' } })) as unknown as typeof fetch });
+    expect((await llm.chat('F1_intent', [{ role: 'user', content: 'x' }])).usage).not.toHaveProperty('serverMs');
+  });
+});

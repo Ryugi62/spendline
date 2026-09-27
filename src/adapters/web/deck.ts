@@ -26,7 +26,8 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
       title: 'Spendline — receipts for AI spending',
       html: `<p class="kicker">GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum · Challenge B</p>
 <h1>Spendline</h1><p class="lead">Not “an agent that can pay” — <b>a payment that can prove it was allowed.</b></p>
-<p class="declared">${esc(declared)}</p>`,
+<p class="declared">${esc(declared)}</p>
+<p class="kicker">Taegeol Kim · solo team · github.com/Ryugi62</p>`,
     },
     {
       id: 'moment',
@@ -95,6 +96,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
       html: `<ul class="big-list"><li><b>Plugs in</b> where an agent would call a wallet: it calls <code>vault.pay(…, receiptHash)</code> instead. The person keeps the owner key; the agent key can only ask.</li>
 <li><b>Who needs it</b>: teams that let agents buy compute, credits and API time — and any finance or compliance reader who must check a payment without trusting the operator.</li>
 <li><b>Business (hypothesis, not validated)</b>: the vault and the audit stay open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>
+<li><b>Why TRON · USDT</b>: an agent's budget is money people already hold as a stablecoin; USDT settles as a plain TRC20 transfer inside <code>pay()</code>. The vault is ordinary Solidity on the TVM — nothing in it is specific to one seller or one app.</li>
 <li><b>For Kiln</b>: a reference pattern for an agent that spends — every decision through Kiln, tokens and energy reported per flow.</li></ul>`,
     },
     {

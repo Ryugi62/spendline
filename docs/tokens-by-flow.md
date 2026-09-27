@@ -59,4 +59,14 @@ Same F1 request, once as a Kiln tool call (`propose_purchase`, tool_choice auto)
 - Rule fixed before the run (SPEC AC-34): tool call only if it parses as often, agrees on ≥ 11 / 12 and is not > 1.2× slower. **Production: tool call** — tool call: parse rate 100% vs 100% · same JSON 12 / 12 · median latency 1.14× the text arm.
 - run2: leaked calls parsed (tool_call_in_text) — the rule picks the tool call. Price of that choice: ≈3× prompt tokens (the tool schema rides along) and ≈1.6× USD per F1 call; in run1 the text arm once invented a price cap the request never stated (maxUnitPrice 50 for "just one" dataset), the tool arm did not · run2 tool-arm paths: tool_calls 11, leaked into text 0, plain JSON 1
 
+## Energy with Kiln's server-side time — n = 12 F1 calls (tool call, `/no_think`), 2026-09-28
+Kiln returns `x-envoy-upstream-service-time` on every response: the time spent behind Kiln's edge. It excludes the network, so it is a tighter upper bound than client wall time — still not NPU busy time (queueing is inside it).
+
+| Time base | Total | Wh (est., × 180 W) | Wh per F1 call |
+|---|---:|---:|---:|
+| client wall time | 13.23 s | 0.6613 | 0.0551 |
+| Kiln upstream time | 8.68 s | 0.4338 | 0.0362 |
+
+- Server time is 66% of wall time on these calls; F1 paths: tool_calls 8 · call leaked into text 3 · plain JSON 1 — parsed 12 / 12. Raw: `docs/energy-server-time-2026-09-28.json`. New receipts carry `serverMs` from v0.7 on.
+
 Regenerate: `npm run report` (reads the files above; no key).

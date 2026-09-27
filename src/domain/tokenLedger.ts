@@ -10,6 +10,8 @@ export type UsageRecord = {
   generationId: string;
   /** F1 only (AC-33): the intent came from a Kiln tool call, a tool call leaked into the text, or JSON in the text reply */
   via?: 'tool_call' | 'tool_call_in_text' | 'text';
+  /** Kiln's `x-envoy-upstream-service-time` (ms): time spent behind Kiln's edge — excludes the network, still ≥ NPU busy time */
+  serverMs?: number;
 };
 
 /** Scripted test double (FakeLlm) marks its usage with this generation-id prefix. It is never a Kiln call. */

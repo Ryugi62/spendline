@@ -4,8 +4,9 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { readJsonl } from '../src/adapters/files';
 import { parseReceiptsFile } from '../src/application/auditRecords';
 import type { AnswerRecord } from '../src/application/ports';
-import { formatAb, formatFlowReport, formatToolAb, revisionNotes } from '../src/application/report';
-import { abSummary, flowReport, type AbPair } from '../src/domain/flowReport';
+import { formatAb, formatFlowReport, formatServerEnergy, formatToolAb, revisionNotes } from '../src/application/report';
+import { abSummary, flowReport, serverTimeEnergy, type AbPair } from '../src/domain/flowReport';
+import type { UsageRecord } from '../src/domain/tokenLedger';
 import { flag, LIVE_ANSWERS, LIVE_RECEIPTS } from '../src/infrastructure/runtime';
 
 const args = process.argv.slice(2);
@@ -37,6 +38,13 @@ for (const run of ['run1', 'run2']) {
   const t = JSON.parse(readFileSync(file, 'utf8')) as { date: string; note?: string; pairs: AbPair[] };
   md += '\n' + formatToolAb(abSummary(t.pairs), { file, date: t.date }).replace('## F1 tool call vs text JSON', `## F1 tool call vs text JSON (${run})`);
   if (t.note) md += `- ${t.note}\n`;
+}
+const energyFile = 'docs/energy-server-time-2026-09-28.json';
+if (existsSync(energyFile)) {
+  const en = JSON.parse(readFileSync(energyFile, 'utf8')) as { date: string; calls: { usage: UsageRecord; parsed: boolean }[] };
+  const via = en.calls.map((c) => c.usage.via);
+  const paths = `F1 paths: tool_calls ${via.filter((v) => v === 'tool_call').length} · call leaked into text ${via.filter((v) => v === 'tool_call_in_text').length} · plain JSON ${via.filter((v) => v === 'text').length} — parsed ${en.calls.filter((c) => c.parsed).length} / ${en.calls.length}`;
+  md += '\n' + formatServerEnergy(serverTimeEnergy(en.calls.map((c) => c.usage)), { file: energyFile, date: en.date, paths });
 }
 md += `\nRegenerate: \`npm run report\` (reads the files above; no key).\n`;
 writeFileSync(out, md);
