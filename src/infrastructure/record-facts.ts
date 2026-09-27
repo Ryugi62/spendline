@@ -1,6 +1,6 @@
 // Facts of the public record for the deck, the pitch and the video (AC-31 / AC-32). Keyless and offline:
 // web/public/session.json (receipts + the vault's public events, fetched by `npm run ui:data`) + the answers log + the A/B file.
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { readJsonl } from '../adapters/files';
 import type { AnswerRecord } from '../application/ports';
 import { pitchFacts, type PitchFacts } from '../application/pitch';
@@ -35,6 +35,8 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
   const usage = [...s.receipts.flatMap((r) => r.flows), ...answers.flatMap((a) => (a.usage ? [a.usage] : []))];
   const report = flowReport(usage, { purchases: s.receipts.length });
   const grants = s.events.filter((e) => e.kind === 'granted');
+  const costFile = 'docs/chain-cost-2026-09-28.json';
+  const chain = existsSync(costFile) ? (JSON.parse(readFileSync(costFile, 'utf8')) as { summary: { paid: { medianTrx: number }; stopped: { medianTrx: number } } }).summary : undefined;
   return pitchFacts(res, report, abSummary(ab.pairs), {
     vault: s.vault,
     tests: countTests(),
@@ -42,5 +44,6 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
     extraTx: s.events.map((e) => e.txHash),
     stopTx: s.events.find((e) => e.kind === 'paused')?.txHash,
     grantTx: grants[0]?.txHash,
+    ...(chain ? { chain: { paidTrx: chain.paid.medianTrx, stopTrx: chain.stopped.medianTrx } } : {}),
   });
 }

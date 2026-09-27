@@ -72,3 +72,10 @@ describe('the real record (offline: session.json + answers log + A/B file)', () 
     expect(checkScript(scenes, real, { maxSeconds: 300 })).toEqual([]);
   });
 });
+
+describe('cost of one guarded decision in the facts (M1 review)', () => {
+  it('Kiln F1 USD per purchase and median TRX per paid / stopped pay() come from the record files', () => {
+    const c = recordFacts().cost!;
+    expect(c).toEqual({ f1Usd: '0.0000139', paidTrx: '8.51', stopTrx: '2.80' });
+  });
+});

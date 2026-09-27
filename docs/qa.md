@@ -24,7 +24,7 @@ On-chain, in `SpendlineVault.pay()` → `check()`. The agent key can only call `
 You don't have to. `npm run audit` needs no key and no `.env`: it re-hashes the chain of 8 receipts, matches each to the vault's public event by receipt hash (1 : 1), and re-runs the rule with the line in force at that moment. Editing a receipt breaks the hash chain; dropping one leaves a vault event with no receipt — both exit 1. Today: 0 problems, 13.60 USDT paid inside.
 
 ### Q8 (VC) Who pays for this?
-Hypothesis, not validated: teams that let agents buy compute, credits or API time need a record a finance or compliance reader can check without trusting the operator. The vault and the audit stay open (Apache-2.0); a hosted audit with alerts on stops is the paid layer. It plugs in where an agent would call a wallet — it calls `vault.pay(…, receiptHash)` instead.
+Hypothesis, not validated: teams that let agents buy compute, credits or API time need a record a finance or compliance reader can check without trusting the operator. The vault and the audit stay open (Apache-2.0); a hosted audit with alerts on stops is the paid layer. It plugs in where an agent would call a wallet — it calls `vault.pay(…, receiptHash)` instead. What one guarded decision costs, measured on TRON Nile (median): Kiln F1 $0.0000139 plus 8.51 TRX for a paid `pay()` or 2.80 TRX for a stopped one — `docs/chain-cost-2026-09-28.json`.
 
 ### Q9 (Organizer) Was this built during the hackathon?
 Partly before, and we say which part. The organizer's group said work could start early; the Korean page says the first commit comes after the window opens. We asked in writing, got no answer, and list every commit before and during the window in the README, by hash and time.

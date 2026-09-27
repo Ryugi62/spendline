@@ -93,8 +93,9 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'value',
       title: 'Who pays · where it plugs in',
-      html: `<ul class="big-list"><li><b>Plugs in</b> where an agent would call a wallet: it calls <code>vault.pay(…, receiptHash)</code> instead. The person keeps the owner key; the agent key can only ask.</li>
+      html: `<ul class="big-list tight"><li><b>Plugs in</b> where an agent would call a wallet: it calls <code>vault.pay(…, receiptHash)</code> instead. The person keeps the owner key; the agent key can only ask.</li>
 <li><b>Who needs it</b>: teams that let agents buy compute, credits and API time — and any finance or compliance reader who must check a payment without trusting the operator.</li>
+${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile, median): Kiln F1 $${f.cost.f1Usd} + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped — a stop costs about a third of a payment and is still on the record.</li>` : ''}
 <li><b>Business (hypothesis, not validated)</b>: the vault and the audit stay open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>
 <li><b>Why TRON · USDT</b>: an agent's budget is money people already hold as a stablecoin; USDT settles as a plain TRC20 transfer inside <code>pay()</code>. The vault is ordinary Solidity on the TVM — nothing in it is specific to one seller or one app.</li>
 <li><b>For Kiln</b>: a reference pattern for an agent that spends — every decision through Kiln, tokens and energy reported per flow.</li></ul>`,
@@ -126,7 +127,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Apple SD Go
 .slide{width:1280px;height:720px;padding:56px 72px;position:relative;overflow:hidden;page-break-after:always;display:flex;flex-direction:column;gap:18px}
 .slide:last-child{page-break-after:auto}.slide h2{font-size:40px;margin:0 0 6px;letter-spacing:-.5px}.slide h1{font-size:88px;margin:0;color:#3182f6;letter-spacing:-2px}
 .kicker{color:#4e5968;font-size:20px;margin:0}.lead{font-size:26px;line-height:1.45;margin:0}.declared{font-size:20px;line-height:1.55;color:#4e5968;border-left:4px solid #3182f6;padding-left:18px;margin:12px 0 0}
-.big-list{font-size:25px;line-height:1.45;margin:0;padding-left:26px;display:flex;flex-direction:column;gap:14px}
+.big-list{font-size:25px;line-height:1.45;margin:0;padding-left:26px;display:flex;flex-direction:column;gap:14px}.big-list.tight{font-size:21px;line-height:1.4;gap:10px}
 .note{font-size:18px;color:#4e5968;line-height:1.5;margin:auto 0 0}.num{font-size:64px;font-weight:800;color:#3182f6;margin:0;letter-spacing:-1px}.num span{font-size:26px;color:#191f28;font-weight:600;letter-spacing:0}
 .split{display:grid;grid-template-columns:1fr 300px;gap:40px;align-items:start;flex:1;min-height:0;overflow:hidden}.split img{width:300px;height:500px;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.12);object-fit:cover;object-position:top}
 .ev{font-size:22px;line-height:1.5;padding-left:22px;margin:10px 0}.r{font:600 14px ui-monospace,Menlo,monospace;background:#ffeef0;color:#d22030;border-radius:8px;padding:2px 8px}

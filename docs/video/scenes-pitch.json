@@ -42,7 +42,7 @@
  {
   "id": "p09",
   "url": "docs/deck/deck.html#value",
-  "en": "Where it plugs in: wherever an agent would call a wallet, it calls the vault instead. Who needs it: teams that let agents buy compute and credits, and anyone who must check a payment without trusting the operator. Our business hypothesis, not yet validated: open vault and audit, with a hosted audit and alerts as the paid layer."
+  "en": "Where it plugs in: wherever an agent would call a wallet, it calls the vault instead. We measured what one guarded decision costs on Nile: 8.51 TRX when paid, 2.80 when stopped, plus a fraction of a cent of Kiln. Who needs it: teams that let agents buy compute and credits. Our business hypothesis, not yet validated: open vault and audit, with a hosted audit and alerts as the paid layer."
  },
  {
   "id": "p10",

@@ -28,6 +28,8 @@ export type PitchFacts = {
   flows: number;
   ab: { n: number; offTokens: number; onTokens: number; offSeconds: string; onSeconds: string; sameJson: number; tokensSavedPct: number; latencySavedPct: number };
   tests: number;
+  /** measured cost of one guarded decision: Kiln F1 USD per purchase, TRON fee per Paid / stopped pay() (Nile, median) */
+  cost?: { f1Usd: string; paidTrx: string; stopTrx: string };
   /** every tx hash in the public record (receipts' events, replays, grants, STOPs) */
   txHashes: string[];
   /** evidence rows the deck and the video point at — all from the audit */
@@ -40,7 +42,7 @@ export type PitchFacts = {
   stated: string[];
 };
 
-export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, o: { vault: string; tests: number; extraTx?: string[]; stated: string[]; stopTx?: string; grantTx?: string }): PitchFacts {
+export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, o: { vault: string; tests: number; extraTx?: string[]; stated: string[]; stopTx?: string; grantTx?: string; chain?: { paidTrx: number; stopTrx: number } }): PitchFacts {
   const c = countVerdicts(res.verdicts);
   const f1 = report.rows[0];
   return {
@@ -70,6 +72,7 @@ export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, 
       latencySavedPct: Math.round(ab.latencySavedPct),
     },
     tests: o.tests,
+    ...(o.chain ? { cost: { f1Usd: (f1.calls ? f1.costUsd / f1.calls : 0).toFixed(7), paidTrx: o.chain.paidTrx.toFixed(2), stopTrx: o.chain.stopTrx.toFixed(2) } } : {}),
     stops: res.verdicts.flatMap((v) => (v.verdict === 'STOPPED' && v.reason && v.txHash ? [{ seq: v.seq, reason: v.reason, tx: v.txHash }] : [])),
     paidTx: res.verdicts.flatMap((v) => (v.verdict === 'PAID_INSIDE' && v.txHash ? [v.txHash] : [])),
     replayTx: res.replays[0]?.txHash,

@@ -1,0 +1,73 @@
+{
+ "source": "https://nile.trongrid.io/wallet/gettransactioninfobyid (public, no key)",
+ "vault": "TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu",
+ "note": "TRON Nile, energy burned from TRX (no staking); mainnet energy price differs",
+ "costs": [
+  {
+   "txHash": "e67cc9b87a591d0c70dbb5fe8ed892209bca206579c7da09a3ef77e5a2224f48",
+   "kind": "paid",
+   "feeSun": 8513800,
+   "energy": 81028
+  },
+  {
+   "txHash": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
+   "kind": "stopped",
+   "feeSun": 2812700,
+   "energy": 24017
+  },
+  {
+   "txHash": "f1d088dfc40b7d63f1b1fb03730f5c6c60b6ad6de6c7c7f9e3d5fcdc03720d26",
+   "kind": "stopped",
+   "feeSun": 2858000,
+   "energy": 24470
+  },
+  {
+   "txHash": "efcc92fb22e968d9c32a2ed0dcc9d8c63072d3f6caa21a847020e945b5452330",
+   "kind": "stopped",
+   "feeSun": 1282000,
+   "energy": 8710
+  },
+  {
+   "txHash": "edc7a5efadd508b9e7f3f03296d3019310af1fe1d884ae2b287d1c1bd34ea077",
+   "kind": "paid",
+   "feeSun": 6696200,
+   "energy": 62852
+  },
+  {
+   "txHash": "ea1481eedfb6543218dd5d4cf09d1c90bdd42622c7f4c36e1a92cdd56a26b52d",
+   "kind": "stopped",
+   "feeSun": 2789600,
+   "energy": 23786
+  },
+  {
+   "txHash": "f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1",
+   "kind": "paid",
+   "feeSun": 8513800,
+   "energy": 81028
+  },
+  {
+   "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
+   "kind": "stopped",
+   "feeSun": 2797100,
+   "energy": 23861
+  },
+  {
+   "txHash": "98d3281f2cc30a5f0c7e609f4231300e0867da29fff0c9d7c47d81dd03d10c0d",
+   "kind": "paid",
+   "feeSun": 8513800,
+   "energy": 81028
+  }
+ ],
+ "summary": {
+  "paid": {
+   "n": 4,
+   "medianTrx": 8.5138,
+   "medianEnergy": 81028
+  },
+  "stopped": {
+   "n": 5,
+   "medianTrx": 2.7971,
+   "medianEnergy": 23861
+  }
+ }
+}
