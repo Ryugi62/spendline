@@ -1,11 +1,16 @@
 // Demo video without a human voice (reused & generalized from Ryugi62/justenough, 2026-09-24):
 // macOS `say` narration per scene → Playwright records 1280x720 while captions are burned into the page → ffmpeg mux to H.264/AAC mp4 + .srt.
-// Usage: FFMPEG=<path> node scripts/record-video.mjs --scenes docs/video/scenes.json --name spendline-demo [--voice Samantha --rate 175]
-// A scene: { "id": "s1", "url": "file:///abs/page.html#x" | "http://localhost:5173/...", "en": "narration + caption", "actions": ["click:text=STOP", "scroll:#receipts", "wait:800"] }
+// Usage: FFMPEG=<path> npm run video -- --scenes docs/video/scenes-demo.json --name spendline-demo --check demo [--voice Samantha --rate 175]
+// A scene: { "id": "s1", "url": "ui:#/receipt/2" (the web UI, served in-process) | "docs/video/stage.html#x" | "http://…", "en": "narration + caption",
+//            "actions": ["click:text=STOP", "scroll:#receipts", "wait:800", "fill:#budget=9.9"] }
+// --check demo|pitch runs the AC-31 narration check against the record first and refuses to record on any finding.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
+import { createServer } from 'vite';
+import { checkScript } from '../src/application/pitch.ts';
+import { recordFacts } from '../src/infrastructure/record-facts.ts';
 
 const argv = process.argv.slice(2);
 const opt = (k, d) => (argv.includes(`--${k}`) ? argv[argv.indexOf(`--${k}`) + 1] : d);
@@ -17,7 +22,19 @@ const VOICE = ['-v', opt('voice', 'Samantha'), '-r', opt('rate', '175')];
 const MAX_SECONDS = Number(opt('max', '180'));
 mkdirSync(WORK, { recursive: true });
 const scenes = JSON.parse(readFileSync(opt('scenes', join(OUT, 'scenes.json')), 'utf8'));
-const abs = (u) => (u.startsWith('http') || u.startsWith('file:') ? u : 'file://' + resolve(u));
+const CHECK = opt('check', '');
+if (CHECK) {
+  const findings = checkScript(scenes, recordFacts(), CHECK === 'demo' ? { maxSeconds: 180, firstStopBy: 20 } : { maxSeconds: MAX_SECONDS });
+  if (findings.length) throw new Error(`narration check (AC-31) failed:\n${findings.join('\n')}`);
+}
+let server;
+let uiBase = '';
+if (scenes.some((s) => s.url.startsWith('ui:'))) {
+  server = await createServer({ root: 'web', configFile: 'web/vite.config.ts', server: { port: 5198, strictPort: false }, logLevel: 'error' });
+  await server.listen();
+  uiBase = server.resolvedUrls?.local[0] ?? 'http://localhost:5198/';
+}
+const abs = (u) => (u.startsWith('ui:') ? uiBase + u.slice(3) : u.startsWith('http') || u.startsWith('file:') ? u : 'file://' + resolve(u));
 
 function durationOf(file) {
   try { execFileSync(FFMPEG, ['-hide_banner', '-i', file], { stdio: ['ignore', 'pipe', 'pipe'] }); } catch (e) {
@@ -42,7 +59,7 @@ const browser = await chromium.launch(process.env.PW_CHROMIUM_PATH ? { executabl
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, recordVideo: { dir: WORK, size: { width: 1280, height: 720 } } });
 const page = await ctx.newPage();
 const CAP = `#sl-cap{position:fixed;left:0;right:0;bottom:0;z-index:99999;background:rgba(10,14,20,.88);color:#fff;padding:12px 48px 14px;
-font:600 21px/1.4 -apple-system,'Apple SD Gothic Neo',sans-serif;text-align:center} .sl-click{outline:4px solid #ffb020!important;outline-offset:3px}`;
+font:600 21px/1.4 -apple-system,'Apple SD Gothic Neo',sans-serif;text-align:center;pointer-events:none} .cta-bar{bottom:92px!important} .sl-click{outline:4px solid #ffb020!important;outline-offset:3px}`;
 async function caption(text) {
   await page.evaluate(({ css, text }) => {
     if (!document.getElementById('sl-cap-style')) { const st = document.createElement('style'); st.id = 'sl-cap-style'; st.textContent = css; document.head.appendChild(st); }
@@ -58,7 +75,13 @@ for (const s of scenes) {
   const start = (Date.now() - t0) / 1000;
   starts.push(start);
   const url = abs(s.url);
-  if (url !== current) { await page.goto(url); current = url; }
+  if (url !== current) {
+    const sameDoc = current && url.split('#')[0] === current.split('#')[0];
+    if (sameDoc) await page.evaluate((h) => { location.hash = h; }, url.split('#')[1] ?? '');
+    else await page.goto(url);
+    await page.waitForTimeout(250);
+    current = url;
+  }
   await caption(s.en);
   for (const a of s.actions ?? []) {
     const [kind, ...rest] = a.split(':');
@@ -66,6 +89,7 @@ for (const s of scenes) {
     if (kind === 'click') { const l = page.locator(arg).first(); await l.scrollIntoViewIfNeeded(); await l.evaluate((el) => el.classList.add('sl-click')); await page.waitForTimeout(400); await l.click(); }
     else if (kind === 'scroll') await page.locator(arg).first().evaluate((el) => el.scrollIntoView({ block: 'center' }));
     else if (kind === 'wait') await page.waitForTimeout(Number(arg));
+    else if (kind === 'fill') { const [sel, ...v] = arg.split('='); await page.locator(sel).first().fill(v.join('=')); }
     await caption(s.en);
   }
   const elapsed = (Date.now() - t0) / 1000 - start;
@@ -75,6 +99,7 @@ const total = (Date.now() - t0) / 1000;
 const recorded = await page.video().path();
 await ctx.close();
 await browser.close();
+if (server) await server.close();
 renameSync(recorded, join(WORK, 'screen.webm'));
 
 // 3) narration track + 4) mux

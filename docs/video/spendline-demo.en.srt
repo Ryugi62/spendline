@@ -1,0 +1,63 @@
+1
+00:00:00,000 --> 00:00:08,810
+An AI agent was asked to buy 2 GPU hours from a cheaper seller that is not on the list. The vault on TRON refused, and recorded the stop on-chain.
+
+2
+00:00:09,712 --> 00:00:16,292
+Kiln's Qwen3-32B explains it in plain words. It is shown only because it repeats the audit's verdict.
+
+3
+00:00:17,194 --> 00:00:24,104
+This is the vault's public event: SpendBlocked, with the receipt hash and the reason. Anyone can read it. No key needed.
+
+4
+00:00:25,006 --> 00:00:33,916
+This is Spendline, a wallet and policy layer for an AI purchasing agent. A person draws the line. The agent only asks. The vault decides.
+
+5
+00:00:34,817 --> 00:00:41,237
+The person sets a budget, a per-payment cap, the sellers, and a deadline, one short step at a time.
+
+6
+00:00:42,139 --> 00:00:48,779
+Then signs it with the owner key, on their own machine. The page never holds a key. STOP is signed the same way.
+
+7
+00:00:49,681 --> 00:00:54,881
+The feed shows spending against the line, newest first: paid, or stopped with a reason.
+
+8
+00:00:55,782 --> 00:00:58,802
+Over budget once the fee is added: stopped on-chain.
+
+9
+00:00:59,704 --> 00:01:04,984
+The person can press STOP at any time. The next payment was stopped as PAUSED, on-chain.
+
+10
+00:01:05,885 --> 00:01:13,375
+A new line with a short window: one payment inside it, then the same request after it closed. Stopped: deadline passed.
+
+11
+00:01:14,277 --> 00:01:21,887
+Now the audit, rebuilt from public records only: 8 receipts, 4 paid inside, 4 stopped, 0 problems.
+
+12
+00:01:22,789 --> 00:01:32,279
+The same check from the command line. No key, no dot env. It re-hashes every receipt and replays the line in force at that moment. A replayed receipt hash was stopped too.
+
+13
+00:01:33,181 --> 00:01:40,751
+A teammate asks: did we pay that cheap unknown seller? Kiln picks the receipt. The verdict comes from the audit, never from the model.
+
+14
+00:01:41,654 --> 00:01:51,774
+Efficiency, in numbers: 1.00 LLM call per purchase. 26 live Kiln calls across 3 flows, 18,490 tokens in total.
+
+15
+00:01:52,675 --> 00:02:04,145
+With no-think, median output drops from 223 to 36 tokens, with the same JSON in 12 of 12 pairs. Energy is an estimate: 180 watts times measured time.
+
+16
+00:02:05,047 --> 00:02:09,767
+Spendline. Not an agent that can pay, but a payment that can prove it was allowed.
