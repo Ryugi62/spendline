@@ -1,4 +1,4 @@
-# Spendline — SPEC (SDD, v0.6 2026-09-26)
+# Spendline — SPEC (SDD, v0.7 2026-09-28)
 
 > GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum "Agent Finance" track · Challenge B (covers A's condition checks).
 > Brief (verbatim source): https://docs.google.com/document/d/13qh7oePGl7Flrl-Zh_A6hfr02L266PvS — model changed to **Qwen3-32B** (Bricksum, TG 2026-09-22).
@@ -108,6 +108,26 @@ Physical (M0-13): a new vault with AC-25 on Nile; every run's F1 on live Kiln (a
 
 UI acceptance (Toss checklist → this product): mobile first (390 px no horizontal scroll, 1280 px intact) · Grant is a step form, ≤ 2 questions per step · titles ≥ 22 px bold, body 15–16 px, captions 13 px · sections ≥ 24 px apart, cards radius ≥ 16 px, ≤ 1 shadow · one fixed bottom CTA ≥ 52 px · number first (≥ 28 px) · proofs in `<details>` · short friendly copy, jargon glossed once · white + blue #3182F6 + ok / warn / stop colours, body contrast ≥ 4.5:1, dark mode minimal · system fonts, no CDN. Checked by tests (AC-20) + captures 390 / 1280.
 
+## 6e. v0.7 — M1 prep: the demo axis first (2026-09-28)
+Gap order from the M0 scores (Demo 2 · Completeness 5 · Practical value 5–6): the model's words must be visible where a judge looks,
+and the video, deck and pitch must say only what the record says.
+
+- AC-30 Given a session that carries the answers log When `receiptView(seq)` Then `why` = the newest prompt version's F2 text for that seq,
+  only if it is grounded and its verdict / reason equal the audit's for that seq (else no `why`); When `questionsView(session)` Then one row per
+  F3 question (newest prompt version), each with the receipt it picked, the **audit's** verdict line and tx for that seq, and the model's words —
+  a row whose verdict does not echo the audit, or whose seq is not in the record, is left out. The Receipt screen shows `why` under the verdict,
+  labelled as Kiln's words; the Audit screen lists the questions. Stand-in usage and ungrounded text are never shown as the model's answer.
+- AC-31 Given a narration script (scenes `{id, url, en}`) and the record's facts When `checkScript` Then it reports: estimated length
+  (words ÷ 2.6 per second + 0.9 s per scene) over the limit (180 s demo · 300 s pitch); for the demo, no scene that opens the receipt of a
+  `MERCHANT_NOT_ALLOWED` stop starting before 0:20; a number in the narration that is not a fact or a stated assumption; a tx prefix
+  (≥ 6 hex) that is not the start of a tx in the record. `npm run video -- --check` refuses to record a script with any finding.
+- AC-32 Given the record's facts When `deckSlides(facts)` Then 8–12 slides; slide 1 = the declared function; one slide each for the
+  five acceptance criteria' evidence, who pays / where it plugs in, and what is not done; every number in the slide text is a fact or a stated
+  assumption (the AC-23 number rule, applied to our own copy). `npm run deck` renders `docs/deck.pdf` (1 page per slide, checked) and
+  `docs/qa.md` (10 judge questions, answers under the same number rule).
+- Physical: UI captures re-taken on the live record (390 / 1280, 0 sideways scroll) · `docs/video/spendline-demo.mp4` ≤ 3:00 ·
+  `docs/video/spendline-pitch.mp4` ≤ 5:00 (deck slides + the same narration pipeline) · `docs/deck.pdf`.
+
 ## 7. Architecture (Clean)
 ```
 src/domain/ ← src/application/ ← src/adapters/ (kiln, tron, memory, jsonl) ← src/infrastructure/ (config, cli, composition root)
@@ -126,3 +146,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 - v0.5 2026-09-26 §6b: keyless audit CLI (R7), mandate history in audit, deadline stop on Nile (R2), UI skeleton (R1) — pre-hackathon, disclosed in README.
 - v0.5.1 2026-09-26 §6c (M0 mock review): audit lists chain spends without a receipt (AC-21) · scripted stand-in usage is labelled, not counted as Kiln (AC-22) · README states user, AI-vs-code split, enforcement point, chain read/write/settle.
 - v0.6 2026-09-26 §6d (M0 open items, pre-hackathon, disclosed; live answers added the number rule and the STOP relation to AC-23/24): F2 explain · F3 dispute on Kiln (AC-23/24) · vault refuses a reused receipt hash (AC-25) · per-flow token / Wh report and /no_think A/B (AC-26/27) · owner CLI signs grant / STOP (AC-28) · agent CLI, one request line → receipt (AC-29) · live Nile rerun with every model call on Kiln.
+- v0.7 2026-09-28 §6e (M1 prep, before the 19:00 window — disclosed): Kiln F2 / F3 words on the Receipt and Audit screens, audit-checked (AC-30) · narration check for video and pitch (AC-31) · deck built from the record's facts, same number rule (AC-32) · demo video, pitch video, deck PDF, 10 Q&A.

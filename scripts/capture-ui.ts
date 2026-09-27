@@ -11,9 +11,10 @@ const browser = await chromium.launch(process.env.PW_CHROMIUM_PATH ? { executabl
 mkdirSync('docs/ui', { recursive: true });
 const shots: [string, string, ((p: import('playwright').Page) => Promise<void>)?][] = [
   ['feed', '#/feed'],
-  ['receipt-paid', '#/receipt/5'],
-  ['receipt-stopped', '#/receipt/6'],
+  ['receipt-paid', '#/receipt/1'],
+  ['receipt-stopped', '#/receipt/2'],
   ['audit', '#/audit'],
+  ['audit-questions', '#/audit', async (p) => { await p.locator('.qas').first().evaluate((el) => el.scrollIntoView({ block: 'start' })); }],
   ['grant-1', '#/grant'],
   ['grant-4', '#/grant', async (p) => {
     await p.fill('#budget', '9.9'); await p.fill('#perTxCap', '8'); await p.click('[data-action=next]');

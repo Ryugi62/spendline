@@ -1,4 +1,4 @@
-import type { AuditView, FeedView, GrantField, ReceiptView, RowStatus } from '../../application/views';
+import type { AuditView, FeedView, GrantField, QuestionRow, ReceiptView, RowStatus } from '../../application/views';
 import { txUrl } from '../../application/views';
 import type { Mandate } from '../../domain/mandate';
 import { fmtUsdt } from '../../domain/money';
@@ -117,6 +117,7 @@ export function renderReceipt(v: ReceiptView, fmt: Fmt): string {
     'feed',
     `<a class="back" href="#/feed">← Feed</a>
 <section class="hero"><p class="label">Receipt #${v.seq} · ${esc(fmt.time(v.at))}</p><p class="big">${fmtUsdt(v.total)} <span class="unit">USDT${v.status === 'paid' ? ' paid' : ', not paid'}</span></p><p class="verdict ${tone}">${esc(v.line)}</p></section>
+${v.why ? `<section class="card why"><p class="label">Why — in Kiln · Qwen3-32B's words</p><p class="said">${esc(v.why)}</p><p class="hint">Shown because it repeats the audit's verdict and uses only numbers from the record.</p></section>` : ''}
 <section class="card"><dl class="facts">
 <div><dt>What was asked</dt><dd>“${esc(v.words)}”</dd></div>
 <div><dt>Seller</dt><dd><code title="${esc(v.merchant)}">${esc(short(v.merchant))}</code></dd></div>
@@ -132,7 +133,14 @@ ${flows ? `<ul class="flows">${flows}</ul>` : ''}<pre>${esc(v.json)}</pre></deta
 }
 
 // ── Audit ───────────────────────────────────────────────────────────────────────
-export function renderAudit(v: AuditView, fmt: Fmt, o: { source: string; at?: number; error?: string }): string {
+const questionRow = (q: QuestionRow) =>
+  `<li class="qa"><p class="q">“${esc(q.question)}”</p>${
+    q.seq === null
+      ? `<p class="verdict warn">No receipt matches</p>`
+      : `<a class="row" href="#/receipt/${q.seq}"><span class="chip ${q.status}">${CHIP[q.status!]}</span><span class="row-main"><span class="words">#${q.seq} · ${esc(q.line!)}</span><span class="meta">${q.txHash ? `tx ${esc(short(q.txHash))}` : 'no on-chain event'} · verdict from the audit</span></span></a>`
+  }<p class="said">${esc(q.answer)} <span class="hint">— Kiln · Qwen3-32B</span></p></li>`;
+
+export function renderAudit(v: AuditView, fmt: Fmt, o: { source: string; at?: number; error?: string; questions?: QuestionRow[] }): string {
   const n = v.rows.length;
   const lost = v.orphans.length;
   const verdict = v.ok
@@ -162,6 +170,7 @@ export function renderAudit(v: AuditView, fmt: Fmt, o: { source: string; at?: nu
 <p class="sub">${esc(v.chainLine)} · paid ${fmtUsdt(v.totalPaid)} USDT in total</p>
 ${o.error ? `<p class="banner no" role="alert">${esc(o.error)}</p>` : ''}
 <section><h2 class="section-title">Receipt by receipt</h2><ul class="rows">${rows}${replays}${orphans}</ul></section>
+${o.questions?.length ? `<section><h2 class="section-title">Questions a teammate asked</h2><ul class="rows qas">${o.questions.map(questionRow).join('')}</ul></section>` : ''}
 <details class="proof"><summary>How this is checked</summary><ol class="how">
 <li>Each receipt's hash is recomputed and must chain to the one before it.</li>
 <li>Each receipt is matched, by that hash, to the vault's public event (paid or stopped).</li>

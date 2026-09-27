@@ -137,3 +137,11 @@ code, .mono dd, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospac
 @media (min-width: 900px) {
   .screen { padding-top: 32px; }
 }
+
+/* AC-30: the model's words, shown next to the audit's verdict */
+.why .said, .qa .said { font-size: var(--body); line-height: 1.55; margin: 6px 0 4px; }
+.why .label { color: var(--blue); font-weight: 600; font-size: var(--caption); margin: 0; }
+.qas .qa { padding: 14px 0; border-bottom: 1px solid var(--line); list-style: none; }
+.qas .qa .q { font-weight: 600; margin: 0 0 6px; }
+.qas .qa .said .hint { display: inline; }
+.qas .qa .row { border-bottom: 0; padding-bottom: 4px; }

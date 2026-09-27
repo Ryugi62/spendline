@@ -164,7 +164,7 @@ ask(['dispute', 'Was anything paid after I pressed STOP?']);
 ask(['dispute', 'Why did the last GPU order fail when the same one went through a few minutes earlier?']);
 
 // 8. the UI's public record, balances, done
-const s = await writeSessionFile(LIVE_RECEIPTS, vault);
+const s = await writeSessionFile(LIVE_RECEIPTS, vault, { answers: LIVE_ANSWERS });
 log.session = s;
 log.balancesAfter = { ownerTrx: await trx(env.OWNER_ADDRESS), agentTrx: await trx(env.AGENT_ADDRESS) };
 log.finishedAt = new Date().toISOString();

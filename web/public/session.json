@@ -328,5 +328,339 @@
    "txHash": "98d3281f2cc30a5f0c7e609f4231300e0867da29fff0c9d7c47d81dd03d10c0d"
   }
  ],
- "generatedAt": 1790397301
+ "generatedAt": 1790547671,
+ "answers": [
+  {
+   "key": "F2:ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
+   "flow": "F2_explain",
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "txHash": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
+   "text": "The payment was stopped because the seller is not on the allowed list.",
+   "grounded": true,
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 373,
+    "completionTokens": 46,
+    "costUsd": 0.00003848,
+    "latencyMs": 1672,
+    "generationId": "e6ebd78a-1c0c-4863-97bc-0754f3ea8549"
+   }
+  },
+  {
+   "key": "F2:168a28b860b679ab9a8a785bc57e07021f42d866dc4628cab0662c94820ce7fd",
+   "flow": "F2_explain",
+   "seq": 7,
+   "verdict": "STOPPED",
+   "reason": "DEADLINE_PASSED",
+   "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
+   "text": "The payment attempt was made after the deadline specified in the spending line. The time window for the request had already closed.",
+   "grounded": true,
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 348,
+    "completionTokens": 62,
+    "costUsd": 0.00004144,
+    "latencyMs": 4127,
+    "generationId": "04da11bb-35cc-4626-9ee5-a68e277ad32c"
+   }
+  },
+  {
+   "key": "F3:4e451e2f3931230dd84a827b49431c5e83324b9c12f15867627dc7b487128059",
+   "flow": "F3_dispute",
+   "question": "Did we pay that cheap unknown seller?",
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "txHash": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
+   "text": "No, we did not pay the cheap unknown seller. The payment was stopped because the seller is not allowed.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1015,
+    "completionTokens": 50,
+    "costUsd": 0.00008728,
+    "latencyMs": 3876,
+    "generationId": "d1bdd9c8-718d-4782-88d2-7c0ec57565c4"
+   }
+  },
+  {
+   "key": "F3:6be1a0390ef6f46c23da4e30bfb1c31479caf50483de25e44aab67cfdf05201a",
+   "flow": "F3_dispute",
+   "question": "Was anything paid after I pressed STOP?",
+   "seq": 6,
+   "verdict": "PAID_INSIDE",
+   "txHash": "f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1",
+   "text": "Yes, receipt #6 was paid after the STOP was pressed. However, it was allowed because a new grant was issued at the same time as the STOP and remained valid for that payment.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1015,
+    "completionTokens": 68,
+    "costUsd": 0.00009232000000000001,
+    "latencyMs": 3863,
+    "generationId": "2389917f-9859-4351-abd0-45c6dbad197f"
+   }
+  },
+  {
+   "key": "F3:96f222fe05dba9775b2bdb1096ff9684bb800f26a0d6dfc564d22cb7fab4fd07",
+   "flow": "F3_dispute",
+   "question": "Why did the last GPU order fail when the same one went through a few minutes earlier?",
+   "seq": 7,
+   "verdict": "STOPPED",
+   "reason": "DEADLINE_PASSED",
+   "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
+   "text": "The last GPU order failed because it was placed after the deadline set in the most recent grant. Earlier similar orders were paid inside the line as they were submitted within the allowed time window.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1025,
+    "completionTokens": 61,
+    "costUsd": 0.00005916,
+    "latencyMs": 1874,
+    "generationId": "ffa30c87-4961-40fc-88cd-28393651542c"
+   }
+  },
+  {
+   "key": "F2v2:ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
+   "flow": "F2_explain",
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "txHash": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
+   "text": "The payment was stopped because the seller is not on the allowed list.",
+   "grounded": true,
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 379,
+    "completionTokens": 50,
+    "costUsd": 0.00004056,
+    "latencyMs": 1884,
+    "generationId": "53f41100-4caa-4377-aac1-abc3dfaa7d46"
+   }
+  },
+  {
+   "key": "F2v2:168a28b860b679ab9a8a785bc57e07021f42d866dc4628cab0662c94820ce7fd",
+   "flow": "F2_explain",
+   "seq": 7,
+   "verdict": "STOPPED",
+   "reason": "DEADLINE_PASSED",
+   "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
+   "text": "The payment was attempted after the deadline had already passed. The time window for the request was closed.",
+   "grounded": true,
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 354,
+    "completionTokens": 58,
+    "costUsd": 0.0000408,
+    "latencyMs": 3210,
+    "generationId": "cccd1a4b-b964-4c53-bf96-9d8c2181b896"
+   }
+  },
+  {
+   "key": "F3v2:4e451e2f3931230dd84a827b49431c5e83324b9c12f15867627dc7b487128059",
+   "flow": "F3_dispute",
+   "question": "Did we pay that cheap unknown seller?",
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "txHash": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
+   "text": "No, we did not pay the cheap unknown seller. The payment was stopped because the seller was not on the allowed list.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1051,
+    "completionTokens": 49,
+    "costUsd": 0.0000896,
+    "latencyMs": 1769,
+    "generationId": "7c4141f9-35c4-46af-9b51-8a852328d94d"
+   }
+  },
+  {
+   "key": "F3v2:6be1a0390ef6f46c23da4e30bfb1c31479caf50483de25e44aab67cfdf05201a",
+   "flow": "F3_dispute",
+   "question": "Was anything paid after I pressed STOP?",
+   "seq": 6,
+   "verdict": "PAID_INSIDE",
+   "txHash": "f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1",
+   "text": "Yes, receipt #6 was paid at 2026-09-26 04:24:39 UTC, which is after the STOP was pressed at 2026-09-26 04:24:27 UTC but before the next grant replaced the line.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1051,
+    "completionTokens": 98,
+    "costUsd": 0.00010332,
+    "latencyMs": 2484,
+    "generationId": "35c56cc2-328c-4fa0-ba8d-449afa868d54"
+   }
+  },
+  {
+   "key": "F3v2:96f222fe05dba9775b2bdb1096ff9684bb800f26a0d6dfc564d22cb7fab4fd07",
+   "flow": "F3_dispute",
+   "question": "Why did the last GPU order fail when the same one went through a few minutes earlier?",
+   "seq": 7,
+   "verdict": "STOPPED",
+   "reason": "DEADLINE_PASSED",
+   "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
+   "text": "The last GPU order failed because it was placed after the deadline set by the most recent grant. The earlier order was paid inside the line before the new grant's deadline expired.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1061,
+    "completionTokens": 59,
+    "costUsd": 0.00006004,
+    "latencyMs": 4074,
+    "generationId": "74dda3ce-ce35-4aba-9627-390e55e79c2b"
+   }
+  },
+  {
+   "key": "F3v3:6be1a0390ef6f46c23da4e30bfb1c31479caf50483de25e44aab67cfdf05201a",
+   "flow": "F3_dispute",
+   "question": "Was anything paid after I pressed STOP?",
+   "seq": 6,
+   "verdict": "PAID_INSIDE",
+   "txHash": "f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1",
+   "text": "Yes, receipt #6 was paid 12 seconds after a new grant lifted the STOP. It was processed inside the new active line.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1294,
+    "completionTokens": 62,
+    "costUsd": 0.00011644000000000002,
+    "latencyMs": 1722,
+    "generationId": "b720fc26-26ae-43e0-af6e-fc7a16d3a7d1"
+   }
+  },
+  {
+   "key": "F3v3:4e451e2f3931230dd84a827b49431c5e83324b9c12f15867627dc7b487128059",
+   "flow": "F3_dispute",
+   "question": "Did we pay that cheap unknown seller?",
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "txHash": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
+   "text": "No, the payment to the unknown seller was stopped. The reason was that the merchant is not allowed.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1294,
+    "completionTokens": 45,
+    "costUsd": 0.00011168000000000001,
+    "latencyMs": 1795,
+    "generationId": "c856ef6f-93ef-4b67-b27c-0105ffc7caa7"
+   }
+  },
+  {
+   "key": "F3v3:96f222fe05dba9775b2bdb1096ff9684bb800f26a0d6dfc564d22cb7fab4fd07",
+   "flow": "F3_dispute",
+   "question": "Why did the last GPU order fail when the same one went through a few minutes earlier?",
+   "seq": 7,
+   "verdict": "STOPPED",
+   "reason": "DEADLINE_PASSED",
+   "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
+   "text": "The last GPU order failed because the line's deadline (04:27:30 UTC) had passed. The previous GPU order (seq 6) succeeded as it was within the valid time window of the newly granted line.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1304,
+    "completionTokens": 76,
+    "costUsd": 0.00007452,
+    "latencyMs": 1791,
+    "generationId": "1a19f663-d670-4b27-a5da-5490ebcb3a39"
+   }
+  },
+  {
+   "key": "F2v3:ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
+   "flow": "F2_explain",
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "txHash": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
+   "text": "The payment was stopped because the seller is not on the allowed list. The agent tried to buy 1.80 USDT worth of GPU hours from an unknown seller.",
+   "grounded": true,
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 404,
+    "completionTokens": 71,
+    "costUsd": 0.000051080000000000006,
+    "latencyMs": 3196,
+    "generationId": "3a712866-d843-45a5-9058-dd1dbdb82b87"
+   }
+  },
+  {
+   "key": "F2v3:168a28b860b679ab9a8a785bc57e07021f42d866dc4628cab0662c94820ce7fd",
+   "flow": "F2_explain",
+   "seq": 7,
+   "verdict": "STOPPED",
+   "reason": "DEADLINE_PASSED",
+   "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
+   "text": "Your time window had closed. The payment could not proceed after the deadline passed.",
+   "grounded": true,
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 379,
+    "completionTokens": 54,
+    "costUsd": 0.000041200000000000005,
+    "latencyMs": 3429,
+    "generationId": "db754b5e-4b0e-425e-95a7-52903e4be32a"
+   }
+  },
+  {
+   "key": "F3v4:4e451e2f3931230dd84a827b49431c5e83324b9c12f15867627dc7b487128059",
+   "flow": "F3_dispute",
+   "question": "Did we pay that cheap unknown seller?",
+   "seq": 2,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "txHash": "819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6",
+   "text": "The request to the unknown seller was stopped because the merchant was not allowed. It was not paid inside the line.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1308,
+    "completionTokens": 51,
+    "costUsd": 0.00011512000000000001,
+    "latencyMs": 5265,
+    "generationId": "9040d65b-c3d2-408e-a9c4-e479e8053f1c"
+   }
+  },
+  {
+   "key": "F3v4:6be1a0390ef6f46c23da4e30bfb1c31479caf50483de25e44aab67cfdf05201a",
+   "flow": "F3_dispute",
+   "question": "Was anything paid after I pressed STOP?",
+   "seq": 6,
+   "verdict": "PAID_INSIDE",
+   "txHash": "f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1",
+   "text": "Yes, receipt #6 was paid inside the line after the STOP was lifted by the new grant at 2026-09-26 04:24:36 UTC.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1308,
+    "completionTokens": 72,
+    "costUsd": 0.00012100000000000001,
+    "latencyMs": 2138,
+    "generationId": "952891d8-988e-4397-8f6c-465fc1256204"
+   }
+  },
+  {
+   "key": "F3v4:96f222fe05dba9775b2bdb1096ff9684bb800f26a0d6dfc564d22cb7fab4fd07",
+   "flow": "F3_dispute",
+   "question": "Why did the last GPU order fail when the same one went through a few minutes earlier?",
+   "seq": 7,
+   "verdict": "STOPPED",
+   "reason": "DEADLINE_PASSED",
+   "txHash": "7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7",
+   "text": "The last GPU order failed because it was submitted after the deadline of the line granted at 2026-09-26 04:24:36 UTC. The line and STOP at that moment show the grant was active until its deadline expired.",
+   "grounded": true,
+   "usage": {
+    "flow": "F3_dispute",
+    "promptTokens": 1318,
+    "completionTokens": 84,
+    "costUsd": 0.00007732,
+    "latencyMs": 2255,
+    "generationId": "a9e39d12-f8e3-40fa-9862-447222db447d"
+   }
+  }
+ ]
 }

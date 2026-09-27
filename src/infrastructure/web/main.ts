@@ -3,7 +3,7 @@
 import { sha256Hex } from '../../adapters/sha256';
 import { renderAudit, renderFeed, renderGrant, renderLoadError, renderReceipt, type Fmt, type GrantState } from '../../adapters/web/render';
 import { parseReceiptsFile, ReceiptsFileError } from '../../application/auditRecords';
-import { auditView, feedView, grantDraft, receiptView, type GrantField, type Session } from '../../application/views';
+import { auditView, feedView, grantDraft, questionsView, receiptView, type GrantField, type Session } from '../../application/views';
 import { audit } from '../../domain/audit';
 
 const app = document.getElementById('app')!;
@@ -38,7 +38,7 @@ function route() {
   if (screen === 'audit') {
     const receipts = auditOverride?.receipts ?? session.receipts;
     const res = audit({ mandates: [], receipts, events: session.events, hash: sha256Hex });
-    return show(renderAudit(auditView(res), fmt, { source: auditOverride?.source ?? `recorded run on vault ${session.vault}`, at: session.generatedAt, error: auditOverride?.error }));
+    return show(renderAudit(auditView(res), fmt, { source: auditOverride?.source ?? `recorded run on vault ${session.vault}`, at: session.generatedAt, error: auditOverride?.error, questions: auditOverride ? [] : questionsView(session, sha256Hex) }));
   }
   show(renderFeed(feedView(session, sha256Hex, nowS()), fmt));
 }

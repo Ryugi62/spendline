@@ -7,7 +7,7 @@ import { JsonCatalog, JsonlReceiptStore } from '../adapters/files';
 import { TronChain } from '../adapters/tron';
 import { formatPurchase } from '../application/agent';
 import { purchase } from '../application/purchase';
-import { CATALOG, flag, kilnFrom, LIVE_RECEIPTS, need, positionals, readEnv, sha256, vaultOf } from './runtime';
+import { CATALOG, flag, kilnFrom, LIVE_ANSWERS, LIVE_RECEIPTS, need, positionals, readEnv, sha256, vaultOf } from './runtime';
 import { writeSessionFile } from './session-file';
 // @ts-expect-error plain ESM script without types
 import { compile } from '../../scripts/compile-contract.mjs';
@@ -34,7 +34,7 @@ async function main(args: string[]): Promise<number> {
   if (args.includes('--json')) console.log(JSON.stringify({ vault, request: r.request, preview: r.preview, outcome: r.outcome, receipt: r.receipt }));
   else console.log(formatPurchase(r, catalog.labels()));
   if (!args.includes('--no-ui')) {
-    const s = await writeSessionFile(receipts, vault, { waitForReceipt: r.receipt.hash });
+    const s = await writeSessionFile(receipts, vault, { waitForReceipt: r.receipt.hash, answers: receipts === LIVE_RECEIPTS ? LIVE_ANSWERS : undefined });
     console.error(`${s.out}: ${s.receipts} receipts, ${s.events} events${s.indexed ? '' : ' (TronGrid had not indexed this receipt yet — run npm run ui:data again)'}`);
   }
   return 0;

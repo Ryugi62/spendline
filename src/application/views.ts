@@ -4,15 +4,40 @@ import { usdt } from '../domain/money';
 import type { Hasher, Receipt } from '../domain/receipt';
 import { isKilnCall, type UsageRecord } from '../domain/tokenLedger';
 import { countVerdicts, problemCount, type VerdictCounts } from './auditRecords';
+import type { AnswerRecord } from './ports';
 
 /**
  * View models for the 4 screens (R1). Every status shown is rebuilt by audit() from public records —
  * the UI never takes the operator's word for what happened. Pure: no DOM, no fetch, no clock.
  */
-export type Session = { vault: string; network: 'nile'; receipts: Receipt[]; events: ChainEvent[]; generatedAt: number };
+export type Session = { vault: string; network: 'nile'; receipts: Receipt[]; events: ChainEvent[]; generatedAt: number; answers?: AnswerRecord[] };
 
-/** The public record the UI reads: receipts file + the vault's public events. */
-export const sessionOf = (file: { receipts: Receipt[] }, vault: string, events: ChainEvent[], generatedAt: number): Session => ({ vault, network: 'nile', receipts: file.receipts, events, generatedAt });
+/** The public record the UI reads: receipts file + the vault's public events (+ the F2 / F3 answers log, which holds no key). */
+export const sessionOf = (file: { receipts: Receipt[] }, vault: string, events: ChainEvent[], generatedAt: number, answers?: AnswerRecord[]): Session => ({
+  vault,
+  network: 'nile',
+  receipts: file.receipts,
+  events,
+  generatedAt,
+  ...(answers ? { answers } : {}),
+});
+
+// ── Kiln's words (AC-30) ────────────────────────────────────────────────────────
+/** Answers-log keys are `F2v<n>:<id>` / `F3v<n>:<id>` (plain `F2:` = v1). The newest prompt version per id wins. */
+const keyParts = (key: string) => {
+  const m = key.match(/^(F[23])(?:v(\d+))?:(.*)$/);
+  return m ? { id: `${m[1]}:${m[3]}`, version: Number(m[2] ?? 1) } : { id: key, version: 1 };
+};
+export function latestAnswers(all: AnswerRecord[]): AnswerRecord[] {
+  const best = new Map<string, { a: AnswerRecord; version: number; at: number }>();
+  all.forEach((a, at) => {
+    const { id, version } = keyParts(a.key);
+    const cur = best.get(id);
+    if (!cur || version > cur.version || (version === cur.version && at > cur.at)) best.set(id, { a, version, at });
+  });
+  return [...best.values()].sort((x, y) => x.at - y.at).map((x) => x.a);
+}
+const echoes = (a: AnswerRecord, v: Verdict) => a.grounded && a.verdict === v.verdict && (a.reason ?? undefined) === (v.reason ?? undefined);
 
 export const REASON_TEXT: Record<BlockReason, string> = {
   PAUSED: 'You pressed STOP',
@@ -58,6 +83,7 @@ export type FeedView =
 const statusOf = (v: Verdict): RowStatus => (v.verdict === 'PAID_INSIDE' ? 'paid' : v.verdict === 'STOPPED' ? 'stopped' : 'problem');
 const reasonOf = (v: Verdict): string =>
   v.verdict === 'PAID_INSIDE' ? 'Paid inside your line' : v.verdict === 'STOPPED' && v.reason ? REASON_TEXT[v.reason] : `Doesn't add up — ${v.why}`;
+const lineOf = (v: Verdict): string => (v.verdict === 'PAID_INSIDE' ? 'Paid inside your line' : v.verdict === 'STOPPED' ? `Stopped on-chain: ${reasonOf(v)}` : `Doesn't add up — ${v.why}`);
 const inOrder = (events: ChainEvent[]) => events.map((e, i) => ({ e, i })).sort((a, b) => a.e.at - b.e.at || a.i - b.i).map((x) => x.e);
 
 export function feedView(s: Session, hash: Hasher, now: number): FeedView {
@@ -112,6 +138,8 @@ export type ReceiptView =
       /** tokens of Kiln calls only */
       tokens: number;
       json: string;
+      /** Kiln F2 words about this receipt — only when grounded and echoing the audit (AC-30) */
+      why?: string;
     };
 
 export function receiptView(s: Session, seq: number, hash: Hasher): ReceiptView {
@@ -119,7 +147,8 @@ export function receiptView(s: Session, seq: number, hash: Hasher): ReceiptView 
   if (!r) return { kind: 'missing', seq };
   const v = audit({ mandates: [], receipts: s.receipts, events: s.events, hash }).verdicts.find((x) => x.seq === seq)!;
   const status = statusOf(v);
-  const line = status === 'paid' ? 'Paid inside your line' : status === 'stopped' ? `Stopped on-chain: ${reasonOf(v)}` : `Doesn't add up — ${v.why}`;
+  const line = lineOf(v);
+  const f2 = latestAnswers(s.answers ?? []).find((a) => a.flow === 'F2_explain' && a.seq === seq);
   return {
     kind: 'receipt',
     seq,
@@ -141,7 +170,26 @@ export function receiptView(s: Session, seq: number, hash: Hasher): ReceiptView 
     standInCalls: r.flows.filter((f) => !isKilnCall(f)).length,
     tokens: r.flows.filter(isKilnCall).reduce((n, f) => n + f.promptTokens + f.completionTokens, 0),
     json: JSON.stringify(r, null, 1),
+    ...(f2 && echoes(f2, v) ? { why: f2.text } : {}),
   };
+}
+
+// ── Questions a teammate asked (F3, AC-30) ──────────────────────────────────────
+export type QuestionRow = { question: string; seq: number | null; status?: RowStatus; line?: string; txHash?: string; answer: string };
+export function questionsView(s: Session, hash: Hasher): QuestionRow[] {
+  const verdicts = new Map(audit({ mandates: [], receipts: s.receipts, events: s.events, hash }).verdicts.map((v) => [v.seq, v]));
+  const rows: QuestionRow[] = [];
+  for (const a of latestAnswers(s.answers ?? [])) {
+    if (a.flow !== 'F3_dispute' || !a.question || !a.grounded) continue;
+    if (a.seq === null) {
+      rows.push({ question: a.question, seq: null, answer: a.text });
+      continue;
+    }
+    const v = verdicts.get(a.seq);
+    if (!v || a.verdict !== v.verdict) continue; // the model picked a receipt that is not there, or did not echo the audit
+    rows.push({ question: a.question, seq: a.seq, status: statusOf(v), line: lineOf(v), txHash: v.txHash, answer: a.text });
+  }
+  return rows;
 }
 
 // ── Audit ───────────────────────────────────────────────────────────────────────
