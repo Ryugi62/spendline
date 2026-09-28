@@ -31,7 +31,8 @@
     "video:stage": "tsx scripts/video-stage.ts",
     "deck": "tsx scripts/deck.ts",
     "ab:tool-call": "tsx scripts/ab-tool-call.ts",
-    "chain:cost": "tsx scripts/chain-cost.ts"
+    "chain:cost": "tsx scripts/chain-cost.ts",
+    "proof": "tsx scripts/proof.ts"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

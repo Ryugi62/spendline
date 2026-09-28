@@ -46,11 +46,11 @@ describe('the real record (offline: session.json + answers log + A/B file)', () 
     expect(real.stopTx && real.grantTx && real.replayTx).toBeTruthy();
   });
 
-  it('deck (AC-32): 8–12 slides, slide 1 = the README declared function, value + limits slides, no number outside the record', () => {
+  it('deck (AC-32): 8–10 slides (organizer: presentation PDF ≤ 10 pages), slide 1 = the README declared function, value + limits slides, no number outside the record', () => {
     const declared = readFileSync('README.md', 'utf8').match(/\*\*Declared function \(one sentence\):\*\* (.+)/)![1];
     const slides = deckSlides(real, declared);
     expect(slides.length).toBeGreaterThanOrEqual(8);
-    expect(slides.length).toBeLessThanOrEqual(12);
+    expect(slides.length).toBeLessThanOrEqual(10);
     expect(slides[0].html).toContain(declared.slice(0, 60));
     expect(slides.map((s) => s.id)).toEqual(expect.arrayContaining(['boundaries', 'kiln', 'chain', 'evidence', 'value', 'limits']));
     for (const s of slides) expect([s.id, strayInCopy(slideText(s), real)]).toEqual([s.id, []]);

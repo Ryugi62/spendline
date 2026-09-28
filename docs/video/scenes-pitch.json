@@ -42,16 +42,11 @@
  {
   "id": "p09",
   "url": "docs/deck/deck.html#value",
-  "en": "Where it plugs in: wherever an agent would call a wallet, it calls the vault instead. We measured what one guarded decision costs on Nile: 7.01 TRX when paid, 2.80 when stopped, plus a fraction of a cent of Kiln. Who needs it: teams that let agents buy compute and credits. Our business hypothesis, not yet validated: open vault and audit, with a hosted audit and alerts as the paid layer."
+  "en": "Where it plugs in: wherever an agent calls a wallet, swap in the Spendline wallet. Same transfer call, the agent's loop does not change, and the example is tested. We measured what one guarded decision costs on Nile: 7.01 TRX when paid, 2.80 when stopped, plus a fraction of a cent of Kiln. Who needs it: teams that let agents buy compute and credits. Our business hypothesis, not yet validated: open vault and audit, with a hosted audit and alerts as the paid layer."
  },
  {
   "id": "p10",
   "url": "docs/deck/deck.html#limits",
-  "en": "What is not done, stated: testnet only, as the brief asks. One line per vault. Signing is on the person's machine, not in the browser. Energy is an estimate. And parts were built before the event window; the README lists every commit."
- },
- {
-  "id": "p11",
-  "url": "docs/deck/deck.html#check",
-  "en": "Please check it yourself: install, run the audit, and open the UI. Spendline. A payment that can prove it was allowed. Thank you."
+  "en": "Please check it yourself: install, run the audit, and open the UI. What is not done, stated: testnet only, as the brief asks. One line per vault. Signing is on the person's machine, not in the browser. Energy is an estimate. And parts were built before the event window; the README lists every commit. Spendline. A payment that can prove it was allowed. Thank you."
  }
 ]

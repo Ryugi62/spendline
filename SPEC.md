@@ -121,7 +121,7 @@ and the video, deck and pitch must say only what the record says.
   (words ÷ 2.6 per second + 0.9 s per scene) over the limit (180 s demo · 300 s pitch); for the demo, no scene that opens the receipt of a
   `MERCHANT_NOT_ALLOWED` stop starting before 0:20; a number in the narration that is not a fact or a stated assumption; a tx prefix
   (≥ 6 hex) that is not the start of a tx in the record. `npm run video -- --check` refuses to record a script with any finding.
-- AC-32 Given the record's facts When `deckSlides(facts)` Then 8–12 slides; slide 1 = the declared function; one slide each for the
+- AC-32 Given the record's facts When `deckSlides(facts)` Then 8–10 slides (organizer mail 2026-09-28: presentation PDF ≤ 10 pages); slide 1 = the declared function; one slide each for the
   five acceptance criteria' evidence, who pays / where it plugs in, and what is not done; every number in the slide text is a fact or a stated
   assumption (the AC-23 number rule, applied to our own copy). `npm run deck` renders `docs/deck.pdf` (1 page per slide, checked) and
   `docs/qa.md` (10 judge questions, answers under the same number rule).
@@ -145,6 +145,17 @@ M1 said: the demo only replays the 2026-09-26 record, no live receipt comes thro
 - Physical: `npm run agent` on live Kiln + Nile after 19:00 → receipts #9+ (every result kept, including a text fallback) · keyless audit OK ·
   demo scene `#agent` · README "during" column with the commit hashes · pushed only at the v1 freeze (2026-09-29 20:00).
 
+## 6g. v0.9 — organizer's required item 4 (Kiln account mail, 2026-09-28 23:17 KST): "Proof of API usage in your README (on-chain tx hashes + Kiln API call logs, per flow)"
+- AC-38 Given the receipts, the vault's public events and the answers log When `proofByFlow` Then one table per flow (F1 · F2 · F3):
+  F1 = one row per receipt (seq, time KST, Kiln generation id, prompt / output tokens, USD, `via`, server time, outcome, the `pay()` tx that
+  carries that receipt hash — the first event for the hash, never the replay); F2 / F3 = one row per Kiln call (seq it is about, question,
+  generation id, tokens, USD, shown or held back, the tx of that receipt). Stand-in usage is never a row. A receipt with no on-chain event is a
+  finding, not a blank cell. `npm run proof` writes it into README between `<!-- proof:start -->` and `<!-- proof:end -->` (keyless, offline).
+- AC-37 Given an existing agent loop that pays with `wallet.transfer(to, amount, memo)` When its wallet is swapped for `spendlineWallet({ chain, store, hash })`
+  (same call shape, `examples/plug-in.ts`) Then the unchanged loop gets paid inside the line and `ok: false` + the on-chain reason outside it; every attempt
+  is a hash-chained receipt (memo = the receipt's words, no model call added) and the keyless audit rebuilds each verdict. UC-2 purchase uses the same `guardedPay`.
+- AC-32 tightened: deck ≤ 10 slides (the "not done" slide and "check it yourself" are one slide).
+
 ## 7. Architecture (Clean)
 ```
 src/domain/ ← src/application/ ← src/adapters/ (kiln, tron, memory, jsonl) ← src/infrastructure/ (config, cli, composition root)
@@ -165,3 +176,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 - v0.6 2026-09-26 §6d (M0 open items, pre-hackathon, disclosed; live answers added the number rule and the STOP relation to AC-23/24): F2 explain · F3 dispute on Kiln (AC-23/24) · vault refuses a reused receipt hash (AC-25) · per-flow token / Wh report and /no_think A/B (AC-26/27) · owner CLI signs grant / STOP (AC-28) · agent CLI, one request line → receipt (AC-29) · live Nile rerun with every model call on Kiln.
 - v0.7 2026-09-28 §6e (M1 prep, before the 19:00 window — disclosed): Kiln F2 / F3 words on the Receipt and Audit screens, audit-checked (AC-30) · narration check for video and pitch (AC-31) · deck built from the record's facts, same number rule (AC-32) · demo video, pitch video, deck PDF, 10 Q&A.
 - v0.8 2026-09-28 §6f (during the window, from 19:00 KST): live agent receipts on the tool-call F1 with `via` · `serverMs` in the report line (AC-35) · terminal scene in the demo from the transcripts, checked against the record (AC-36).
+- v0.9 2026-09-29 §6g (during the window): README proof of API usage per flow, generated and checked (AC-38) · plug-in wallet + example, tested (AC-37) · deck ≤ 10 pages (AC-32 tightened to the organizer's limit).

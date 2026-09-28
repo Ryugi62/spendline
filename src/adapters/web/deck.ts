@@ -93,31 +93,24 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'value',
       title: 'Who pays · where it plugs in',
-      html: `<ul class="big-list tight"><li><b>Plugs in</b> where an agent would call a wallet: it calls <code>vault.pay(…, receiptHash)</code> instead. The person keeps the owner key; the agent key can only ask.</li>
+      html: `<ul class="big-list tight"><li><b>Plugs in</b> where an agent would call a wallet: swap in <code>spendlineWallet(…)</code> — same <code>transfer(to, amount, memo)</code> call, the loop unchanged (<code>examples/plug-in.ts</code>, tested). The person keeps the owner key; the agent key can only ask.</li>
 <li><b>Who needs it</b>: teams that let agents buy compute, credits and API time — and any finance or compliance reader who must check a payment without trusting the operator.</li>
-${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile, median): Kiln F1 $${f.cost.f1Usd} + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped — a stop costs about a third of a payment and is still on the record.</li>` : ''}
+${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile, median): Kiln F1 $${f.cost.f1Usd} + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped — a stop costs less than half of a payment and is still on the record.</li>` : ''}
 <li><b>Business (hypothesis, not validated)</b>: the vault and the audit stay open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>
 <li><b>Why TRON · USDT</b>: an agent's budget is money people already hold as a stablecoin; USDT settles as a plain TRC20 transfer inside <code>pay()</code>. The vault is ordinary Solidity on the TVM — nothing in it is specific to one seller or one app.</li>
 <li><b>For Kiln</b>: a reference pattern for an agent that spends — every decision through Kiln, tokens and energy reported per flow.</li></ul>`,
     },
     {
       id: 'limits',
-      title: 'Not done — stated, not hidden',
-      html: `<ul class="big-list"><li>Testnet only (TRON Nile, test USDT) — the brief asks for devnet or testnet.</li>
-<li>One line per vault; a new grant replaces the old one (the audit replays every grant).</li>
-<li>Signing is on the person's machine (CLI), not in the browser — keys never enter the page.</li>
-<li>Energy is an estimate from wall time; Kiln exposes no power telemetry.</li>
-<li>Parts were built before the event window; the README lists every commit, before and during.</li></ul>`,
-    },
-    {
-      id: 'check',
-      title: 'Check it yourself',
+      title: 'Check it yourself · not done, stated',
       html: `<pre class="cmd">npm install
 npm run audit -- docs/receipts-nile-live.jsonl --vault ${esc(f.vault)}
 npm run report     # tokens · USD · latency · Wh by flow
 npm run ui         # Grant · Feed · Receipt · Audit</pre>
-<p class="lead">${f.tests} tests · every model call on live Kiln · every stop on-chain.</p>
-<p class="kicker">Spendline — a payment that can prove it was allowed.</p>`,
+<ul class="big-list tight"><li>Testnet only (TRON Nile, test USDT), as the brief asks · one line per vault — a new grant replaces the old one (the audit replays every grant).</li>
+<li>Signing is on the person's machine (CLI), never in the browser · energy is an estimate from wall time — Kiln exposes no power telemetry.</li>
+<li>Parts were built before the event window; the README lists every commit, before and during.</li></ul>
+<p class="kicker">${f.tests} tests · every model call on live Kiln · every stop on-chain — Spendline, a payment that can prove it was allowed.</p>`,
     },
   ];
 }

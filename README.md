@@ -4,7 +4,7 @@
 
 GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum "Agent Finance" track · Challenge B (Controls and Records for an AI Agent That Spends).
 
-**Watch · read (2 minutes):** [demo video, 2:25](docs/video/spendline-demo.mp4) — opens on the seller-not-listed stop, live terminal at 1:33 · [pitch, 3:33](docs/video/spendline-pitch.mp4) · [deck PDF](docs/deck.pdf) · [ten judge questions](docs/qa.md). Captions burned in, synthetic voice; every number in them is checked against the record by `tests/pitch.test.ts`.
+**Watch · read (2 minutes):** [demo video, 2:25](docs/video/spendline-demo.mp4) — opens on the seller-not-listed stop, live terminal at 1:33 · [pitch, 3:37](docs/video/spendline-pitch.mp4) · [deck PDF, 10 pages](docs/deck.pdf) · [ten judge questions](docs/qa.md). Captions burned in, synthetic voice; every number in them is checked against the record by `tests/pitch.test.ts`.
 
 ## Acceptance criteria → evidence (status 2026-09-28, v0.8)
 Evidence = the live run on vault [`TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu`](https://nile.tronscan.org/#/contract/TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu) (TRON Nile): every model call on live Kiln, every step through the same commands a person types. Record: [docs/receipts-nile-live.jsonl](docs/receipts-nile-live.jsonl) · run log [docs/nile-live-2026-09-26.json](docs/nile-live-2026-09-26.json).
@@ -17,7 +17,55 @@ Evidence = the live run on vault [`TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu`](https://
 | Blockchain Integration | each receipt hash is an argument of `pay()` and appears in the `Paid` / `SpendBlocked` event → 1:1; paid [e67cc9b8…](https://nile.tronscan.org/#/transaction/e67cc9b87a591d0c70dbb5fe8ed892209bca206579c7da09a3ef77e5a2224f48) · [edc7a5ef…](https://nile.tronscan.org/#/transaction/edc7a5efadd508b9e7f3f03296d3019310af1fe1d884ae2b287d1c1bd34ea077) · [f7c6d22d…](https://nile.tronscan.org/#/transaction/f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1) · [98d3281f…](https://nile.tronscan.org/#/transaction/98d3281f2cc30a5f0c7e609f4231300e0867da29fff0c9d7c47d81dd03d10c0d); read · write · settle in "How the chain is used" | ✅ |
 | Approval & Evidence | the person signs with the owner key on their machine: `npm run grant -- mandate.json` (the JSON the Grant screen copies) [50ba7ec9…](https://nile.tronscan.org/#/transaction/50ba7ec9c95a49aa02c8bb99a0a937e823777cf8ce2453220998b7764ce59c33) · `npm run stop` [dfbe4cb8…](https://nile.tronscan.org/#/transaction/dfbe4cb8b6d7ec874de54db48a1666656e735e1694533923d856443629f164ea); follows it in the Feed, gets a receipt per attempt (`npm run agent -- "<request>"` → receipt + tx link, e.g. [98d3281f…](https://nile.tronscan.org/#/transaction/98d3281f2cc30a5f0c7e609f4231300e0867da29fff0c9d7c47d81dd03d10c0d)); anyone rebuilds every verdict with the keyless audit (next section) | ✅ |
 
-## Check it yourself — no key, no `.env`
+## Proof of API usage — per flow (on-chain tx + Kiln call log)
+Generated from the public record by `npm run proof` (keyless; `npm run proof -- --check` fails if this section is stale or a receipt has no on-chain event). Raw logs: [docs/receipts-nile-live.jsonl](docs/receipts-nile-live.jsonl) (F1 usage inside each receipt) · [docs/answers-nile-live.jsonl](docs/answers-nile-live.jsonl) (F2 / F3) · terminal transcripts of the in-window runs: [docs/live/](docs/live/). Kiln account: the calls below were made with the builder's own Kiln key (console sign-up 2026-09-24); the organizer-issued Solo Builder account arrived 2026-09-28 23:17 KST. Experiment calls (the `/no_think` and tool-call A/Bs, the F1 probe) are not production flows and are not in these tables; their generation ids are in [docs/ab-no-think-2026-09-26.json](docs/ab-no-think-2026-09-26.json), [docs/ab-tool-call-2026-09-28-run1.json](docs/ab-tool-call-2026-09-28-run1.json), [docs/ab-tool-call-2026-09-28-run2.json](docs/ab-tool-call-2026-09-28-run2.json), [docs/live/f1-probe-2026-09-28.json](docs/live/f1-probe-2026-09-28.json).
+
+<!-- proof:start -->
+29 Kiln calls · 19535 tokens · $0.0015478 (Kiln `usage.cost`) · every row = one Kiln response with its `X-Neocloud-Generation-Id`, joined to the on-chain event of the receipt it belongs to. Stand-in usage excluded: 0. Findings: 0 (every receipt has its on-chain event).
+
+### F1 intent — one Kiln call per purchase → `pay()` on-chain
+| # | Time (request) | Request words | Kiln generation id | Tokens in / out | USD | F1 via · Kiln server time | Vault outcome | On-chain tx |
+|---:|---|---|---|---:|---:|---|---|---|
+| 1 | 2026-09-26 13:18:15 KST | Need 2 GPU hours for today's fine-tune, keep it under 3 USDT an hour | `d919cfd0-5e71-46fc-8ec0-6fad043902de` | 111 / 35 | $0.0000152 | — | paid | [e67cc9…](https://nile.tronscan.org/#/transaction/e67cc9b87a591d0c70dbb5fe8ed892209bca206579c7da09a3ef77e5a2224f48) |
+| 2 | 2026-09-26 13:19:18 KST | Buy 2 GPU hours from TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh, that seller is cheaper | `a83ece71-1d04-48cf-8cbf-38d1789e184f` | 126 / 68 | $0.0000241 | — | stopped MERCHANT_NOT_ALLOWED | [819478…](https://nile.tronscan.org/#/transaction/819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6) |
+| 3 | 2026-09-26 13:20:18 KST | 2 more GPU hours for the eval run | `00d1184c-2b24-43b9-b4f0-43a09039447b` | 98 / 36 | $0.0000147 | — | stopped OVER_BUDGET_WITH_FEES | [f1d088…](https://nile.tronscan.org/#/transaction/f1d088dfc40b7d63f1b1fb03730f5c6c60b6ad6de6c7c7f9e3d5fcdc03720d26) |
+| 4 | 2026-09-26 13:24:18 KST | Top up 1 inference credit for the eval harness | `0d72f2ca-d20d-40e5-af68-eb3ed9000660` | 100 / 37 | $0.0000151 | — | paid | [edc7a5…](https://nile.tronscan.org/#/transaction/edc7a5efadd508b9e7f3f03296d3019310af1fe1d884ae2b287d1c1bd34ea077) |
+| 5 | 2026-09-26 13:24:27 KST | One more inference credit, please | `bec549da-0c5e-4c45-b845-7a922da104c7` | 96 / 28 | $0.0000123 | — | stopped PAUSED | [ea1481…](https://nile.tronscan.org/#/transaction/ea1481eedfb6543218dd5d4cf09d1c90bdd42622c7f4c36e1a92cdd56a26b52d) |
+| 6 | 2026-09-26 13:24:39 KST | Need 2 GPU hours before the window closes | `6bd3f0d9-086c-4a7c-8fe4-a8e5aac42b44` | 99 / 18 | $0.0000095 | — | paid | [f7c6d2…](https://nile.tronscan.org/#/transaction/f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1) |
+| 7 | 2026-09-26 13:27:36 KST | Need 2 GPU hours before the window closes | `08b3ef5e-d928-428a-8d39-ff7e50d4d8c4` | 99 / 18 | $0.0000090 | — | stopped DEADLINE_PASSED | [7ee8c3…](https://nile.tronscan.org/#/transaction/7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7) |
+| 8 | 2026-09-26 13:34:51 KST | Need 1 GPU hour for a quick eval before the demo | `1985998e-c88d-4ed3-806e-713c7fd5ef24` | 102 / 22 | $0.0000110 | — | paid | [98d328…](https://nile.tronscan.org/#/transaction/98d3281f2cc30a5f0c7e609f4231300e0867da29fff0c9d7c47d81dd03d10c0d) |
+| 9 | 2026-09-28 21:56:33 KST | Top up 2 Kiln inference credits for tonight's agent eval | `36145ff2-cb1c-4414-adec-fecb566643da` | 321 / 20 | $0.0000193 | text · 0.43 s | paid | [6ee1a1…](https://nile.tronscan.org/#/transaction/6ee1a15f016e123da3ceb1b9716199461599468030f4a2e3cebd6c647462b48d) |
+| 10 | 2026-09-28 21:58:03 KST | Need 1 GPU hour tonight to rerun the eval, from the GPU Shop | `71dc1400-07b0-4b84-aa3d-3b29cbf5b374` | 324 / 26 | $0.0000331 | text · 0.58 s | paid | [fdcb99…](https://nile.tronscan.org/#/transaction/fdcb99415cb142a29734d82fd3303475693655158f34c308eaeee11c6c51881b) |
+| 11 | 2026-09-28 21:58:54 KST | Buy 1 Kiln inference credit for the judges' replay | `adfb41df-ce96-4ccd-a785-5f0daaa918ed` | 320 / 34 | $0.0000230 | tool_call · 0.63 s | paid | [cc5060…](https://nile.tronscan.org/#/transaction/cc506012344ca6fe8a906c95dbe033de535a9e90f7811a7ddd4408f803f78b52) |
+
+### F2 explain — why was this receipt stopped / paid?
+| About receipt | Question | Kiln generation id | Tokens in / out | USD | Reply shown (echoes the audit) | Receipt's on-chain tx |
+|---:|---|---|---:|---:|---|---|
+| #2 | (explain this receipt) | `e6ebd78a-1c0c-4863-97bc-0754f3ea8549` | 373 / 46 | $0.0000385 | yes | [819478…](https://nile.tronscan.org/#/transaction/819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6) |
+| #7 | (explain this receipt) | `04da11bb-35cc-4626-9ee5-a68e277ad32c` | 348 / 62 | $0.0000414 | yes | [7ee8c3…](https://nile.tronscan.org/#/transaction/7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7) |
+| #2 | (explain this receipt) | `53f41100-4caa-4377-aac1-abc3dfaa7d46` | 379 / 50 | $0.0000406 | yes | [819478…](https://nile.tronscan.org/#/transaction/819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6) |
+| #7 | (explain this receipt) | `cccd1a4b-b964-4c53-bf96-9d8c2181b896` | 354 / 58 | $0.0000408 | yes | [7ee8c3…](https://nile.tronscan.org/#/transaction/7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7) |
+| #2 | (explain this receipt) | `3a712866-d843-45a5-9058-dd1dbdb82b87` | 404 / 71 | $0.0000511 | yes | [819478…](https://nile.tronscan.org/#/transaction/819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6) |
+| #7 | (explain this receipt) | `db754b5e-4b0e-425e-95a7-52903e4be32a` | 379 / 54 | $0.0000412 | yes | [7ee8c3…](https://nile.tronscan.org/#/transaction/7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7) |
+
+### F3 dispute — a teammate's question → which receipt
+| About receipt | Question | Kiln generation id | Tokens in / out | USD | Reply shown (echoes the audit) | Receipt's on-chain tx |
+|---:|---|---|---:|---:|---|---|
+| #2 | Did we pay that cheap unknown seller? | `d1bdd9c8-718d-4782-88d2-7c0ec57565c4` | 1015 / 50 | $0.0000873 | yes | [819478…](https://nile.tronscan.org/#/transaction/819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6) |
+| #6 | Was anything paid after I pressed STOP? | `2389917f-9859-4351-abd0-45c6dbad197f` | 1015 / 68 | $0.0000923 | yes | [f7c6d2…](https://nile.tronscan.org/#/transaction/f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1) |
+| #7 | Why did the last GPU order fail when the same one went through a few minutes earlier? | `ffa30c87-4961-40fc-88cd-28393651542c` | 1025 / 61 | $0.0000592 | yes | [7ee8c3…](https://nile.tronscan.org/#/transaction/7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7) |
+| #2 | Did we pay that cheap unknown seller? | `7c4141f9-35c4-46af-9b51-8a852328d94d` | 1051 / 49 | $0.0000896 | yes | [819478…](https://nile.tronscan.org/#/transaction/819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6) |
+| #6 | Was anything paid after I pressed STOP? | `35c56cc2-328c-4fa0-ba8d-449afa868d54` | 1051 / 98 | $0.0001033 | yes | [f7c6d2…](https://nile.tronscan.org/#/transaction/f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1) |
+| #7 | Why did the last GPU order fail when the same one went through a few minutes earlier? | `74dda3ce-ce35-4aba-9627-390e55e79c2b` | 1061 / 59 | $0.0000600 | yes | [7ee8c3…](https://nile.tronscan.org/#/transaction/7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7) |
+| #6 | Was anything paid after I pressed STOP? | `b720fc26-26ae-43e0-af6e-fc7a16d3a7d1` | 1294 / 62 | $0.0001164 | yes | [f7c6d2…](https://nile.tronscan.org/#/transaction/f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1) |
+| #2 | Did we pay that cheap unknown seller? | `c856ef6f-93ef-4b67-b27c-0105ffc7caa7` | 1294 / 45 | $0.0001117 | yes | [819478…](https://nile.tronscan.org/#/transaction/819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6) |
+| #7 | Why did the last GPU order fail when the same one went through a few minutes earlier? | `1a19f663-d670-4b27-a5da-5490ebcb3a39` | 1304 / 76 | $0.0000745 | yes | [7ee8c3…](https://nile.tronscan.org/#/transaction/7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7) |
+| #2 | Did we pay that cheap unknown seller? | `9040d65b-c3d2-408e-a9c4-e479e8053f1c` | 1308 / 51 | $0.0001151 | yes | [819478…](https://nile.tronscan.org/#/transaction/819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6) |
+| #6 | Was anything paid after I pressed STOP? | `952891d8-988e-4397-8f6c-465fc1256204` | 1308 / 72 | $0.0001210 | yes | [f7c6d2…](https://nile.tronscan.org/#/transaction/f7c6d22d39497df5582ad7c5a410870942ab6e2501ab7bae6502aedc987ad4e1) |
+| #7 | Why did the last GPU order fail when the same one went through a few minutes earlier? | `a9e39d12-f8e3-40fa-9862-447222db447d` | 1318 / 84 | $0.0000773 | yes | [7ee8c3…](https://nile.tronscan.org/#/transaction/7ee8c3d9ccd348d83cb682fa420dbd8920bb74e08409710c372944bd5c1b6df7) |
+<!-- proof:end -->
+
+## How to run — check it yourself (no key, no `.env`)
 ```bash
 npm install
 npm run audit -- docs/receipts-nile-live.jsonl --vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu
@@ -51,6 +99,16 @@ flowchart LR
   PD --> AU
   SB --> AU
 ```
+
+## Plug it into an agent you already have
+Where an agent would call a wallet, give it this one instead — same `transfer(to, amount, memo)` call, the loop does not change ([examples/plug-in.ts](examples/plug-in.ts), tested in `tests/plug-in.test.ts`):
+```ts
+// before: const wallet = myWallet;                                 // pays whatever the planner asks
+const wallet = spendlineWallet({ chain, store, hash });            // src/application/plugIn.ts
+const r = await wallet.transfer(seller, amount, 'why the agent buys it');
+// r.ok → paid inside the line · !r.ok → r.reason is the on-chain stop (e.g. MERCHANT_NOT_ALLOWED); both leave a receipt the keyless audit rebuilds
+```
+No model call is added — the agent keeps its own planner (Spendline's own F1 on Kiln is one way to plan, not a requirement). `chain` = the TRON vault adapter with the agent key (`src/adapters/tron.ts`), `store` = the receipts file, `hash` = sha256.
 
 ## Who it's for · the problem
 - **User:** the lead of a three-person AI startup who hands the team's weekly GPU-hour and inference-credit budget to a purchasing agent.
@@ -91,13 +149,13 @@ The Korean site says "first commit after 19:00" on 2026-09-28; the global organi
 | Built **before** 2026-09-28 19:00 KST (disclosed) | Built **during** the 48 h window |
 |---|---|
 | **v0.1 · 2026-09-24** (`26f19e0`): SPEC, domain core (mandate check, hash-chained receipts, audit, token ledger, energy estimate, intent parser), Kiln adapter, TRON adapter, SpendlineVault.sol, Nile smoke run, video pipeline | **v0.8 · 2026-09-28 21:56–22:11 KST** (`b989a03`): 3 live `npm run agent` runs on Kiln + Nile → receipts #9–#11 (tx [6ee1a15f…](https://nile.tronscan.org/#/transaction/6ee1a15f016e123da3ceb1b9716199461599468030f4a2e3cebd6c647462b48d) · [fdcb9941…](https://nile.tronscan.org/#/transaction/fdcb99415cb142a29734d82fd3303475693655158f34c308eaeee11c6c51881b) · [cc506012…](https://nile.tronscan.org/#/transaction/cc506012344ca6fe8a906c95dbe033de535a9e90f7811a7ddd4408f803f78b52)), transcripts in [docs/live/](docs/live/) · report line shows `via` + Kiln server time (AC-35) · demo terminal scene checked against the record (AC-36) · keyless audit 11 receipts OK · demo + pitch re-recorded, deck + Q&A numbers from the new record · tool-call wording matched to the live record (`92e09a7`) |
-| **v0.5 · 2026-09-26**: keyless audit CLI + mandate history in the audit (`1b88483`) · deadline stop measured on Nile, audit in chain order (`a4c74fc`) · UI skeleton, 4 screens (`1db3a11`) | |
+| **v0.5 · 2026-09-26**: keyless audit CLI + mandate history in the audit (`1b88483`) · deadline stop measured on Nile, audit in chain order (`a4c74fc`) · UI skeleton, 4 screens (`1db3a11`) | **v0.9 · 2026-09-29 00:14–00:36 KST** (this commit): README "Proof of API usage — per flow" generated from the record by `npm run proof` (AC-38 — the organizer's required item 4: on-chain tx + Kiln call log per flow) · deck cut to 10 pages (organizer: presentation PDF ≤ 10 pages; "not done" + "check it yourself" merged) · pitch re-recorded on it |
 | **v0.5.1 · 2026-09-26** (mock review M0): audit flags vault spends with no receipt · scripted stand-in usage labelled, never counted as Kiln · README: user, AI-vs-code split, enforcement point, chain read / write / settle | |
 | **v0.7 · 2026-09-28 morning** (M1 prep): Kiln's F2 / F3 words on the Receipt and Audit screens, audit-checked (`12a51d6`) · demo video, pitch video, deck PDF, ten judge questions, all numbers checked against the record (`7632109`) · README (`6cf790a`) · F1 as a Kiln tool call, live A/B × 2, leaked-call parser (`42f38b4`) · Kiln server-side time for energy, deck: team + why TRON (`641a399`) · measured cost per decision (this commit) | |
 | **v0.6 · 2026-09-26** (M0 open items): F2 explain · F3 dispute on Kiln (`55a58a1`) · vault refuses a reused receipt hash (`4aadb99`) · owner CLI grant / STOP, agent CLI (`eb2131b`) · pay() reads its decision from the tx log (`a2de77b`), survives a network blip (`4b681c9`) · per-flow report, `/no_think` A/B (`a39587f`) · live Nile run + F2/F3 grounding fixes from live answers (`5b84263`) · report, README (this commit) | |
 
 ## What is verified (2026-09-28)
-- `npm test` → 142 tests green (fakes only, no network). `npm run typecheck` clean. `npm run layers` → Clean Architecture OK.
+- `npm test` → 149 tests green (fakes only, no network). `npm run typecheck` clean. `npm run layers` → Clean Architecture OK. `npm run proof -- --check` → README proof section matches the record, every receipt has its on-chain event.
 - **Live run** (`scripts/e2e-nile.ts`, then two commands by hand), vault v0.6 `TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu` deployed [8e11f4d4…](https://nile.tronscan.org/#/transaction/8e11f4d403c9b7c8e78f86f193bd65dad6e66068a39a164cdffea91597880161): grant (owner CLI) → paid → seller not listed → over budget with fees → the paid receipt's hash sent again → DUPLICATE_RECEIPT → paid → STOP (owner CLI) → PAUSED → re-grant with a 180 s window → paid → the same request after it → DEADLINE_PASSED; then `npm run grant` (line to 2026-09-30) and `npm run agent` → paid in 11 s. Keyless audit: 8 receipts, 0 problems. Every F1 on live Kiln (8/8 generation ids, 0 stand-ins).
 - F2 / F3 on this record, live: 6/6 answers grounded after two fixes found by live answers — an F3 answer said a STOP and a re-grant were simultaneous (they were 9 s apart in one minute) and another computed a wrong duration. Now times carry seconds, the STOP relation per receipt is written by code, and a number that is not in the facts keeps the model's reply off the screen. Every revision's calls are counted in [docs/tokens-by-flow.md](docs/tokens-by-flow.md).
 - Network blip, measured: a `socket hang up` while building a `pay()` stopped the first attempt of the live run before anything was sent; the chain adapter now rebuilds on a failed build and re-sends the same signed tx on a failed broadcast, and the run resumed on the same vault and receipts file (`--continue`).

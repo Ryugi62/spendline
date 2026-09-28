@@ -1,7 +1,8 @@
-import { evaluate, type Decision, type SpendRequest } from '../domain/mandate';
+import type { Decision, SpendRequest } from '../domain/mandate';
 import { leakedToolCall, parseIntent } from '../domain/intent';
 import { usdt } from '../domain/money';
-import { GENESIS, sealReceipt, type Hasher, type Receipt } from '../domain/receipt';
+import type { Hasher, Receipt } from '../domain/receipt';
+import { guardedPay } from './plugIn';
 import type { CatalogPort, ChainPort, LlmPort, PayOutcome, ReceiptStore, ToolSpec } from './ports';
 
 /** `f1`: how F1 asks Kiln (AC-33/34) — a `propose_purchase` tool call (default, chosen by docs/ab-tool-call-*.json) or JSON in the text reply. */
@@ -54,7 +55,7 @@ export async function purchase(d: PurchaseDeps, requestText: string): Promise<Pu
   const intent = parseIntent(args);
   const usage = { ...r.usage, via };
 
-  const [mandate, spent, at, offers] = await Promise.all([d.chain.mandate(), d.chain.spent(), d.chain.now(), d.catalog.offers(intent.item)]);
+  const [mandate, offers] = await Promise.all([d.chain.mandate(), d.catalog.offers(intent.item)]);
   const affordable = offers.filter((o) => intent.maxUnitPrice === undefined || o.unitPrice <= usdt(intent.maxUnitPrice));
   const pick =
     (intent.merchantHint && offers.find((o) => o.merchant === intent.merchantHint)) ||
@@ -63,12 +64,5 @@ export async function purchase(d: PurchaseDeps, requestText: string): Promise<Pu
     offers[0];
   if (!pick) throw new Error(`no offer for ${intent.item}`);
 
-  const request: SpendRequest = { merchant: pick.merchant, amount: pick.unitPrice * intent.quantity, fee: pick.fee, at };
-  const preview = evaluate(mandate, spent, request);
-  const prior = await d.store.all();
-  const prev = prior.length ? prior[prior.length - 1] : undefined;
-  const receipt = sealReceipt(prev?.hash ?? GENESIS, { seq: (prev?.seq ?? 0) + 1, mandateId: mandate.id, request, intentText: requestText, flows: [usage] }, d.hash);
-  await d.store.append(receipt);
-  const outcome = await d.chain.pay({ merchant: request.merchant, amount: request.amount, fee: request.fee, receiptHash: receipt.hash });
-  return { request, preview, receipt, outcome };
+  return guardedPay(d, { merchant: pick.merchant, amount: pick.unitPrice * intent.quantity, fee: pick.fee, why: requestText, flows: [usage] });
 }
