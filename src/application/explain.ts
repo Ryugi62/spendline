@@ -108,8 +108,17 @@ export async function explain(d: AnswerDeps, rec: PublicRecord, seq: number): Pr
 export function usageLine(u: UsageRecord): string {
   const who = isKilnCall(u) ? 'Kiln qwen3-32b' : 'scripted stand-in — no Kiln call';
   const wh = estimateEnergy({ latencyMs: u.latencyMs }).wh;
-  return `${who} · ${u.flow} · ${u.promptTokens}+${u.completionTokens} tokens · ${(u.latencyMs / 1000).toFixed(2)} s · $${Number(u.costUsd.toFixed(8))} · gen ${u.generationId || '-'} · ≈${wh.toFixed(4)} Wh`;
+  const server = typeof u.serverMs === 'number' ? ` · server ${(u.serverMs / 1000).toFixed(2)} s` : '';
+  const via = u.via ? ` · via ${VIA_TEXT[u.via]}` : '';
+  return `${who} · ${u.flow} · ${u.promptTokens}+${u.completionTokens} tokens · ${(u.latencyMs / 1000).toFixed(2)} s${server} · $${Number(u.costUsd.toFixed(8))} · gen ${u.generationId || '-'} · ≈${wh.toFixed(4)} Wh${via}`;
 }
+
+/** AC-35: how F1 got its intent — the tool is always offered; the model may still answer in text. */
+export const VIA_TEXT: Record<NonNullable<UsageRecord['via']>, string> = {
+  tool_call: 'tool call',
+  tool_call_in_text: 'tool call leaked into text',
+  text: 'JSON in text (tool offered)',
+};
 
 export function formatAnswer(a: Answer): string {
   const label = a.flow === 'F2_explain' ? 'F2 explain' : 'F3 dispute';

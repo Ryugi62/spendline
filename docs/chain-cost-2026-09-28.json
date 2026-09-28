@@ -56,13 +56,31 @@
    "kind": "paid",
    "feeSun": 8513800,
    "energy": 81028
+  },
+  {
+   "txHash": "6ee1a15f016e123da3ceb1b9716199461599468030f4a2e3cebd6c647462b48d",
+   "kind": "paid",
+   "feeSun": 4785200,
+   "energy": 47852
+  },
+  {
+   "txHash": "fdcb99415cb142a29734d82fd3303475693655158f34c308eaeee11c6c51881b",
+   "kind": "paid",
+   "feeSun": 7013800,
+   "energy": 66028
+  },
+  {
+   "txHash": "cc506012344ca6fe8a906c95dbe033de535a9e90f7811a7ddd4408f803f78b52",
+   "kind": "paid",
+   "feeSun": 5196200,
+   "energy": 47852
   }
  ],
  "summary": {
   "paid": {
-   "n": 4,
-   "medianTrx": 8.5138,
-   "medianEnergy": 81028
+   "n": 7,
+   "medianTrx": 7.0138,
+   "medianEnergy": 66028
   },
   "stopped": {
    "n": 5,

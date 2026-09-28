@@ -40,8 +40,8 @@ describe('checkScript (AC-31)', () => {
 
 describe('the real record (offline: session.json + answers log + A/B file)', () => {
   const real = recordFacts();
-  it('facts come from the audit: 8 receipts, 0 problems, the seller-not-listed stop is #2', () => {
-    expect(real).toMatchObject({ receipts: 8, paid: 4, stopped: 4, replays: 1, problems: 0, paidUsdt: '13.60', merchantStopSeq: 2, kilnCalls: 26, callsPerPurchase: '1.00', flows: 3 });
+  it('facts come from the audit: 11 receipts (3 live during the window), 0 problems, the seller-not-listed stop is #2', () => {
+    expect(real).toMatchObject({ receipts: 11, paid: 7, stopped: 4, replays: 1, problems: 0, paidUsdt: '19.20', merchantStopSeq: 2, kilnCalls: 29, callsPerPurchase: '1.00', flows: 3 });
     expect(real.ab).toMatchObject({ n: 12, offTokens: 36, onTokens: 223, sameJson: 12 });
     expect(real.stopTx && real.grantTx && real.replayTx).toBeTruthy();
   });
@@ -76,6 +76,6 @@ describe('the real record (offline: session.json + answers log + A/B file)', () 
 describe('cost of one guarded decision in the facts (M1 review)', () => {
   it('Kiln F1 USD per purchase and median TRX per paid / stopped pay() come from the record files', () => {
     const c = recordFacts().cost!;
-    expect(c).toEqual({ f1Usd: '0.0000139', paidTrx: '8.51', stopTrx: '2.80' });
+    expect(c).toEqual({ f1Usd: '0.0000169', paidTrx: '7.01', stopTrx: '2.80' });
   });
 });

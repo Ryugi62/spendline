@@ -1,0 +1,64 @@
+[
+ {
+  "t": "Top up 2 Kiln inference credits for tonight's agent eval",
+  "via": "tool_call",
+  "text": "",
+  "tool": {
+   "name": "propose_purchase",
+   "arguments": "{\"item\": \"inference-credits\", \"quantity\": 2}"
+  },
+  "serverMs": 629,
+  "gen": "daa9d8de-e3ea-40f2-8321-9232ffbd32c9"
+ },
+ {
+  "t": "Need 1 GPU hour tonight to rerun the eval, from the GPU Shop",
+  "via": "tool_call_in_text",
+  "text": "{\"name\": \"propose_purchase\", \"arguments\": {\"item\": \"gpu-hours\", \"merchantHint\": \"GPU Shop\", \"quantity\": 1}}",
+  "serverMs": 699,
+  "gen": "d01b3837-1a87-42a0-85a3-8f57c58ab3ac"
+ },
+ {
+  "t": "Need 2 GPU hours for fine-tuning today, keep it under 3 USDT per hour",
+  "via": "tool_call",
+  "text": "",
+  "tool": {
+   "name": "propose_purchase",
+   "arguments": "{\"item\": \"gpu-hours\", \"maxUnitPrice\": 3, \"quantity\": 2}"
+  },
+  "serverMs": 696,
+  "gen": "00695174-33ae-4ad3-8d98-6aba6cfa987c"
+ },
+ {
+  "t": "Top up 2 Kiln inference credits for tonight's agent eval",
+  "via": "tool_call",
+  "text": "",
+  "tool": {
+   "name": "propose_purchase",
+   "arguments": "{\"item\": \"inference-credits\", \"quantity\": 2}"
+  },
+  "serverMs": 612,
+  "gen": "2464ca26-4f13-4d4e-8f58-25477088e446"
+ },
+ {
+  "t": "Need 1 GPU hour tonight to rerun the eval, from the GPU Shop",
+  "via": "tool_call",
+  "text": "",
+  "tool": {
+   "name": "propose_purchase",
+   "arguments": "{\"item\": \"gpu-hours\", \"merchantHint\": \"GPU Shop\", \"quantity\": 1}"
+  },
+  "serverMs": 707,
+  "gen": "8938dc77-3237-4feb-b768-c182c62aac32"
+ },
+ {
+  "t": "Need 2 GPU hours for fine-tuning today, keep it under 3 USDT per hour",
+  "via": "tool_call",
+  "text": "",
+  "tool": {
+   "name": "propose_purchase",
+   "arguments": "{\"item\": \"gpu-hours\", \"maxUnitPrice\": 3, \"quantity\": 2}"
+  },
+  "serverMs": 696,
+  "gen": "42c2e1a9-3347-4592-a0ff-84fef62c6119"
+ }
+]

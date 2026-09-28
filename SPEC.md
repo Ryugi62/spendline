@@ -1,4 +1,4 @@
-# Spendline — SPEC (SDD, v0.7 2026-09-28)
+# Spendline — SPEC (SDD, v0.8 2026-09-28)
 
 > GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum "Agent Finance" track · Challenge B (covers A's condition checks).
 > Brief (verbatim source): https://docs.google.com/document/d/13qh7oePGl7Flrl-Zh_A6hfr02L266PvS — model changed to **Qwen3-32B** (Bricksum, TG 2026-09-22).
@@ -135,6 +135,16 @@ M1 mock review (2026-09-28) — Kiln tool calling, the organizers' own pointer (
 - Physical: UI captures re-taken on the live record (390 / 1280, 0 sideways scroll) · `docs/video/spendline-demo.mp4` ≤ 3:00 ·
   `docs/video/spendline-pitch.mp4` ≤ 5:00 (deck slides + the same narration pipeline) · `docs/deck.pdf`.
 
+## 6f. v0.8 — during the 48 h window (2026-09-28 19:00 KST →): the live run judges asked for (M1-06)
+M1 said: the demo only replays the 2026-09-26 record, no live receipt comes through the tool-call F1, the README "during" column is empty.
+- AC-35 Given a Kiln usage record that carries `via` / `serverMs` When `usageLine(u)` Then the line also says how F1 got its intent
+  (`tool call` · `tool call leaked into text` · `JSON in text (tool offered)`) and `server <s> s` — records without them print as before.
+- AC-36 Given the live receipts file and the terminal transcripts in `docs/live/agent-*.txt` When `npm run video:stage` Then `stage.html#agent`
+  shows those transcripts verbatim, each receipt's `via` and server time from the record, and nothing that is not in them; a transcript whose
+  receipt hash / tx is not in the record is refused (the AC-31 number rule, applied to the terminal scene).
+- Physical: `npm run agent` on live Kiln + Nile after 19:00 → receipts #9+ (every result kept, including a text fallback) · keyless audit OK ·
+  demo scene `#agent` · README "during" column with the commit hashes · pushed only at the v1 freeze (2026-09-29 20:00).
+
 ## 7. Architecture (Clean)
 ```
 src/domain/ ← src/application/ ← src/adapters/ (kiln, tron, memory, jsonl) ← src/infrastructure/ (config, cli, composition root)
@@ -154,3 +164,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 - v0.5.1 2026-09-26 §6c (M0 mock review): audit lists chain spends without a receipt (AC-21) · scripted stand-in usage is labelled, not counted as Kiln (AC-22) · README states user, AI-vs-code split, enforcement point, chain read/write/settle.
 - v0.6 2026-09-26 §6d (M0 open items, pre-hackathon, disclosed; live answers added the number rule and the STOP relation to AC-23/24): F2 explain · F3 dispute on Kiln (AC-23/24) · vault refuses a reused receipt hash (AC-25) · per-flow token / Wh report and /no_think A/B (AC-26/27) · owner CLI signs grant / STOP (AC-28) · agent CLI, one request line → receipt (AC-29) · live Nile rerun with every model call on Kiln.
 - v0.7 2026-09-28 §6e (M1 prep, before the 19:00 window — disclosed): Kiln F2 / F3 words on the Receipt and Audit screens, audit-checked (AC-30) · narration check for video and pitch (AC-31) · deck built from the record's facts, same number rule (AC-32) · demo video, pitch video, deck PDF, 10 Q&A.
+- v0.8 2026-09-28 §6f (during the window, from 19:00 KST): live agent receipts on the tool-call F1 with `via` · `serverMs` in the report line (AC-35) · terminal scene in the demo from the transcripts, checked against the record (AC-36).

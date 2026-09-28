@@ -22,7 +22,7 @@
  {
   "id": "p05",
   "url": "docs/deck/deck.html#kiln",
-  "en": "Kiln does real work, and we count it. The request is read through a Kiln tool call, chosen over plain JSON by a rule we fixed before a live test. 1.00 LLM call per purchase, against a design limit of 2. 26 live Kiln calls across 3 flows, 18,490 tokens in total. No-think cut median output from 223 to 36 tokens, with the same JSON. Energy is an estimate we state: 180 watts times measured time."
+  "en": "Kiln does real work, and we count it. The request is read through a Kiln tool call, chosen over plain JSON by a rule we fixed before a live test. 1.00 LLM call per purchase, against a design limit of 2. 29 live Kiln calls across 3 flows, 19,535 tokens in total. No-think cut median output from 223 to 36 tokens, with the same JSON. Energy is an estimate we state: 180 watts times measured time."
  },
  {
   "id": "p06",
@@ -32,7 +32,7 @@
  {
   "id": "p07",
   "url": "docs/deck/deck.html#evidence",
-  "en": "Approval and evidence. One command, no key, rebuilds every verdict from the receipts file and the vault's public events: 8 receipts, 4 paid inside, 4 stopped, 0 problems, 13.60 USDT paid. Edit a receipt and the hash chain breaks. Drop one and the vault event with no receipt is flagged."
+  "en": "Approval and evidence. One command, no key, rebuilds every verdict from the receipts file and the vault's public events: 11 receipts, 7 paid inside, 4 stopped, 0 problems, 19.20 USDT paid. Edit a receipt and the hash chain breaks. Drop one and the vault event with no receipt is flagged."
  },
  {
   "id": "p08",
@@ -42,7 +42,7 @@
  {
   "id": "p09",
   "url": "docs/deck/deck.html#value",
-  "en": "Where it plugs in: wherever an agent would call a wallet, it calls the vault instead. We measured what one guarded decision costs on Nile: 8.51 TRX when paid, 2.80 when stopped, plus a fraction of a cent of Kiln. Who needs it: teams that let agents buy compute and credits. Our business hypothesis, not yet validated: open vault and audit, with a hosted audit and alerts as the paid layer."
+  "en": "Where it plugs in: wherever an agent would call a wallet, it calls the vault instead. We measured what one guarded decision costs on Nile: 7.01 TRX when paid, 2.80 when stopped, plus a fraction of a cent of Kiln. Who needs it: teams that let agents buy compute and credits. Our business hypothesis, not yet validated: open vault and audit, with a hosted audit and alerts as the paid layer."
  },
  {
   "id": "p10",

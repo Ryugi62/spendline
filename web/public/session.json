@@ -185,6 +185,81 @@
    ],
    "prevHash": "168a28b860b679ab9a8a785bc57e07021f42d866dc4628cab0662c94820ce7fd",
    "hash": "08137d5ed3a068c3644b6da0a7ded300b7be91dafed2ccc2691252eed0d1155f"
+  },
+  {
+   "seq": 9,
+   "mandateId": "0x375013bf899f79439eba9663690f5069fd4cd748d889291d60140a6b161171da",
+   "request": {
+    "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+    "amount": 2000000,
+    "fee": 0,
+    "at": 1790600193
+   },
+   "intentText": "Top up 2 Kiln inference credits for tonight's agent eval",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 321,
+     "completionTokens": 20,
+     "costUsd": 0.00001932,
+     "latencyMs": 1679,
+     "generationId": "36145ff2-cb1c-4414-adec-fecb566643da",
+     "serverMs": 433,
+     "via": "text"
+    }
+   ],
+   "prevHash": "08137d5ed3a068c3644b6da0a7ded300b7be91dafed2ccc2691252eed0d1155f",
+   "hash": "fbe73faef7d0226d33c32ce309620108c3314960c3aebe28a5ef9f80d00ab3c9"
+  },
+  {
+   "seq": 10,
+   "mandateId": "0x375013bf899f79439eba9663690f5069fd4cd748d889291d60140a6b161171da",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 2400000,
+    "fee": 200000,
+    "at": 1790600283
+   },
+   "intentText": "Need 1 GPU hour tonight to rerun the eval, from the GPU Shop",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 324,
+     "completionTokens": 26,
+     "costUsd": 0.00003308,
+     "latencyMs": 1625,
+     "generationId": "71dc1400-07b0-4b84-aa3d-3b29cbf5b374",
+     "serverMs": 584,
+     "via": "text"
+    }
+   ],
+   "prevHash": "fbe73faef7d0226d33c32ce309620108c3314960c3aebe28a5ef9f80d00ab3c9",
+   "hash": "6b8f65c8d16b5ad24c91c9d468743c97f38ee3d8195d8fc821244422c57ef337"
+  },
+  {
+   "seq": 11,
+   "mandateId": "0x375013bf899f79439eba9663690f5069fd4cd748d889291d60140a6b161171da",
+   "request": {
+    "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+    "amount": 1000000,
+    "fee": 0,
+    "at": 1790600334
+   },
+   "intentText": "Buy 1 Kiln inference credit for the judges' replay",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 320,
+     "completionTokens": 34,
+     "costUsd": 0.000023040000000000003,
+     "latencyMs": 1759,
+     "generationId": "adfb41df-ce96-4ccd-a785-5f0daaa918ed",
+     "serverMs": 625,
+     "via": "tool_call"
+    }
+   ],
+   "prevHash": "6b8f65c8d16b5ad24c91c9d468743c97f38ee3d8195d8fc821244422c57ef337",
+   "hash": "4b50a13b957cb6fd803ad213c192eb6bd35cf9ce6a0ceaa6301c4774cc3270e0"
   }
  ],
  "events": [
@@ -326,9 +401,36 @@
    "fee": 200000,
    "at": 1790397294,
    "txHash": "98d3281f2cc30a5f0c7e609f4231300e0867da29fff0c9d7c47d81dd03d10c0d"
+  },
+  {
+   "kind": "paid",
+   "receiptHash": "fbe73faef7d0226d33c32ce309620108c3314960c3aebe28a5ef9f80d00ab3c9",
+   "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+   "amount": 2000000,
+   "fee": 0,
+   "at": 1790600199,
+   "txHash": "6ee1a15f016e123da3ceb1b9716199461599468030f4a2e3cebd6c647462b48d"
+  },
+  {
+   "kind": "paid",
+   "receiptHash": "6b8f65c8d16b5ad24c91c9d468743c97f38ee3d8195d8fc821244422c57ef337",
+   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "amount": 2400000,
+   "fee": 200000,
+   "at": 1790600286,
+   "txHash": "fdcb99415cb142a29734d82fd3303475693655158f34c308eaeee11c6c51881b"
+  },
+  {
+   "kind": "paid",
+   "receiptHash": "4b50a13b957cb6fd803ad213c192eb6bd35cf9ce6a0ceaa6301c4774cc3270e0",
+   "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+   "amount": 1000000,
+   "fee": 0,
+   "at": 1790600340,
+   "txHash": "cc506012344ca6fe8a906c95dbe033de535a9e90f7811a7ddd4408f803f78b52"
   }
  ],
- "generatedAt": 1790547671,
+ "generatedAt": 1790600451,
  "answers": [
   {
    "key": "F2:ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
