@@ -31,7 +31,7 @@ code{font:16px ui-monospace,Menlo,monospace;background:#f2f4f6;border-radius:6px
 <section class="slide" id="kiln"><h2>Kiln integration &amp; efficiency</h2><div class="stats"><div><p class="num">1.00</p><p>LLM call per purchase<br><small>design limit 2</small></p></div>
 <div><p class="num">29</p><p>live Kiln calls in 3 flows<br><small>19,535 tokens · $0.0015478</small></p></div>
 <div><p class="num">0.10<span> Wh</span></p><p>per purchase (est.)<br><small>3.59 Wh in total</small></p></div></div>
-<p class="lead">F1 is a Kiln tool call (<code>propose_purchase</code>, the Qwen3-32B tool parser) — chosen over JSON-in-text by a rule we fixed before a live A/B.</p>
+<p class="lead">F1 offers a Kiln tool call (<code>propose_purchase</code>, the Qwen3-32B tool parser) — chosen by a rule we fixed before a live A/B; a reply as plain JSON or a call leaked into text is parsed too, and each receipt records which.</p>
 <p class="lead">/no_think A/B, n = 12: median 36 vs 223 output tokens · 0.95 vs 3.50 s · same JSON 12/12 → 84% fewer tokens.</p>
 <p class="note">Energy is an estimate, never a measurement: 180 W (RNGD card TDP, furiosa.ai/rngd) × measured wall time. Tokens by flow, generation ids: docs/tokens-by-flow.md.</p><p class="foot">Spendline · 5 / 11</p></section>
 <section class="slide" id="chain"><h2>Blockchain integration — read · write · settle</h2><ul class="big-list"><li><b>Agent reads</b> the line: budget, per-payment cap, sellers, deadline, paused, spent.</li>

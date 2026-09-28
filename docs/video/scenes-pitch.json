@@ -22,7 +22,7 @@
  {
   "id": "p05",
   "url": "docs/deck/deck.html#kiln",
-  "en": "Kiln does real work, and we count it. The request is read through a Kiln tool call, chosen over plain JSON by a rule we fixed before a live test. 1.00 LLM call per purchase, against a design limit of 2. 29 live Kiln calls across 3 flows, 19,535 tokens in total. No-think cut median output from 223 to 36 tokens, with the same JSON. Energy is an estimate we state: 180 watts times measured time."
+  "en": "Kiln does real work, and we count it. The request goes to Kiln as a tool call, chosen by a rule we fixed before a live test. The model sometimes answers in plain JSON instead; the code parses both, and each receipt says which. 1.00 LLM call per purchase, against a design limit of 2. 29 live Kiln calls across 3 flows, 19,535 tokens in total. No-think cut median output from 223 to 36 tokens, with the same JSON. Energy is an estimate we state: 180 watts times measured time."
  },
  {
   "id": "p06",
