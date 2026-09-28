@@ -7,3 +7,22 @@ docs/video/work*/
 *.log
 docs/video/rehearsal.mp4
 docs/video/rehearsal.en.srt
+
+# --- backup safety patterns (2026-09-28) ---
+.env*
+!.env.example
+.venv/
+venv/
+node_modules/
+__pycache__/
+*.pyc
+*.log
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
+*.npy
+*.npz
+*.parquet
+*.pkl
