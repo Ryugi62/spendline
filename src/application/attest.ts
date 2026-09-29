@@ -22,7 +22,7 @@ export function summarizeAttest(r: AttestResult): AttestSummary {
 export const attestExitCode = (r: AttestResult): 0 | 1 => (r.counts.differs === 0 && r.counts.notFound === 0 && r.counts.match > 0 ? 0 : 1);
 
 const line = (x: AttestRow) => {
-  const who = x.flow === 'F1_intent' ? `F1 #${x.seq}` : `${x.flow === 'F2_explain' ? 'F2' : 'F3'} on #${x.seq ?? '-'}`;
+  const who = x.flow === 'F1_intent' ? (x.seq === null ? 'MCP host' : `F1 #${x.seq}`) : `${x.flow === 'F2_explain' ? 'F2' : 'F3'} on #${x.seq ?? '-'}`;
   const when = x.kilnAt !== undefined ? ` · Kiln ${kst(Math.floor(x.kilnAt))}` + (x.payAt !== undefined ? ` → pay() ${kst(x.payAt)} (+${x.leadSec} s)` : '') : '';
   return `${x.status.padEnd(9)} ${who.padEnd(9)} ${x.generationId}${when}${x.diffs.length ? ` — ${x.diffs.join('; ')}` : ''}`;
 };

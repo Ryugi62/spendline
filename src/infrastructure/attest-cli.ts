@@ -3,15 +3,15 @@
 //                                  saves Kiln's answers verbatim to docs/kiln-generations.json, compares
 //   npm run attest -- --saved      the same comparison, keyless, from docs/kiln-generations.json
 // Chain times come from the vault's public events (TronGrid, keyless) or --events saved.json.
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { JsonlAnswerLog } from '../adapters/files';
 import { KilnGenerations, parseKilnGeneration } from '../adapters/kiln';
 import { TronGridEvents } from '../adapters/trongrid';
 import { attestExitCode, formatAttest } from '../application/attest';
 import { parseReceiptsFile } from '../application/auditRecords';
-import { attest, type KilnGeneration } from '../domain/attest';
+import { attest, type AttestAnswer, type KilnGeneration } from '../domain/attest';
 import type { ChainEvent } from '../domain/audit';
-import { isKilnCall } from '../domain/tokenLedger';
+import { isKilnCall, type UsageRecord } from '../domain/tokenLedger';
 import { flag, LIVE_ANSWERS, LIVE_RECEIPTS, need, readEnv } from './runtime';
 
 export const SAVED = 'docs/kiln-generations.json';
@@ -24,7 +24,14 @@ type Saved = { source: string; fetchedAt: string; generations: Record<string, Pa
 
 async function main(args: string[]): Promise<number> {
   const file = parseReceiptsFile(readFileSync(flag(args, '--receipts') ?? LIVE_RECEIPTS, 'utf8'));
-  const answers = existsSync(flag(args, '--answers') ?? LIVE_ANSWERS) ? await new JsonlAnswerLog(flag(args, '--answers') ?? LIVE_ANSWERS).all() : [];
+  const logged = existsSync(flag(args, '--answers') ?? LIVE_ANSWERS) ? await new JsonlAnswerLog(flag(args, '--answers') ?? LIVE_ANSWERS).all() : [];
+  // AC-44 MCP host runs (docs/live/mcp-host-*.json): Kiln calls that decided no payment (the closing answer, a refused call) are rows too
+  const inReceipts = new Set(file.receipts.flatMap((r) => r.flows.map((u) => u.generationId)));
+  const hostCalls: AttestAnswer[] = flag(args, '--receipts') ? [] : readdirSync('docs/live').filter((n) => /^mcp-host-.*\.json$/.test(n)).sort()
+    .flatMap((n) => (JSON.parse(readFileSync(`docs/live/${n}`, 'utf8')) as { calls: UsageRecord[] }).calls)
+    .filter((u) => !inReceipts.has(u.generationId))
+    .map((u) => ({ flow: 'F1_intent', seq: null, question: 'MCP host call with no payment', usage: u }));
+  const answers: AttestAnswer[] = [...logged, ...hostCalls];
   const vault = flag(args, '--vault') ?? file.vault ?? LIVE_VAULT;
   const ids = [...new Set([...file.receipts.flatMap((r) => r.flows), ...answers.flatMap((a) => (a.usage ? [a.usage] : []))].filter(isKilnCall).map((u) => u.generationId))];
 

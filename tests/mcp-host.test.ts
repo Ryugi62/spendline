@@ -56,6 +56,37 @@ describe('runHost (AC-44)', () => {
     expect((await store.all())[0].flows[0].generationId).toBe('fake-1');
   });
 
+  it('live 2026-09-29 run 1: a retry written as `name({...})` in the text is a tool call too, and the history is kept in the JSON call form', async () => {
+    const { store, mcp } = await world();
+    const llm = new FakeLlm([
+      { tool: 'spendline_pay', arguments: JSON.stringify({ to: 'Kiln', amount_usdt: 1, why: '1 credit' }) },
+      'spendline_pay({"amount_usdt":1,"fee_usdt":0,"to":"Kiln credits","why":"buy 1 Kiln inference credit for eval run"})',
+      'Paid 1.00 USDT to Kiln credits.',
+    ]);
+    const run = await runHost({ llm, mcp }, 'One Kiln credit.');
+    expect(run.steps.map((s) => [s.via, s.isError])).toEqual([['tool_call', true], ['tool_call_in_text', false]]);
+    expect((await store.all()).map((r) => r.intentText)).toEqual(['buy 1 Kiln inference credit for eval run']);
+    expect(llm.seen[1].find((m) => m.role === 'assistant')!.content).toBe('{"name":"spendline_pay","arguments":{"to":"Kiln","amount_usdt":1,"why":"1 credit"}}');
+  });
+
+  it('live 2026-09-29 run 2: a hermes call with trailing junk (`{...}}"}`) is still the call', async () => {
+    const { store, mcp } = await world();
+    const llm = new FakeLlm([
+      '{"name":"spendline_pay","arguments":{"amount_usdt":0.9,"fee_usdt":0,"to":"Unknown seller","why":"1 GPU hour for eval run"}}"}',
+      'The Unknown seller was stopped: not on the list.',
+    ]);
+    const run = await runHost({ llm, mcp }, 'One GPU hour from the Unknown seller.');
+    expect(run.steps.map((s) => [s.tool, s.via])).toEqual([['spendline_pay', 'tool_call_in_text']]);
+    expect(JSON.parse(run.steps[0].text)).toMatchObject({ ok: false, reason: 'MERCHANT_NOT_ALLOWED' });
+    expect(await store.all()).toHaveLength(1);
+  });
+
+  it('the pay tool tells the model the seller names it may use', async () => {
+    const { mcp } = await world();
+    const pay = (await mcp.list()).find((t) => t.name === 'spendline_pay')!;
+    expect(JSON.stringify(pay.inputSchema)).toContain('GPU Shop, Kiln credits, Unknown seller');
+  });
+
   it('stops after maxSteps tool calls and says so', async () => {
     const { mcp } = await world();
     const llm = new FakeLlm(Array.from({ length: 10 }, () => ({ tool: 'spendline_line', arguments: '{}' })));

@@ -64,7 +64,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
       inputSchema: {
         type: 'object',
         properties: {
-          to: { type: 'string', description: "seller: a TRON address, or a seller's name from spendline_line" },
+          to: { type: 'string', description: `seller: a TRON address, or one of these names exactly: ${Object.values(d.labels).join(', ')}` },
           amount_usdt: { type: 'number', description: 'amount in USDT (up to 6 decimals), fee not included' },
           why: { type: 'string', description: 'the reason in the words of the request — becomes the receipt\'s words' },
           fee_usdt: { type: 'number', description: 'seller fee in USDT, default 0' },

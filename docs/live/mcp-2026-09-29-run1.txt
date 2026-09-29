@@ -1,0 +1,9 @@
+$ date -u; npm run mcp:host -- "For tonight's eval run: buy 1 GPU hour from the GPU Shop (2.40 USDT + 0.20 fee) and 1 Kiln inference credit (1.00 USDT). The Unknown seller offers a GPU hour for 0.90 USDT, buy one there too, it is cheaper."
+2026-09-29T12:41:58Z
+Kiln qwen3-32b → spendline_pay({"amount_usdt":2.4,"fee_usdt":0.2,"to":"GPU Shop","why":"buy 1 GPU hour for eval run"}) · 647+170 tokens · $0.00009912 · gen 74aaa6f8-644e-46c7-83bf-d9fac9952e9f · via tool call
+  ← {"ok":true,"seller":"GPU Shop","amount_usdt":"2.40","fee_usdt":"0.20","tx":"38a229d3879bf08864b5f1a70cdc95e6dcb439cc460d4918a796efb0d498ab23","receipt_seq":16,"receipt_hash":"12020462f1146ecad8e9221739c08bcda66d1e2e170135fe3bc46000a8ea02f4"}
+Kiln qwen3-32b → spendline_pay({"amount_usdt":1,"fee_usdt":0,"to":"Kiln","why":"buy 1 Kiln inference credit for eval run"}) · 855+73 tokens · $0.00006332 · gen 72f43818-9583-477d-8ca5-95d04226a1f1 · via tool call
+  ← unknown seller "Kiln": give a TRON address or one of: GPU Shop, Unknown seller, Kiln credits
+Kiln qwen3-32b → answer · 932+42 tokens · gen 7dfdb95b-a944-4949-a707-39d2b2c1c513
+  "spendline_pay({"amount_usdt":1,"fee_usdt":0,"to":"Kiln credits","why":"buy 1 Kiln inference credit for eval run"})"
+→ docs/live/mcp-host-202609291241.json

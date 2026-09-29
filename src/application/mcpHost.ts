@@ -54,6 +54,6 @@ export async function runHost(d: { llm: LlmPort; mcp: McpClientPort; maxSteps?: 
       : args;
     const res = await d.mcp.call(picked.name, sent);
     steps.push({ tool: picked.name, args, via: picked.via, generationId: usage.generationId, text: res.text, isError: res.isError });
-    messages.push({ role: 'assistant', content: `${picked.name}(${JSON.stringify(args)})` }, { role: 'user', content: `Result of ${picked.name}: ${res.text}` });
+    messages.push({ role: 'assistant', content: JSON.stringify({ name: picked.name, arguments: args }) }, { role: 'user', content: `Result of ${picked.name}: ${res.text}` });
   }
 }

@@ -7,16 +7,48 @@ export class IntentError extends Error {}
  * (`{"name": "propose_purchase", "arguments": {...}}`) instead of `tool_calls`. Returns that call's arguments as JSON text.
  */
 export function leakedToolCall(text: string, name: string): string | undefined {
+  // live 2026-09-29 (MCP host run 1): the call can also come back as `name({...})` in the text
+  const called = text.match(new RegExp(`\\b${name}\\s*\\(\\s*(\\{[\\s\\S]*\\})\\s*\\)`));
+  if (called) {
+    try {
+      const args = JSON.parse(called[1]) as unknown;
+      if (args && typeof args === 'object' && !Array.isArray(args)) return JSON.stringify(args);
+    } catch { /* fall through to the hermes form */ }
+  }
+  for (const candidate of [wholeSpan(text), ...balancedObjects(text)]) {
+    if (!candidate) continue;
+    try {
+      const o = JSON.parse(candidate) as Record<string, unknown>;
+      const args = o.arguments;
+      if (o.name === name && args && typeof args === 'object' && !Array.isArray(args)) return JSON.stringify(args);
+    } catch { /* next candidate */ }
+  }
+  return undefined;
+}
+
+const wholeSpan = (text: string): string | undefined => {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
-  if (start < 0 || end <= start) return undefined;
-  try {
-    const o = JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
-    const args = o.arguments;
-    return o.name === name && args && typeof args === 'object' && !Array.isArray(args) ? JSON.stringify(args) : undefined;
-  } catch {
-    return undefined;
+  return start < 0 || end <= start ? undefined : text.slice(start, end + 1);
+};
+
+/** Top-level `{...}` spans with balanced braces (strings and escapes respected) — live run 2 ended a call with stray `"}`. */
+export function balancedObjects(text: string): string[] {
+  const out: string[] = [];
+  let depth = 0, start = -1, inStr = false, esc = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (c === '\\') esc = true;
+      else if (c === '"') inStr = false;
+      continue;
+    }
+    if (c === '"' && depth > 0) inStr = true;
+    else if (c === '{') { if (depth++ === 0) start = i; }
+    else if (c === '}' && depth > 0 && --depth === 0) out.push(text.slice(start, i + 1));
   }
+  return out;
 }
 
 export function parseIntent(text: string): Intent {
