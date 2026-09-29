@@ -1,10 +1,12 @@
-Under the candidate line: 3 paid · 10 stopped · 5.60 USDT spent (recorded: 7 paid)
-6 requests would end differently:
+Under the candidate line: 3 paid · 12 stopped · 5.60 USDT spent (recorded: 9 paid)
+8 requests would end differently:
   #25 GPU Shop 7.40 USDT: OVER_BUDGET_WITH_FEES → OVER_TX_CAP
   #27 GPU Shop 2.60 USDT: PAID → OVER_BUDGET_WITH_FEES
   #29 GPU Shop 2.60 USDT: OVER_TX_CAP → OVER_BUDGET_WITH_FEES
   #31 GPU Shop 2.60 USDT: PAID → OVER_BUDGET_WITH_FEES
   #32 GPU Shop 2.60 USDT: PAID → OVER_BUDGET_WITH_FEES
   #33 Kiln credits 1.00 USDT: PAID → OVER_BUDGET_WITH_FEES
-A line that fits the recorded paid requests exactly: budget 14.40 USDT, cap 2.60 USDT (the same sellers).
+  #35 GPU Shop 2.60 USDT: PAID → OVER_BUDGET_WITH_FEES
+  #36 Kiln credits 1.00 USDT: PAID → OVER_BUDGET_WITH_FEES
+A line that fits the recorded paid requests exactly: budget 18.00 USDT, cap 2.60 USDT (the same sellers).
 Same rule and order as the vault (evaluate()); STOP and deadline stops are kept as recorded; nothing is sent to the chain.

@@ -115,7 +115,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
           if (prior) {
             // the same request again: send the ORIGINAL receipt hash — the vault decides a receipt once, so the repeat is stopped on-chain (DUPLICATE_RECEIPT)
             const out = await d.chain.pay({ merchant: to, amount, fee, receiptHash: prior.hash });
-            return ok({ ok: out.kind === 'paid', ...(out.kind === 'blocked' ? { reason: out.reason } : {}), ...base, tx: out.txHash, replay_of: prior.seq, ...(await left()) });
+            return ok({ ok: out.kind === 'paid', ...(out.kind === 'blocked' ? { reason: out.reason } : {}), ...base, tx: out.txHash, replay_of: prior.seq, ...(flows[0] ? { kiln_witness: flows[0].generationId } : {}), ...(await left()) });
           }
         }
         const r = await guardedPay(d, { merchant: to, amount, fee, why: a.why.trim(), flows, ...(asked ? { asked } : {}) });

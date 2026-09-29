@@ -1,8 +1,9 @@
-Two witnesses — Kiln's own record (Kiln live, 2026-09-29T14:48:48.742Z) vs the receipts whose hashes are on TRON
-64 Kiln calls in the record (69 rows — one reply with several tool calls backs several receipts) · 39 MATCH · 0 DIFFERS · 0 NOT_FOUND · 0 NO_KILN_CALL · 30 made on another Kiln account (the builder's personal key, before the organizer-issued team32 account: receipts #1-#12, answer lines 1-18 — Kiln shows a generation only to its own account)
-pay() attempts decided on Kiln: 22 / 22 dated after their Kiln call and within 120 s (17 Kiln calls) (2–10 s, median 4 s) · no (generation, arguments) backs two receipts, no generation spans two requests
-The model's own arguments re-derive the payment (seller, item × quantity + fee from the catalog): 13 / 13
-On Kiln's own clock (per call): median latency 885 ms → ≈0.0442 Wh per call at 180 W (an estimate) · prompt tokens served from Kiln's cache: 13456 / 31668 (42%)
+Two witnesses — Kiln's own record (Kiln live, 2026-09-29T15:22:27.375Z) vs the receipts whose hashes are on TRON
+68 Kiln calls in the record (74 rows — one reply with several tool calls backs several receipts) · 44 MATCH · 0 DIFFERS · 0 NOT_FOUND · 0 NO_KILN_CALL · 30 made on another Kiln account (the builder's personal key, before the organizer-issued team32 account: receipts #1-#12, answer lines 1-18 — Kiln shows a generation only to its own account)
+pay() attempts decided on Kiln: 24 / 24 dated after their Kiln call and within 120 s (18 Kiln calls) (2–10 s, median 4 s) · no (generation, arguments) backs two receipts, no generation spans two requests
+The model's own arguments re-derive the payment (seller, item × quantity + fee from the catalog): 15 / 15
+Published pass-through journal (3 files, docs/live/kiln-journal-*.jsonl): 5 / 5 bound receipts' arguments appear in it byte for byte
+On Kiln's own clock (per call): median latency 894 ms → ≈0.0447 Wh per call at 180 W (an estimate) · prompt tokens served from Kiln's cache: 16131 / 35290 (46%)
 
 OTHER_ACCOUNT F1 #1     d919cfd0-5e71-46fc-8ec0-6fad043902de
 OTHER_ACCOUNT F1 #2     a83ece71-1d04-48cf-8cbf-38d1789e184f
@@ -38,6 +39,8 @@ MATCH     F4 #31    5f807f40-9296-4286-9260-3aa58b85b3a3 · Kiln 2026-09-29 23:0
 MATCH     F4 #32    50598d32-a11c-4c95-9df5-5e205c425d2f · Kiln 2026-09-29 23:44:45 KST → pay() 2026-09-29 23:44:48 KST (+3 s) · args → payment ✓
 MATCH     F4 #33    50598d32-a11c-4c95-9df5-5e205c425d2f · Kiln 2026-09-29 23:44:45 KST → pay() 2026-09-29 23:44:51 KST (+6 s) · args → payment ✓
 MATCH     F4 #34    50598d32-a11c-4c95-9df5-5e205c425d2f · Kiln 2026-09-29 23:44:45 KST → pay() 2026-09-29 23:44:54 KST (+9 s) · args → payment ✓
+MATCH     F4 #35    606b27f9-47c4-48a6-9b4d-f41b39add058 · Kiln 2026-09-30 00:20:10 KST → pay() 2026-09-30 00:20:12 KST (+2 s) · args → payment ✓
+MATCH     F4 #36    606b27f9-47c4-48a6-9b4d-f41b39add058 · Kiln 2026-09-30 00:20:10 KST → pay() 2026-09-30 00:20:15 KST (+5 s) · args → payment ✓
 OTHER_ACCOUNT F2 on #2  e6ebd78a-1c0c-4863-97bc-0754f3ea8549
 OTHER_ACCOUNT F2 on #7  04da11bb-35cc-4626-9ee5-a68e277ad32c
 OTHER_ACCOUNT F3 on #2  d1bdd9c8-718d-4782-88d2-7c0ec57565c4
@@ -73,5 +76,8 @@ MATCH     F4 host   bb378748-d273-4602-adc0-35f028b09ae2
 MATCH     F4 host   1658b52d-e3d8-4901-b60f-65b70568aeec
 MATCH     F4 host   7015e0c6-5295-4fb2-8aeb-7a5d89baf351
 MATCH     F4 host   2f9547d3-5373-47ce-95b3-ead8a1135a7d
+MATCH     F4 host   d0be8c64-3148-4e94-a0c6-3a0b626036ab
+MATCH     F4 host   b2ea5517-6033-4d09-920c-f9bf7022ac82
+MATCH     F4 host   dada26b0-4257-4830-ad85-a2025a8dfc74
 
-OK — every call in the record made on this Kiln account matches Kiln's own record (39 / 39 rows)
+OK — every call in the record made on this Kiln account matches Kiln's own record (44 / 44 rows)

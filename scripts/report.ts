@@ -7,6 +7,7 @@ import type { AnswerRecord } from '../src/application/ports';
 import { formatAb, formatFlowReport, formatHostRuns, formatServerEnergy, formatToolAb, hostRunsSummary, revisionNotes, type HostRunLog } from '../src/application/report';
 import { abSummary, flowReport, serverTimeEnergy, type AbPair } from '../src/domain/flowReport';
 import type { UsageRecord } from '../src/domain/tokenLedger';
+import { canonical } from '../src/domain/receipt';
 import { flag, LIVE_ANSWERS, LIVE_RECEIPTS } from '../src/infrastructure/runtime';
 import { hostCallsOutsideReceipts, withHostFlows } from '../src/infrastructure/host-runs';
 
@@ -53,7 +54,23 @@ if (hostLogs.length) {
   const f1 = receipts.flatMap((r) => r.flows).filter((u) => u.flow === 'F1_intent' && u.via !== undefined); // F1 with the tool offered (v0.7+)
   const own = f1.filter((u) => !hostLogs.some((n) => readFileSync(`docs/live/${n}`, 'utf8').includes(u.generationId))).map((u) => u.promptTokens).sort((a, b) => a - b);
   const median = own.length % 2 ? own[(own.length - 1) / 2] : (own[own.length / 2 - 1] + own[own.length / 2]) / 2;
-  md += formatHostRuns(hostRunsSummary(hostLogs.map((n) => JSON.parse(readFileSync(`docs/live/${n}`, 'utf8')) as HostRunLog)), { f1MedianPrompt: median });
+  // the published pass-through journals say what each stock-host call asked for: a pay, a read of the line, or nothing (the answer)
+  const journal = readdirSync('docs/live').filter((n) => /^kiln-journal-.*\.jsonl$/.test(n)).flatMap((n) => readFileSync(`docs/live/${n}`, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as { generationId: string; toolCalls: { name: string; arguments: string }[] }));
+  const readCalls = new Set(journal.filter((e) => e.toolCalls.length && e.toolCalls.every((t) => t.name === 'spendline_line')).map((e) => e.generationId));
+  const logs = hostLogs.map((n) => {
+    const log = JSON.parse(readFileSync(`docs/live/${n}`, 'utf8')) as HostRunLog & { host?: string };
+    // a stock-host step that got no witness id in its reply (a repeat) takes it from the journal call with the same arguments
+    for (const st of log.steps) if (!st.generationId && st.tool === 'spendline_pay') {
+      const e = journal.find((x) => log.calls.some((c) => c.generationId === x.generationId) && x.toolCalls.some((t) => t.name === 'spendline_pay' && canonical(JSON.parse(t.arguments)) === canonical((st as { args?: unknown }).args ?? {})));
+      if (e) st.generationId = e.generationId;
+    }
+    return log;
+  });
+  const sdk = (l: { host?: string }) => (l.host ?? '').includes('agents');
+  md += formatHostRuns(hostRunsSummary(logs, { readCalls }), { f1MedianPrompt: median });
+  const line = (name: string, h: ReturnType<typeof hostRunsSummary>) => `- ${name}: ${h.runs} runs · ${h.calls} Kiln calls · ${h.newReceipts} new receipts (${h.newReceipts ? (h.calls / h.newReceipts).toFixed(2) : '—'} calls per receipt) · ${h.tokens.toLocaleString('en-US')} tokens\n`;
+  md += line("Spendline's own host (`npm run mcp:host`)", hostRunsSummary(logs.filter((l) => !sdk(l)), { readCalls }));
+  md += line('the stock OpenAI Agents SDK through the Kiln pass-through (`npm run host:agents-sdk -- --live`)', hostRunsSummary(logs.filter(sdk), { readCalls }));
 }
 md += `\nRegenerate: \`npm run report\` (reads the files above; no key).\n`;
 writeFileSync(out, md);

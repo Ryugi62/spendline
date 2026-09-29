@@ -13,6 +13,11 @@
   "en": "Kiln explains it in plain words, shown only because it repeats the audit's verdict."
  },
  {
+  "id": "d02b",
+  "url": "docs/video/stage.html#sdk",
+  "en": "That agent is the OpenAI Agents SDK, unchanged, planning on Kiln. Our pass-through tied each of its payments to the Kiln call that asked for it."
+ },
+ {
   "id": "d03",
   "url": "docs/video/stage.html#event",
   "en": "This is the vault's public event: SpendBlocked, with the receipt hash and the reason. Anyone can read it."
@@ -31,7 +36,7 @@
    "click:[data-action=next]",
    "fill:#merchants=THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
    "click:[data-action=next]",
-   "fill:#deadline=2030-09-30T12:00",
+   "fill:#deadline=2026-09-30T23:59",
    "click:[data-action=next]"
   ],
   "en": "The person sets a budget, a per-payment cap, the sellers, and a deadline, one short step at a time."
@@ -68,7 +73,7 @@
  {
   "id": "d11",
   "url": "ui:#/audit",
-  "en": "The audit, rebuilt from public records only: 34 receipts, 20 paid inside, 14 stopped, 0 problems."
+  "en": "The audit, rebuilt from public records only: 36 receipts, 22 paid inside, 14 stopped, 0 problems."
  },
  {
   "id": "d12",
@@ -78,12 +83,12 @@
  {
   "id": "d12b",
   "url": "docs/video/stage.html#mcp",
-  "en": "Any agent that speaks MCP can use Spendline as its wallet, even one we did not write; Kiln's own record still witnesses every payment. Here our host plans on Kiln: code priced three pay calls; two were paid, the unknown seller was stopped. Sent again, every call was refused on-chain as a repeat."
+  "en": "Any agent that speaks MCP can use Spendline as its wallet. Here our own host plans on Kiln: code priced three pay calls; two were paid, the unknown seller was stopped. Sent again, the paid ones were refused on-chain as repeats: it buys once."
  },
  {
   "id": "d12c",
   "url": "docs/video/stage.html#attest",
-  "en": "And a second witness. In plain words: Kiln's own logbook and the blockchain tell the same story for every AI call on the organizer's account, and each call came 2 to 10 seconds before its payment."
+  "en": "And a second witness. In plain words: Kiln's own logbook and the blockchain tell the same story for every AI call on the organizer's account, and each payment came 2 to 10 seconds after its call."
  },
  {
   "id": "d13",
@@ -101,7 +106,7 @@
  {
   "id": "d14",
   "url": "docs/video/stage.html#tokens",
-  "en": "Efficiency: one LLM call per purchase. No-think cut median output from 223 to 36 tokens. Energy is an estimate: 180 watts times measured time."
+  "en": "Efficiency: one LLM call per purchase attempt. No-think cut median output from 223 to 36 tokens. Energy is an estimate: 180 watts times measured time."
  },
  {
   "id": "d16",

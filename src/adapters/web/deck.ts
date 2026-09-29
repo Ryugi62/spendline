@@ -7,7 +7,9 @@ import { esc } from './render';
  */
 export type Slide = { id: string; title: string; html: string };
 
-const tx = (h?: string) => (h ? `<code>${esc(h.slice(0, 8))}…</code>` : '<code>—</code>');
+/** a tx prefix long enough to contain a hex letter, so it never reads as a number */
+const prefix = (h: string) => { let n = 8; while (n < h.length && /^\d+$/.test(h.slice(0, n))) n++; return h.slice(0, n); };
+const tx = (h?: string) => (h ? `<code>${esc(prefix(h))}…</code>` : '<code>—</code>');
 const REASON: Record<string, string> = {
   MERCHANT_NOT_ALLOWED: 'seller not on the list',
   OVER_BUDGET_WITH_FEES: 'over budget once fees are added',
@@ -40,7 +42,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
       id: 'how',
       title: 'How it works',
       html: `<div class="flow"><div class="box p">Person<br><small>grants a line · STOP<br>(owner key)</small></div><div class="arrow">→</div>
-<div class="box k">Kiln · Qwen3-32B<br><small>F1: request words → JSON<br>1 call per purchase</small></div><div class="arrow">→</div>
+<div class="box k">Kiln · Qwen3-32B<br><small>F1: request words → JSON<br>1 call per purchase attempt</small></div><div class="arrow">→</div>
 <div class="box c">Code<br><small>offer · money math · receipt</small></div><div class="arrow">→</div>
 <div class="box v">SpendlineVault<br><small>TRON Nile · pays inside the line<br>or records the stop</small></div><div class="arrow">→</div>
 <div class="box a">Anyone<br><small>npm run audit<br>no key</small></div></div>
@@ -57,9 +59,9 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'kiln',
       title: 'Kiln integration & efficiency',
-      html: `<div class="stats"><div><p class="num">${f.callsPerPurchase}</p><p>LLM call per purchase<br><small>design limit 2</small></p></div>
+      html: `<div class="stats"><div><p class="num">${f.callsPerPurchase}</p><p>LLM call per purchase attempt<br><small>design limit 2</small></p></div>
 <div><p class="num">${f.kilnCalls}</p><p>live Kiln calls in ${f.flows} flows + an MCP host<br><small>${f.tokens} tokens · $${f.usd}</small></p></div>
-<div><p class="num">${f.whPerPurchase}<span> Wh</span></p><p>per purchase (est.)<br><small>${f.wh} Wh in total</small></p></div></div>
+<div><p class="num">${f.whPerPurchase}<span> Wh</span></p><p>per purchase attempt (est.)<br><small>${f.wh} Wh in total</small></p></div></div>
 <p class="lead">F1 offers a Kiln tool call (<code>propose_purchase</code>, the Qwen3-32B tool parser) — chosen by a rule we fixed before a live A/B; a reply as plain JSON or a call leaked into text is parsed too, and each receipt records which.</p>
 <p class="lead">/no_think A/B, n = ${f.ab.n}: median ${f.ab.offTokens} vs ${f.ab.onTokens} output tokens · ${f.ab.offSeconds} vs ${f.ab.onSeconds} s · same JSON ${f.ab.sameJson}/${f.ab.n} → ${f.ab.tokensSavedPct}% fewer tokens.</p>
 <p class="note">Receipt #13 on, with its F2 / F3: the organizer-issued Kiln account (team32). Energy is an estimate, never a measurement: 180 W (RNGD card TDP, furiosa.ai/rngd) × measured wall time. Tokens by flow, generation ids: docs/tokens-by-flow.md.</p>`,
@@ -68,7 +70,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
       id: 'chain',
       title: 'Blockchain integration — read · write · settle',
       html: `<ul class="big-list"><li><b>Agent reads</b> the line: budget, per-payment cap, sellers, deadline, paused, spent.</li>
-<li><b>Agent writes</b> <code>pay(seller, amount, fee, receiptHash)</code> — the receipt hash lands in the <code>Paid</code> / <code>SpendBlocked</code> event, 1 : 1.</li>
+<li><b>Agent writes</b> <code>pay(seller, amount, fee, receiptHash)</code> — the receipt hash lands in the one <code>Paid</code> / <code>SpendBlocked</code> event that decides it (a repeat of the hash is refused with its own event).</li>
 <li><b>Settles</b> inside <code>pay()</code>: test USDT (TRC20) moves vault → seller. Paid: ${f.paidTx.map(tx).join(' · ')}</li>
 <li><b>Person writes</b> <code>grant()</code> ${tx(f.grantTx)} and <code>pause()</code> ${tx(f.stopTx)} with the owner key.</li></ul>
 <p class="note">Vault <code>${esc(f.vault)}</code> on TRON Nile.</p>`,
@@ -94,7 +96,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'value',
       title: 'Who pays · where it plugs in',
-      html: `<ul class="big-list tight"><li><b>Plugs in</b> two ways: as an MCP server any agent host can add (<code>spendline_line</code> · <code>spendline_pay</code> · <code>spendline_check</code> — an unmodified OpenAI Agents SDK agent on Kiln paid on the live vault, each receipt bound to its Kiln call by Spendline's pass-through; our own Kiln host too${f.mcp ? `, ${f.mcp.attempts} pay attempts` : ''}; code prices every payment; the same request sent twice buys once, the repeat refused on-chain), or as a drop-in <code>spendlineWallet(…)</code>. The person keeps the owner key; the agent key can only ask.</li>
+      html: `<ul class="big-list tight"><li><b>Plugs in</b> two ways: as an MCP server any agent host can add (<code>spendline_line</code> · <code>spendline_pay</code> · <code>spendline_check</code> — an unmodified OpenAI Agents SDK agent on Kiln paid on the live vault, each receipt bound to its Kiln call by Spendline's pass-through; our own Kiln host too${f.mcp ? `, ${f.mcp.attempts} pay attempts through MCP hosts` : ''}; code prices every payment; the same request sent twice buys once, the repeat refused on-chain), or as a drop-in <code>spendlineWallet(…)</code>. The person keeps the owner key; the agent key can only ask.</li>
 <li><b>The lead's week</b>: grant a line → the agent spends → <code>npm run statement</code> writes the statement and a CSV for the accountant${f.kept ? ` (${f.kept.stops} refused attempts, ${f.kept.replays ?? 0} repeats refused, intent flags)` : ''} → <code>npm run tune -- next.json</code> shows what next week's line would have done to this week's requests.</li>
 ${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile): Kiln F1 $${f.cost.f1Usd} (mean) + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped (median).</li>` : ''}
 <li><b>Who needs it</b>: teams that let agents buy compute, credits and API time. Business (hypothesis, not validated): vault and audit open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>

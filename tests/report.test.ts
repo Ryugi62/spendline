@@ -54,7 +54,7 @@ describe('AC-26 per-flow Kiln report (M0-11)', () => {
     expect(md).toMatch(/\| F1 intent \| .* \| 3 \| 360 \| 120 \| 480 \| \$0\.0000600 \| 2\.00 s \| 6\.00 s \| 0\.3000 \| 0\.1000 \|/);
     expect(md).toMatch(/\| \*\*Total\*\* \| \| \*\*5\*\* \|/);
     expect(md).toMatch(/Stand-in usage excluded: 1 record/);
-    expect(md).toMatch(/LLM calls per purchase: \*\*1\.00\*\*/);
+    expect(md).toMatch(/LLM calls per purchase attempt: \*\*1\.00\*\*/);
     expect(md).toMatch(/assumption, not a measurement/i);
     expect(md).toMatch(/RNGD TDP/);
     expect(md).toContain('g5');

@@ -47,6 +47,17 @@ const mcpShown = ['docs/live/mcp-2026-09-29-run4.txt', 'docs/live/mcp-2026-09-29
 const attestOut = readFileSync('docs/kiln-attest.txt', 'utf8').trim().split('\n').filter((l) => !l.startsWith('OTHER_ACCOUNT') && !/^MATCH\s+(F2|F3|F4 host)/.test(l) && !(/^MATCH/.test(l) && !l.includes('args →'))).map((l) => l.replace(/ \(the builder's personal key[^)]*\)/, ' (the builder\'s personal key, before team32)')).join('\n');
 const statementHead = readFileSync('docs/statement.md', 'utf8').split('\n').filter((l) => l.startsWith('Paid inside') || /^\| (GPU Shop|Kiln credits|[A-Z_]+ \|)/.test(l)).join('\n');
 const tuneOut = readFileSync('docs/tune-next-line.txt', 'utf8').trim();
+// #sdk: the stock OpenAI Agents SDK's live run (verbatim lines: its pay calls with the Kiln generation each was bound to, and the results)
+const sdkRaw = readFileSync('docs/live/agents-sdk-live-20260929144349.txt', 'utf8').trim().split('\n');
+const field = (l: string, k: string) => l.match(new RegExp(`"${k}":"?([^",}]*)`))?.[1];
+const sdkShown = sdkRaw.filter((l) => l.startsWith('→ spendline_pay') || (l.startsWith('  ← {') && l.includes('"receipt_seq"')) || l.startsWith('# Kiln reply 50598d32')).map((l) => {
+  const call = l.match(/^→ spendline_pay\((\{.*?\})\) · Kiln gen ([0-9a-f]{8})/);
+  if (call) { const a = JSON.parse(call[1]) as Record<string, unknown>; return `→ spendline_pay(${a.to} · ${a.item} × ${a.quantity ?? 1}) · bound to Kiln reply ${call[2]}…`; }
+  if (!l.startsWith('  ← ')) return l.replace(/ · \$[0-9.]+/, '');
+  const tx = field(l, 'tx') ?? '';
+  if (!txs.includes(tx)) throw new Error(`#sdk refused: ${tx} is not in the record`);
+  return `  ← ${field(l, 'ok') === 'true' ? 'ok' : `stopped ${field(l, 'reason')}`} · ${field(l, 'seller')} ${field(l, 'amount_usdt')} · receipt #${field(l, 'receipt_seq')} · tx ${tx.slice(0, 10)}…`;
+}).join('\n');
 const panel = (id: string, title: string, body: string) => `<section id="${id}"><p class="t">${esc(title)}</p>${body}</section>`;
 const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Spendline — demo stage</title><style>
 html,body{margin:0;background:#101113;color:#f2f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
@@ -58,7 +69,7 @@ table{border-collapse:collapse;font-size:20px}td,th{padding:10px 16px;border-bot
 section#agent{justify-content:flex-start;gap:8px}.term{display:flex;flex-direction:column;gap:5px}.term pre{font-size:13px;line-height:1.24;padding:6px 14px}#agent .s{font-size:15px}
 h1{font-size:72px;margin:0;color:#3182f6}pre.small{font-size:12.5px;line-height:1.3;padding:10px 16px}section#mcp,section#attest{justify-content:flex-start;gap:10px;padding-top:40px}.big{font-size:30px;line-height:1.4;margin:0}
 </style></head><body>
-${panel('title', 'Spendline — receipts for AI spending', `<h1>Spendline</h1><p class="big">A person draws the line. The agent only asks. The vault on TRON decides — and records every stop.</p>`)}
+${panel('title', 'Spendline — receipts for AI spending', `<h1>Spendline</h1><p class="big">A person draws the line. The agent only asks. The vault on TRON decides — and records every stop it makes.</p>`)}
 ${panel('event', "The vault's public event — read from TronGrid with no key, reason code decoded", `<pre>${esc(JSON.stringify({ event: 'SpendBlocked', receiptHash: (event as { receiptHash?: string }).receiptHash, merchant: (event as { merchant?: string }).merchant, reason: `${REASON_CODE[stop.reason as keyof typeof REASON_CODE]} = ${stop.reason}`, txHash: stop.tx }, null, 2)).replace(stop.reason, `<span class="hl">${stop.reason}</span>`)}</pre><p class="s">Vault ${esc(f.vault)} · TRON Nile</p>`)}
 ${panel('grant', 'The person signs — owner key, on their own machine', `<pre>$ npm run grant -- mandate.json      # the JSON the Grant screen copies
 MandateGranted · tx ${esc(f.grantTx ?? '')}
@@ -67,12 +78,13 @@ $ npm run stop
 Paused · tx ${esc(f.stopTx ?? '')}</pre>`)}
 ${panel('audit', 'Anyone checks it — no key, no .env', `<pre>${esc(auditOut).replace(/→ OK/, '→ <span class="ok">OK</span>')}</pre>`)}
 ${panel('agent', 'Live, during the event window — npm run agent on Kiln + TRON Nile', `<p class="s">${agentNote} · from the receipts file</p><div class="term">${agentPre}</div>`)}
+${panel('sdk', 'An unmodified agent (OpenAI Agents SDK) on Kiln, through the Spendline pass-through — live on TRON Nile', `<pre>${esc(sdkShown).replace(/← ok/g, '← <span class="ok">ok</span>').replace(/(stopped [A-Z_]+)/g, '<span class="hl">$1</span>')}</pre><p class="s">Each payment is bound to the Kiln call that asked for it: same arguments, byte for byte (docs/live/kiln-journal-20260929144349.jsonl)</p>`)}
 ${panel('mcp', 'Any MCP host — here Qwen3-32B on Kiln (organizer account) + TRON Nile, live: the request, then the same request again', `<pre class="small">${esc(mcpShown).replace(/← ok/g, '← <span class="ok">ok</span>').replace(/(stopped [A-Z_]+)/g, '<span class="hl">$1</span>')}</pre>`)}
 ${panel('attest', "Two witnesses — Kiln's own record vs the receipts on TRON", `<pre class="small">${esc(attestOut).replace(/^(OK — .*)$/m, '<span class="ok">$1</span>')}</pre>`)}
 ${panel('weekly', "The lead's Friday — npm run statement · npm run tune -- next.json", `<pre>${esc(statementHead)}</pre><pre>${esc(tuneOut)}</pre>`)}
 ${panel('tokens', 'Kiln tokens by flow — live qwen3-32b', `<table><tr><th>Flow</th><th>Calls</th><th>Tokens</th><th>USD</th><th>Median latency</th><th>Wh (est.)</th></tr>${rows}</table><p class="s">${f.callsPerPurchase} LLM call per purchase · Wh = 180 W (RNGD TDP) × measured wall time — an estimate, stated</p>`)}
 ${panel('ab', '/no_think A/B — the same request, n = ' + f.ab.n, `<table><tr><th>Arm</th><th>n</th><th>JSON parsed</th><th>Median output tokens</th><th>Median latency</th><th>Median Wh</th></tr>${abRows}</table><p class="s">Same JSON ${f.ab.sameJson} / ${f.ab.n} pairs</p>`)}
-${panel('end', 'Spendline', `<h1>Spendline</h1><p class="big">Not an agent that can pay — a payment that can prove it was allowed.</p><p class="s">${f.receipts} receipts · ${f.problems} problems · every model call on Kiln · every stop on-chain</p>`)}
+${panel('end', 'Spendline', `<h1>Spendline</h1><p class="big">Not an agent that can pay — a payment that can prove it was allowed.</p><p class="s">${f.receipts} receipts · ${f.problems} problems · every model call on Kiln · every stop the vault makes on-chain</p>`)}
 </body></html>`;
 writeFileSync('docs/video/stage.html', html);
 console.log('docs/video/stage.html');

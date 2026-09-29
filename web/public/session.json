@@ -847,6 +847,60 @@
    ],
    "prevHash": "bf35c46371558896232c549d4d4b42457203bac9011c6e42429e12fef22bb566",
    "hash": "f480a745ed81cbd0bc54669e68a0d2bb3e3320bf9eeeef4f2d4c9d43981e649b"
+  },
+  {
+   "seq": 35,
+   "mandateId": "0x2846ab6ad31c08484c32f3bd3745ade833f9e443c565c8074e5177773338d9f6",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 2400000,
+    "fee": 200000,
+    "at": 1790695209
+   },
+   "intentText": "1 GPU hour for tonight's eval",
+   "flows": [
+    {
+     "flow": "F4_mcp_host",
+     "promptTokens": 673,
+     "completionTokens": 102,
+     "costUsd": 0.00005656,
+     "latencyMs": 2604,
+     "generationId": "606b27f9-47c4-48a6-9b4d-f41b39add058",
+     "serverMs": 1563,
+     "args": "{\"item\": \"gpu-hours\", \"quantity\": 1, \"to\": \"GPU Shop\", \"why\": \"1 GPU hour for tonight's eval\"}",
+     "via": "tool_call"
+    }
+   ],
+   "asked": "Buy 1 GPU hour for tonight's eval as cheaply as possible, and 1 Kiln inference credit.",
+   "prevHash": "f480a745ed81cbd0bc54669e68a0d2bb3e3320bf9eeeef4f2d4c9d43981e649b",
+   "hash": "7db4f5ea687301350bc95438f5f8773d4a6f42b9032567cd5cd9fea81b3e9a63"
+  },
+  {
+   "seq": 36,
+   "mandateId": "0x2846ab6ad31c08484c32f3bd3745ade833f9e443c565c8074e5177773338d9f6",
+   "request": {
+    "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+    "amount": 1000000,
+    "fee": 0,
+    "at": 1790695212
+   },
+   "intentText": "1 Kiln inference credit",
+   "flows": [
+    {
+     "flow": "F4_mcp_host",
+     "promptTokens": 673,
+     "completionTokens": 102,
+     "costUsd": 0.00005656,
+     "latencyMs": 2604,
+     "generationId": "606b27f9-47c4-48a6-9b4d-f41b39add058",
+     "serverMs": 1563,
+     "args": "{\"item\": \"inference-credits\", \"quantity\": 1, \"to\": \"Kiln credits\", \"why\": \"1 Kiln inference credit\"}",
+     "via": "tool_call"
+    }
+   ],
+   "asked": "Buy 1 GPU hour for tonight's eval as cheaply as possible, and 1 Kiln inference credit.",
+   "prevHash": "7db4f5ea687301350bc95438f5f8773d4a6f42b9032567cd5cd9fea81b3e9a63",
+   "hash": "07fbed432829445c0a455daabd0d245f79a5b1698be458858fea754e79f1e6d8"
   }
  ],
  "events": [
@@ -1373,9 +1427,63 @@
    "at": 1790693094,
    "txHash": "f044396bc1840b53eabd6f5fd10ce0b11bb860bb946b7d067356730a65710072",
    "reason": "MERCHANT_NOT_ALLOWED"
+  },
+  {
+   "kind": "granted",
+   "at": 1790695200,
+   "txHash": "3c92c23ff83f152c632534c54bfcd3e95f4d4333eb99554e62e7faaa44005fbe",
+   "mandate": {
+    "id": "0x2846ab6ad31c08484c32f3bd3745ade833f9e443c565c8074e5177773338d9f6",
+    "budget": 9900000,
+    "perTxCap": 8000000,
+    "deadline": 1790780340,
+    "merchants": [
+     "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+     "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"
+    ],
+    "paused": false
+   }
+  },
+  {
+   "kind": "paid",
+   "receiptHash": "7db4f5ea687301350bc95438f5f8773d4a6f42b9032567cd5cd9fea81b3e9a63",
+   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "amount": 2400000,
+   "fee": 200000,
+   "at": 1790695212,
+   "txHash": "d8db0b5ea65d80ce71dbfee2b386ea9116939db56f29f8c63f6fec97f6663f5a"
+  },
+  {
+   "kind": "paid",
+   "receiptHash": "07fbed432829445c0a455daabd0d245f79a5b1698be458858fea754e79f1e6d8",
+   "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+   "amount": 1000000,
+   "fee": 0,
+   "at": 1790695215,
+   "txHash": "958340267f3ae02b70d293d0d918ad0818e0964596e11d64c5a2b6f2b46b5550"
+  },
+  {
+   "kind": "blocked",
+   "receiptHash": "7db4f5ea687301350bc95438f5f8773d4a6f42b9032567cd5cd9fea81b3e9a63",
+   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "amount": 2400000,
+   "fee": 200000,
+   "at": 1790695233,
+   "txHash": "435e0a072f3a94d7a6e1148f54a40e0b23f362001ddf9e939cf4d2ec1dd4011d",
+   "reason": "DUPLICATE_RECEIPT"
+  },
+  {
+   "kind": "blocked",
+   "receiptHash": "07fbed432829445c0a455daabd0d245f79a5b1698be458858fea754e79f1e6d8",
+   "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+   "amount": 1000000,
+   "fee": 0,
+   "at": 1790695236,
+   "txHash": "8602cb81a93c50a5665956233037ae098932c03f6d9452921abf0df487e44fff",
+   "reason": "DUPLICATE_RECEIPT"
   }
  ],
- "generatedAt": 1790693232,
+ "generatedAt": 1790695251,
  "answers": [
   {
    "key": "F2:ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",

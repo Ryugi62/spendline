@@ -10,7 +10,7 @@ const runs = [
 
 describe('hostRunsSummary (AC-44)', () => {
   it('runs, Kiln calls, payments that reached the vault, calls per payment, median prompt tokens', () => {
-    expect(hostRunsSummary(runs)).toEqual({ runs: 2, calls: 7, payments: 4, noPayment: 3, callsPerPayment: 1.75, medianPromptTokens: 874, tokens: 7031, costUsd: 0.00050, completed: 2, dropped: 0, refused: 1, newReceipts: 0, paid: 0, repeatCalls: 0 });
+    expect(hostRunsSummary(runs)).toEqual({ runs: 2, calls: 7, payments: 4, noPayment: 3, callsPerPayment: 1.75, medianPromptTokens: 874, tokens: 7031, costUsd: 0.00050, completed: 2, dropped: 0, refused: 1, reads: 0, newReceipts: 0, paid: 0, repeatCalls: 0 });
   });
   it('formats one line for docs/tokens-by-flow.md', () => {
     const withText = runs.map((r) => ({ ...r, steps: r.steps.map((x, i) => ({ ...x, text: x.isError ? 'unknown seller' : JSON.stringify(i === 1 && x.generationId === 'e' ? { ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1 } : { ok: true, receipt_seq: i + 1 }) })) }));

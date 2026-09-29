@@ -42,9 +42,9 @@ export function formatFlowReport(r: FlowReport, o: { title: string; sources: str
     ...r.rows.map(line),
     `| **Total** | | **${t.calls}** | **${t.promptTokens}** | **${t.completionTokens}** | **${t.totalTokens}** | **${usd(t.costUsd)}** | ${s(t.latencyMedianMs)} | **${s(t.latencyTotalMs)}** | **${t.wh.toFixed(4)}** | ${t.whPerCall.toFixed(4)} |`,
     '',
-    `- LLM calls per purchase: **${r.callsPerPurchase.toFixed(2)}** (${r.rows[0].calls} F1 calls / ${r.purchases} receipts) — the design limit is 2. Offer choice, money math, the rule and the receipt are code: no call is spent on them.`,
+    `- LLM calls per purchase attempt: **${r.callsPerPurchase.toFixed(2)}** (${r.rows[0].calls} F1 calls / ${r.purchases} receipts on the F1 path, paid or stopped) — the design limit is 2 per attempt. Offer choice, money math, the rule and the receipt are code: no call is spent on them.`,
     '- F2 and F3 run only when a person asks, and the same question on the same record is answered from the answers log with 0 calls.',
-    `- Energy per purchase (F1, est.): **${perPurchaseWh.toFixed(4)} Wh**.`,
+    `- Energy per purchase attempt (F1, est.): **${perPurchaseWh.toFixed(4)} Wh**.`,
     ...(o.notes ?? []).map((n) => `- ${n}`),
     '',
     '## Energy — an assumption, not a measurement',
@@ -117,10 +117,12 @@ export type HostRunsSummary = {
   runs: number; calls: number; payments: number; noPayment: number; callsPerPayment: number; medianPromptTokens: number; tokens: number; costUsd: number;
   /** runs that ended in a plain answer (the request handled) · a pay decision the host could not parse · pay calls refused before the chain */
   completed: number; dropped: number; refused: number;
+  /** calls that only read the line (a host that plans before paying) */
+  reads?: number;
   /** round-2 review: new receipts (replays excluded), paid purchases, calls spent only on repeats */
   newReceipts: number; paid: number; repeatCalls: number;
 };
-export function hostRunsSummary(runs: HostRunLog[]): HostRunsSummary {
+export function hostRunsSummary(runs: HostRunLog[], o: { readCalls?: Set<string> } = {}): HostRunsSummary {
   const calls = runs.flatMap((r) => r.calls);
   const payments = runs.reduce((n, r) => n + r.steps.filter((s) => s.tool === 'spendline_pay' && !s.isError).length, 0);
   const prompts = calls.map((c) => c.promptTokens).sort((a, b) => a - b);
@@ -133,7 +135,7 @@ export function hostRunsSummary(runs: HostRunLog[]): HostRunsSummary {
     runs: runs.length, calls: calls.length, payments, noPayment: calls.filter((c) => !reached.has(c.generationId)).length,
     callsPerPayment: payments ? Math.round((calls.length / payments) * 100) / 100 : 0, medianPromptTokens: mid ?? 0,
     tokens: calls.reduce((n, c) => n + c.promptTokens + c.completionTokens, 0), costUsd: Math.round(calls.reduce((n, c) => n + c.costUsd, 0) * 1e8) / 1e8,
-    completed: runs.length - dropped, dropped, refused: refusedCalls.size,
+    completed: runs.length - dropped, dropped, refused: refusedCalls.size, reads: calls.filter((c) => o.readCalls?.has(c.generationId)).length,
     ...(() => {
       const res = runs.flatMap((r) => r.steps.filter((x) => x.tool === 'spendline_pay' && !x.isError).map((x) => ({ gen: x.generationId, j: parseJson(x.text) })));
       const byGen = new Map<string, boolean[]>();
@@ -149,5 +151,5 @@ export function hostRunsSummary(runs: HostRunLog[]): HostRunsSummary {
 const parseJson = (t?: string): Record<string, unknown> | undefined => { try { return t ? (JSON.parse(t) as Record<string, unknown>) : undefined; } catch { return undefined; } };
 const per = (a: number, b: number) => (b ? (a / b).toFixed(2) : '—');
 export function formatHostRuns(h: HostRunsSummary, o: { f1MedianPrompt: number }): string {
-  return `\n## F4 MCP host on Kiln (AC-44) — the same payments through a general agent\n- ${h.runs} runs (requests) of \`npm run mcp:host\`: ${h.calls} Kiln calls · ${h.tokens.toLocaleString('en-US')} tokens · $${h.costUsd.toFixed(7)} → ${h.newReceipts} new receipts (**${per(h.calls, h.newReceipts)} calls per receipt**), ${h.paid} paid (${per(h.calls, h.paid)} per paid purchase), ${per(h.calls, h.runs)} per request; ${h.payments} pay attempts reached the vault, ${h.payments - h.newReceipts} of them repeats refused on-chain; ${h.repeatCalls} Kiln calls were spent only on a repeat.\n- Runs that handled the whole request: ${h.completed} / ${h.runs}. Calls that reached no vault: ${h.noPayment} — ${h.refused} refused before the chain (a seller name not in the catalog), ${h.dropped} pay decision${h.dropped === 1 ? '' : 's'} the host could not parse (fixed with tests after those runs), ${h.noPayment - h.refused - h.dropped} closing answer${h.noPayment - h.refused - h.dropped === 1 ? '' : 's'}.\n- Median prompt ${h.medianPromptTokens} tokens per call vs ${o.f1MedianPrompt} for Spendline's own F1 with the tool offered (1 call per purchase): the purpose-built F1 stays the efficient path; MCP is the path for an agent that already has a planner.\n`;
+  return `\n## F4 MCP host on Kiln (AC-44) — the same payments through a general agent\n- ${h.runs} MCP host runs (requests): ${h.calls} Kiln calls · ${h.tokens.toLocaleString('en-US')} tokens · $${h.costUsd.toFixed(7)} → ${h.newReceipts} new receipts (**${per(h.calls, h.newReceipts)} calls per receipt**), ${h.paid} paid (${per(h.calls, h.paid)} per paid purchase), ${per(h.calls, h.runs)} per request; ${h.payments} pay attempts reached the vault, ${h.payments - h.newReceipts} of them repeats refused on-chain; ${h.repeatCalls} Kiln calls were spent only on a repeat.\n- Runs that handled the whole request: ${h.completed} / ${h.runs}. Calls that reached no vault: ${h.noPayment} — ${h.refused} refused before the chain (a seller name not in the catalog), ${h.dropped} pay decision${h.dropped === 1 ? '' : 's'} the host could not parse (fixed with tests after those runs), ${h.reads ? `${h.reads} read${h.reads === 1 ? '' : 's'} of the line, ` : ''}${h.noPayment - h.refused - h.dropped - (h.reads ?? 0)} closing answer${h.noPayment - h.refused - h.dropped - (h.reads ?? 0) === 1 ? '' : 's'}.\n- Median prompt ${h.medianPromptTokens} tokens per call vs ${o.f1MedianPrompt} for Spendline's own F1 with the tool offered (1 call per purchase attempt): the purpose-built F1 stays the efficient path; MCP is the path for an agent that already has a planner.\n`;
 }

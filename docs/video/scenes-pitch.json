@@ -17,22 +17,22 @@
  {
   "id": "p04",
   "url": "docs/deck/deck.html#boundaries",
-  "en": "Boundaries are enforced on-chain, in the vault's pay function. We recorded 14 stops on TRON Nile: a seller not on the list, over budget once fees are added, over the per-payment cap, a payment after the person pressed STOP, and one after the time window closed, every type again on the organizer's account. 5 repeats were refused as replays. Each stop is an event with its reason, never a silent revert."
+  "en": "Boundaries are enforced on-chain, in the vault's pay function. We recorded 14 stops on TRON Nile: a seller not on the list, over budget once fees are added, over the per-payment cap, a payment after the person pressed STOP, and one after the time window closed, every type again on the organizer's account. 7 repeats were refused as replays. Each stop is an event with its reason, never a silent revert."
  },
  {
   "id": "p05",
   "url": "docs/deck/deck.html#kiln",
-  "en": "Kiln does real work, and we count it. The request goes to Kiln as a tool call, chosen by a rule we fixed before a live test; the code parses every shape Kiln answers in, and each receipt says which. 1.00 LLM call per purchase attempt on our own path, against a design limit of 2; 1.43 per receipt through a general MCP host. 64 live Kiln calls, 57,885 tokens in total. No-think cut median output from 223 to 36 tokens. Energy is an estimate we state: 180 watts times measured time, and on Kiln's own clock about 0.0442 watt-hours per call."
+  "en": "Kiln does real work, and we count it. The request goes to Kiln as a tool call, chosen by a rule we fixed before a live test; the code parses every shape Kiln answers in, and each receipt says which. 1.00 LLM call per purchase attempt on our own path, against a design limit of 2; 1.50 per receipt through a general MCP host. 68 live Kiln calls, 61,791 tokens in total. No-think cut median output from 223 to 36 tokens, and our pass-through switches thinking off for agents that do not. Energy is an estimate we state: 180 watts times measured time; on Kiln's own clock the median call is about 0.0447 watt-hours."
  },
  {
   "id": "p06",
   "url": "docs/deck/deck.html#chain",
-  "en": "On the chain, the agent reads the line, writes pay with the receipt hash, and the vault settles test USDT to the seller. Every receipt hash appears in exactly one Paid or SpendBlocked event. The person signs grant and STOP with the owner key, on their own machine."
+  "en": "On the chain, the agent reads the line, writes pay with the receipt hash, and the vault settles test USDT to the seller. Each receipt is decided by exactly one Paid or SpendBlocked event; a repeat of its hash is refused with its own event. The person signs grant and STOP with the owner key, on their own machine."
  },
  {
   "id": "p07",
   "url": "docs/deck/deck.html#evidence",
-  "en": "Approval and evidence. One command, no key, rebuilds every verdict from the receipts file and the vault's public events: 34 receipts, 20 paid inside, 14 stopped, 0 problems, 44.40 USDT paid. Edit a receipt and the hash chain breaks. Drop one and the vault event with no receipt is flagged."
+  "en": "Approval and evidence. One command, no key, rebuilds every verdict from the receipts file and the vault's public events: 36 receipts, 22 paid inside, 14 stopped, 0 problems, 48.00 USDT paid. Edit a receipt and the hash chain breaks. Drop one and the vault event with no receipt is flagged."
  },
  {
   "id": "p08",
@@ -42,7 +42,7 @@
  {
   "id": "p09",
   "url": "docs/deck/deck.html#value",
-  "en": "Where it plugs in. Spendline is an MCP server with three tools, so any agent host can use it as its wallet. An unmodified OpenAI Agents SDK agent, planning on Kiln, paid on the live vault; our Kiln pass-through bound each payment to the Kiln call that asked for it, with no host code. Code prices every payment, and the same request sent twice buys once; the repeat is refused on-chain. The lead's week closes with one command: a statement with a CSV for the accountant, and tune, which replays this week's requests under next week's line. One guarded decision costs 7.01 TRX when paid, 2.80 when stopped; on mainnet, staked energy replaces that burn. Business hypothesis, not yet validated: open vault and audit, a hosted audit with alerts as the paid layer."
+  "en": "Where it plugs in. Spendline is an MCP server with three tools, so any agent host can use it as its wallet. An unmodified OpenAI Agents SDK agent, planning on Kiln, paid on the live vault; our Kiln pass-through bound each payment to the Kiln call that asked for it, kept the person's words, and when the same request came twice, the vault refused the repeat. Code prices every payment. The lead's week closes with one command: a statement with a CSV for the accountant, and tune, which replays this week's requests under next week's line. One guarded decision costs 7.01 TRX when paid, 2.80 when stopped; on mainnet, staked energy replaces that burn. Business hypothesis, not yet validated: open vault and audit, a hosted audit with alerts as the paid layer."
  },
  {
   "id": "p10",
