@@ -57,7 +57,7 @@ export function formatProof(p: Proof, o: { network: string }): string {
   const tokens = all.reduce((n, r) => n + r.promptTokens + r.completionTokens, 0);
   const cost = all.reduce((n, r) => n + r.costUsd, 0);
   let md = `${calls} Kiln calls${rows.length !== calls ? ` (${rows.length} rows)` : ''} · ${tokens} tokens · ${usd(cost)} (Kiln \`usage.cost\`) · every row = one Kiln response with its \`X-Neocloud-Generation-Id\`, joined to the on-chain event of the receipt it belongs to. Stand-in usage excluded: ${p.excludedStandIns}.${p.findings.length ? ` **Findings: ${p.findings.join('; ')}.**` : ' Findings: 0 (every receipt has its on-chain event).'}\n\n`;
-  md += `### F1 intent — one Kiln call per purchase → \`pay()\` on-chain\n| # | Time (request) | Request words | Kiln generation id | Tokens in / out | USD | F1 via · Kiln server time | Vault outcome | On-chain tx |\n|---:|---|---|---|---:|---:|---|---|---|\n`;
+  md += `### F1 intent — one Kiln call per purchase attempt → \`pay()\` on-chain\n| # | Time (request) | Request words | Kiln generation id | Tokens in / out | USD | F1 via · Kiln server time | Vault outcome | On-chain tx |\n|---:|---|---|---|---:|---:|---|---|---|\n`;
   for (const r of p.f1) md += `| ${r.seq} | ${kst(r.at)} | ${cell(r.words)} | \`${r.generationId}\` | ${r.promptTokens} / ${r.completionTokens} | ${usd(r.costUsd)} | ${r.via ?? '—'}${r.serverMs !== undefined ? ` · ${(r.serverMs / 1000).toFixed(2)} s` : ''} | ${r.outcome} | ${txLink(r.txHash, o.network)} |\n`;
   const answerTable = (title: string, rows: AnswerRow[]) => {
     let t = `\n### ${title}\n| About receipt | Question | Kiln generation id | Tokens in / out | USD | Reply shown (echoes the audit) | Receipt's on-chain tx |\n|---:|---|---|---:|---:|---|---|\n`;

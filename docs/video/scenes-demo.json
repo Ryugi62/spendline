@@ -20,7 +20,7 @@
  {
   "id": "d03",
   "url": "docs/video/stage.html#event",
-  "en": "This is the vault's public event: SpendBlocked, with the receipt hash and the reason. Anyone can read it."
+  "en": "This is the vault's public refusal record, SpendBlocked, with the receipt's fingerprint and the reason. Anyone can read it."
  },
  {
   "id": "d04",
@@ -34,7 +34,7 @@
    "fill:#budget=9.9",
    "fill:#perTxCap=8",
    "click:[data-action=next]",
-   "fill:#merchants=THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "fill:#merchants=THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56\nTGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
    "click:[data-action=next]",
    "fill:#deadline=2026-09-30T23:59",
    "click:[data-action=next]"
@@ -73,7 +73,7 @@
  {
   "id": "d11",
   "url": "ui:#/audit",
-  "en": "The audit, rebuilt from public records only: 36 receipts, 22 paid inside, 14 stopped, 0 problems."
+  "en": "The audit, rebuilt from public records only: 38 receipts, 24 paid inside, 14 stopped, 0 problems."
  },
  {
   "id": "d12",
@@ -83,7 +83,7 @@
  {
   "id": "d12b",
   "url": "docs/video/stage.html#mcp",
-  "en": "Any agent that speaks MCP can use Spendline as its wallet. Here our own host plans on Kiln: code priced three pay calls; two were paid, the unknown seller was stopped. Sent again, the paid ones were refused on-chain as repeats: it buys once."
+  "en": "The same stock agent, with thinking switched off, bought a GPU hour and a Kiln credit. Sent the same request again, it was refused on-chain for both: it buys once, and the receipt keeps the person's words."
  },
  {
   "id": "d12c",

@@ -21,7 +21,9 @@ const REASON: Record<string, string> = {
 };
 
 export function deckSlides(f: PitchFacts, declared: string): Slide[] {
-  const stops = f.stops.map((s) => `<li><b>#${s.seq}</b> ${esc(REASON[s.reason] ?? s.reason)} <span class="r">${esc(s.reason)}</span> ${tx(s.tx)}</li>`).join('');
+  const li = (s: (typeof f.stops)[number]) => `<li><b>#${s.seq}</b> ${esc(REASON[s.reason] ?? s.reason)} <span class="r">${esc(s.reason)}</span> ${tx(s.tx)}</li>`;
+  // in-window stops first (from receipt #9, 2026-09-28 21:56 KST); the pre-window set after its own label
+  const stops = f.stops.filter((s) => s.seq >= 9).map(li).join('') + `<li class="before">before the window</li>` + f.stops.filter((s) => s.seq < 9).map(li).join('');
   return [
     {
       id: 'title',
@@ -52,7 +54,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
       id: 'boundaries',
       title: 'Boundaries & stopping — every stop the vault makes is on-chain',
       html: `<div class="split"><div><p class="num">${f.stopped}<span> stops recorded</span></p><ul class="ev">${stops}
-<li><b>replay</b> a paid receipt's hash sent again <span class="r">DUPLICATE_RECEIPT</span> ${tx(f.replayTx)}</li></ul>
+<li><b>repeat</b> the same request sent again <span class="r">DUPLICATE_RECEIPT</span> ${tx(f.replayTx)}</li></ul>
 <p class="note">Enforced in <code>SpendlineVault.pay() → check()</code>. A stop is an event (<code>SpendBlocked</code>), never a silent revert.</p></div>
 <img src="../ui/receipt-stopped-390.png" alt="Receipt screen: stopped on-chain, seller is not on your list"></div>`,
     },
@@ -126,7 +128,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Apple SD Go
 .big-list{font-size:25px;line-height:1.45;margin:0;padding-left:26px;display:flex;flex-direction:column;gap:14px}.big-list.tight{font-size:21px;line-height:1.4;gap:10px}
 .note{font-size:18px;color:#4e5968;line-height:1.5;margin:auto 0 0}.num{font-size:64px;font-weight:800;color:#3182f6;margin:0;letter-spacing:-1px}.num span{font-size:26px;color:#191f28;font-weight:600;letter-spacing:0}
 .split{display:grid;grid-template-columns:1fr 300px;gap:40px;align-items:start;flex:1;min-height:0;overflow:hidden}.split img{width:300px;height:500px;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.12);object-fit:cover;object-position:top}
-.ev{font-size:22px;line-height:1.5;padding-left:22px;margin:10px 0}.r{font:600 14px ui-monospace,Menlo,monospace;background:#ffeef0;color:#d22030;border-radius:8px;padding:2px 8px}
+.ev li.before{list-style:none;color:#8b95a1;font-size:.8em;margin:.4em 0 .1em -1em}.ev{font-size:22px;line-height:1.5;padding-left:22px;margin:10px 0}.r{font:600 14px ui-monospace,Menlo,monospace;background:#ffeef0;color:#d22030;border-radius:8px;padding:2px 8px}
 code{font:16px ui-monospace,Menlo,monospace;background:#f2f4f6;border-radius:6px;padding:1px 6px}pre{font:18px/1.5 ui-monospace,Menlo,monospace;background:#191f28;color:#f2f4f6;border-radius:16px;padding:18px 22px;margin:8px 0;white-space:pre-wrap}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.stats>div{background:#f2f4f6;border-radius:16px;padding:22px}.stats p{margin:0;font-size:20px;line-height:1.4}.stats p.num{font-size:56px;line-height:1.1;margin-bottom:8px}.stats small{color:#4e5968;font-size:16px}
 .flow{display:flex;align-items:center;gap:10px;margin-top:24px}.box{flex:1;border-radius:16px;padding:20px 14px;font-size:21px;font-weight:700;text-align:center;background:#f2f4f6;min-height:150px;display:flex;flex-direction:column;justify-content:center}

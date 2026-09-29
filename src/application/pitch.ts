@@ -81,7 +81,7 @@ export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, 
     ...(o.chain ? { cost: { f1Usd: (f1.calls ? f1.costUsd / f1.calls : 0).toFixed(7), paidTrx: o.chain.paidTrx.toFixed(2), stopTrx: o.chain.stopTrx.toFixed(2), ...(o.chain.paidEnergy ? { paidEnergy: o.chain.paidEnergy.toLocaleString('en-US'), stopEnergy: (o.chain.stopEnergy ?? 0).toLocaleString('en-US') } : {}) } } : {}),
     stops: res.verdicts.flatMap((v) => (v.verdict === 'STOPPED' && v.reason && v.txHash ? [{ seq: v.seq, reason: v.reason, tx: v.txHash }] : [])),
     paidTx: res.verdicts.flatMap((v) => (v.verdict === 'PAID_INSIDE' && v.txHash ? [v.txHash] : [])),
-    replayTx: res.replays[0]?.txHash,
+    replayTx: res.replays.at(-1)?.txHash, // the newest repeat refused on-chain
     stopTx: o.stopTx,
     grantTx: o.grantTx,
     txHashes: [...new Set([...res.verdicts.flatMap((v) => (v.txHash ? [v.txHash] : [])), ...res.replays.map((r) => r.txHash), ...(o.extraTx ?? []), ...(o.stopTx ? [o.stopTx] : []), ...(o.grantTx ? [o.grantTx] : [])])],

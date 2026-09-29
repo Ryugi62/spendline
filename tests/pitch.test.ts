@@ -40,10 +40,10 @@ describe('checkScript (AC-31)', () => {
 
 describe('the real record (offline: session.json + answers log + A/B file)', () => {
   const real = recordFacts();
-  it('facts come from the audit: 36 receipts, 0 problems, the demo opens on the newest seller-not-listed stop (#34, a stock agent, organizer account, Kiln-attested)', () => {
-    expect(real).toMatchObject({ receipts: 36, paid: 22, stopped: 14, replays: 7, problems: 0, paidUsdt: '48.00', merchantStopSeq: 34, kilnCalls: 68, callsPerPurchase: '1.00', flows: 3 });
-    expect(real.attest).toEqual({ match: 44, shown: 44, otherAccount: 30, f1Before: 24, f1: 24, leadMin: 2, leadMax: 10, kilnMedianMs: 894, whPerCallKiln: '0.0447', cachedPct: 46, calls: 38, payingCalls: 18, argsBound: 15 });
-    expect(real.mcp).toEqual({ tools: 3, runs: 9, calls: 24, attempts: 22, receipts: 16, paid: 13, perReceipt: '1.50' });
+  it('facts come from the audit: 38 receipts, 0 problems, the demo opens on the newest seller-not-listed stop (#34, a stock agent, organizer account, Kiln-attested)', () => {
+    expect(real).toMatchObject({ receipts: 38, paid: 24, stopped: 14, replays: 7, problems: 0, paidUsdt: '53.20', merchantStopSeq: 34, kilnCalls: 70, callsPerPurchase: '1.00', flows: 3 });
+    expect(real.attest).toEqual({ match: 47, shown: 47, otherAccount: 30, f1Before: 26, f1: 26, leadMin: 2, leadMax: 10, kilnMedianMs: 926, whPerCallKiln: '0.0463', cachedPct: 44, calls: 40, payingCalls: 19, argsBound: 17 });
+    expect(real.mcp).toEqual({ tools: 3, runs: 10, calls: 26, attempts: 24, receipts: 18, paid: 15, perReceipt: '1.44' });
     expect(real.kept).toEqual({ usdt: '33.60', stops: 14, distinct: 14, replays: 7 });
     expect(real.ab).toMatchObject({ n: 12, offTokens: 36, onTokens: 223, sameJson: 12 });
     expect(real.stopTx && real.grantTx && real.replayTx).toBeTruthy();

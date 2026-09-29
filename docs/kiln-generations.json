@@ -1,6 +1,6 @@
 {
  "source": "GET https://api.bricksum.com/v1/generations/{id}",
- "fetchedAt": "2026-09-29T15:22:27.375Z",
+ "fetchedAt": "2026-09-29T15:48:04.686Z",
  "generations": {
   "d919cfd0-5e71-46fc-8ec0-6fad043902de": null,
   "a83ece71-1d04-48cf-8cbf-38d1789e184f": null,
@@ -211,6 +211,17 @@
    "latency_ms": 1506,
    "status_code": 200,
    "created_at": "2026-09-29T15:20:10.116924Z"
+  },
+  "fb0b4a37-fcd5-4d76-80b6-d935d9697181": {
+   "id": "fb0b4a37-fcd5-4d76-80b6-d935d9697181",
+   "model": "qwen3-32b",
+   "total_cost": 0.00007568,
+   "tokens_prompt": 692,
+   "tokens_completion": 101,
+   "cached_tokens": 199,
+   "latency_ms": 1534,
+   "status_code": 200,
+   "created_at": "2026-09-29T15:45:42.992392Z"
   },
   "e6ebd78a-1c0c-4863-97bc-0754f3ea8549": null,
   "04da11bb-35cc-4626-9ee5-a68e277ad32c": null,
@@ -449,6 +460,17 @@
    "latency_ms": 897,
    "status_code": 200,
    "created_at": "2026-09-29T15:20:39.647545Z"
+  },
+  "849c9702-f9ee-44c4-9b7f-bebfd40d10a5": {
+   "id": "849c9702-f9ee-44c4-9b7f-bebfd40d10a5",
+   "model": "qwen3-32b",
+   "total_cost": 0.0001246,
+   "tokens_prompt": 1314,
+   "tokens_completion": 98,
+   "cached_tokens": 199,
+   "latency_ms": 1580,
+   "status_code": 200,
+   "created_at": "2026-09-29T15:45:55.404684Z"
   }
  }
 }

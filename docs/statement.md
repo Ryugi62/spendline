@@ -1,12 +1,12 @@
-# Spend statement — receipts #1–#36, vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu
+# Spend statement — receipts #1–#38, vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu
 
-Paid inside the line: 48.00 USDT · Refused attempts: 14 (14 distinct requests), face value 33.60 USDT · 7 repeats refused on-chain as replays · 0 problems · **1 intent flag** (the words named another seller than the one paid) · Kiln calls behind these receipts: 30, $0.0015826
+Paid inside the line: 53.20 USDT · Refused attempts: 14 (14 distinct requests), face value 33.60 USDT · 7 repeats refused on-chain as replays · 0 problems · **1 intent flag** (the words named another seller than the one paid) · Kiln calls behind these receipts: 31, $0.0016582
 
 Every verdict below is the keyless audit's (`npm run audit`), not this app's claim; every tx is public on TRON nile.
 
 | Paid to | Payments | USDT (incl. fee) |
 |---|---:|---:|
-| GPU Shop | 12 | 36.00 |
+| GPU Shop | 14 | 41.20 |
 | Kiln credits | 10 | 12.00 |
 
 | Stopped on-chain because | Attempts | Face value (USDT) |
@@ -55,3 +55,5 @@ Every verdict below is the keyless audit's (`npm run audit`), not this app's cla
 | 34 | 2026-09-29 23:44:51 | Unknown seller | cheaper option in catalog | 0.90 | 0.00 | stopped · MERCHANT_NOT_ALLOWED | [f044396b…](https://nile.tronscan.org/#/transaction/f044396bc1840b53eabd6f5fd10ce0b11bb860bb946b7d067356730a65710072) |
 | 35 | 2026-09-30 00:20:09 | GPU Shop | Buy 1 GPU hour for tonight's eval as cheaply as possible, and 1 Kiln inference credit. | 2.40 | 0.20 | paid | [d8db0b5e…](https://nile.tronscan.org/#/transaction/d8db0b5ea65d80ce71dbfee2b386ea9116939db56f29f8c63f6fec97f6663f5a) |
 | 36 | 2026-09-30 00:20:12 | Kiln credits | Buy 1 GPU hour for tonight's eval as cheaply as possible, and 1 Kiln inference credit. | 1.00 | 0.00 | paid | [95834026…](https://nile.tronscan.org/#/transaction/958340267f3ae02b70d293d0d918ad0818e0964596e11d64c5a2b6f2b46b5550) |
+| 37 | 2026-09-30 00:45:42 | GPU Shop | Buy one GPU hour for tonight's eval run, and a separate GPU hour for the training job. | 2.40 | 0.20 | paid | [51d1e81c…](https://nile.tronscan.org/#/transaction/51d1e81c52c7ec8f4cb88cbce02a9ccbf9021f955777ee0dd1297c7655abd302) |
+| 38 | 2026-09-30 00:45:48 | GPU Shop | Buy one GPU hour for tonight's eval run, and a separate GPU hour for the training job. | 2.40 | 0.20 | paid | [2348ffee…](https://nile.tronscan.org/#/transaction/2348ffeebd8c38a28fc12c77c1c464bbf4d85148d26f6bbf606003b062bc7d3e) |

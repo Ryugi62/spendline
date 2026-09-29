@@ -42,21 +42,30 @@ const condense = (t: string) => t.slice(0, t.indexOf('Kiln qwen3-32b → answer'
   if (typeof r.tx === 'string' && !txs.includes(r.tx)) throw new Error(`#mcp refused: ${r.tx} is not in the record`);
   return `  ← ${r.ok ? 'ok' : `stopped ${r.reason}`} · ${r.seller} ${r.amount_usdt} + ${r.fee_usdt} (${r.priced_by}) · ${r.replay_of ? `repeat of #${r.replay_of}` : `receipt #${r.receipt_seq}`} · tx ${String(r.tx).slice(0, 10)}…`;
 }).join('\n');
-const mcpShown = ['docs/live/mcp-2026-09-29-run4.txt', 'docs/live/mcp-2026-09-29-run5.txt'].map((f) => condense(readFileSync(f, 'utf8').trim())).join('\n\n');
+const field = (l: string, k: string) => l.match(new RegExp(`"${k}":"?([^",}]*)`))?.[1];
+// the stock agent with thinking off (#35, #36), then the same request again (both refused on-chain) — its own transcripts, condensed
+const sdkCondense = (t: string) => t.split('\n').filter((l) => l.startsWith('$ ') || l.startsWith('→ spendline_pay') || l.startsWith('  ← {')).map((l) => {
+  if (l.startsWith('$ ')) return l.replace('$ date -u; git rev-parse --short HEAD; ', '$ ');
+  const call = l.match(/^→ spendline_pay\((\{.*?\})\)/);
+  if (call) { const a = JSON.parse(call[1]) as Record<string, unknown>; return `→ spendline_pay(${a.to} · ${a.item} × ${a.quantity ?? 1})`; }
+  const tx = field(l, 'tx') ?? '';
+  if (!txs.includes(tx)) throw new Error(`#mcp refused: ${tx} is not in the record`);
+  return `  ← ${field(l, 'ok') === 'true' ? 'ok' : `stopped ${field(l, 'reason')}`} · ${field(l, 'seller')} ${field(l, 'amount_usdt')} + fee ${field(l, 'fee_usdt')} · ${field(l, 'replay_of') ? `repeat of #${field(l, 'replay_of')}` : `receipt #${field(l, 'receipt_seq')}`}${field(l, 'left_usdt') ? ` · left ${field(l, 'left_usdt')}` : ''} · tx ${tx.slice(0, 10)}…`;
+}).join('\n');
+const mcpShown = ['docs/live/agents-sdk-live-20260929152005.txt', 'docs/live/agents-sdk-live-20260929152025.txt'].map((f) => sdkCondense(readFileSync(f, 'utf8').trim())).join('\n\n');
 // the attest panel shows the calls behind payments; F2 / F3 / host-only rows stay in docs/kiln-attest.txt
 const attestOut = readFileSync('docs/kiln-attest.txt', 'utf8').trim().split('\n').filter((l) => !l.startsWith('OTHER_ACCOUNT') && !/^MATCH\s+(F2|F3|F4 host)/.test(l) && !(/^MATCH/.test(l) && !l.includes('args →'))).map((l) => l.replace(/ \(the builder's personal key[^)]*\)/, ' (the builder\'s personal key, before team32)')).join('\n');
 const statementHead = readFileSync('docs/statement.md', 'utf8').split('\n').filter((l) => l.startsWith('Paid inside') || /^\| (GPU Shop|Kiln credits|[A-Z_]+ \|)/.test(l)).join('\n');
 const tuneOut = readFileSync('docs/tune-next-line.txt', 'utf8').trim();
 // #sdk: the stock OpenAI Agents SDK's live run (verbatim lines: its pay calls with the Kiln generation each was bound to, and the results)
 const sdkRaw = readFileSync('docs/live/agents-sdk-live-20260929144349.txt', 'utf8').trim().split('\n');
-const field = (l: string, k: string) => l.match(new RegExp(`"${k}":"?([^",}]*)`))?.[1];
 const sdkShown = sdkRaw.filter((l) => l.startsWith('→ spendline_pay') || (l.startsWith('  ← {') && l.includes('"receipt_seq"')) || l.startsWith('# Kiln reply 50598d32')).map((l) => {
   const call = l.match(/^→ spendline_pay\((\{.*?\})\) · Kiln gen ([0-9a-f]{8})/);
   if (call) { const a = JSON.parse(call[1]) as Record<string, unknown>; return `→ spendline_pay(${a.to} · ${a.item} × ${a.quantity ?? 1}) · bound to Kiln reply ${call[2]}…`; }
   if (!l.startsWith('  ← ')) return l.replace(/ · \$[0-9.]+/, '');
   const tx = field(l, 'tx') ?? '';
   if (!txs.includes(tx)) throw new Error(`#sdk refused: ${tx} is not in the record`);
-  return `  ← ${field(l, 'ok') === 'true' ? 'ok' : `stopped ${field(l, 'reason')}`} · ${field(l, 'seller')} ${field(l, 'amount_usdt')} · receipt #${field(l, 'receipt_seq')} · tx ${tx.slice(0, 10)}…`;
+  return `  ← ${field(l, 'ok') === 'true' ? 'ok' : `stopped ${field(l, 'reason')}`} · ${field(l, 'seller')} ${field(l, 'amount_usdt')} + fee ${field(l, 'fee_usdt')} · receipt #${field(l, 'receipt_seq')} · tx ${tx.slice(0, 10)}…`;
 }).join('\n');
 const panel = (id: string, title: string, body: string) => `<section id="${id}"><p class="t">${esc(title)}</p>${body}</section>`;
 const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Spendline — demo stage</title><style>
@@ -79,7 +88,7 @@ Paused · tx ${esc(f.stopTx ?? '')}</pre>`)}
 ${panel('audit', 'Anyone checks it — no key, no .env', `<pre>${esc(auditOut).replace(/→ OK/, '→ <span class="ok">OK</span>')}</pre>`)}
 ${panel('agent', 'Live, during the event window — npm run agent on Kiln + TRON Nile', `<p class="s">${agentNote} · from the receipts file</p><div class="term">${agentPre}</div>`)}
 ${panel('sdk', 'An unmodified agent (OpenAI Agents SDK) on Kiln, through the Spendline pass-through — live on TRON Nile', `<pre>${esc(sdkShown).replace(/← ok/g, '← <span class="ok">ok</span>').replace(/(stopped [A-Z_]+)/g, '<span class="hl">$1</span>')}</pre><p class="s">Each payment is bound to the Kiln call that asked for it: same arguments, byte for byte (docs/live/kiln-journal-20260929144349.jsonl)</p>`)}
-${panel('mcp', 'Any MCP host — here Qwen3-32B on Kiln (organizer account) + TRON Nile, live: the request, then the same request again', `<pre class="small">${esc(mcpShown).replace(/← ok/g, '← <span class="ok">ok</span>').replace(/(stopped [A-Z_]+)/g, '<span class="hl">$1</span>')}</pre>`)}
+${panel('mcp', 'The same unmodified agent, thinking off via the pass-through — the request, then the same request again (live, TRON Nile)', `<pre class="small">${esc(mcpShown).replace(/← ok/g, '← <span class="ok">ok</span>').replace(/(stopped [A-Z_]+)/g, '<span class="hl">$1</span>')}</pre>`)}
 ${panel('attest', "Two witnesses — Kiln's own record vs the receipts on TRON", `<pre class="small">${esc(attestOut).replace(/^(OK — .*)$/m, '<span class="ok">$1</span>')}</pre>`)}
 ${panel('weekly', "The lead's Friday — npm run statement · npm run tune -- next.json", `<pre>${esc(statementHead)}</pre><pre>${esc(tuneOut)}</pre>`)}
 ${panel('tokens', 'Kiln tokens by flow — live qwen3-32b', `<table><tr><th>Flow</th><th>Calls</th><th>Tokens</th><th>USD</th><th>Median latency</th><th>Wh (est.)</th></tr>${rows}</table><p class="s">${f.callsPerPurchase} LLM call per purchase · Wh = 180 W (RNGD TDP) × measured wall time — an estimate, stated</p>`)}
