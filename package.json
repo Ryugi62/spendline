@@ -38,7 +38,8 @@
     "tune": "tsx src/infrastructure/review-cli.ts tune",
     "mcp": "tsx src/infrastructure/mcp-server.ts",
     "mcp:host": "tsx src/infrastructure/mcp-host-cli.ts",
-    "mcp:smoke": "tsx scripts/mcp-smoke.ts"
+    "mcp:smoke": "tsx scripts/mcp-smoke.ts",
+    "fund": "tsx scripts/fund-nile.ts"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",
