@@ -43,7 +43,8 @@ const condense = (t: string) => t.slice(0, t.indexOf('Kiln qwen3-32b → answer'
   return `  ← ${r.ok ? 'ok' : `stopped ${r.reason}`} · ${r.seller} ${r.amount_usdt} + ${r.fee_usdt} (${r.priced_by}) · ${r.replay_of ? `repeat of #${r.replay_of}` : `receipt #${r.receipt_seq}`} · tx ${String(r.tx).slice(0, 10)}…`;
 }).join('\n');
 const mcpShown = ['docs/live/mcp-2026-09-29-run4.txt', 'docs/live/mcp-2026-09-29-run5.txt'].map((f) => condense(readFileSync(f, 'utf8').trim())).join('\n\n');
-const attestOut = readFileSync('docs/kiln-attest.txt', 'utf8').trim().split('\n').filter((l) => !l.startsWith('OTHER_ACCOUNT')).map((l) => l.replace(/ \(the builder's personal key[^)]*\)/, ' (the builder\'s personal key, before team32)')).join('\n');
+// the attest panel shows the calls behind payments; F2 / F3 / host-only rows stay in docs/kiln-attest.txt
+const attestOut = readFileSync('docs/kiln-attest.txt', 'utf8').trim().split('\n').filter((l) => !l.startsWith('OTHER_ACCOUNT') && !/^MATCH\s+(F2|F3|F4 host)/.test(l)).map((l) => l.replace(/ \(the builder's personal key[^)]*\)/, ' (the builder\'s personal key, before team32)')).join('\n');
 const statementHead = readFileSync('docs/statement.md', 'utf8').split('\n').filter((l) => l.startsWith('Paid inside') || /^\| (GPU Shop|Kiln credits|[A-Z_]+ \|)/.test(l)).join('\n');
 const tuneOut = readFileSync('docs/tune-next-line.txt', 'utf8').trim();
 const panel = (id: string, title: string, body: string) => `<section id="${id}"><p class="t">${esc(title)}</p>${body}</section>`;
