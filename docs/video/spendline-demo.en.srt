@@ -1,71 +1,71 @@
 1
-00:00:00,000 --> 00:00:08,810
-An AI agent was asked to buy 2 GPU hours from a cheaper seller that is not on the list. The vault on TRON refused, and recorded the stop on-chain.
+00:00:00,000 --> 00:00:09,200
+A purchasing agent on Kiln was asked to buy a GPU hour from a cheaper seller that is not on the list. The vault on TRON refused, and recorded the stop on-chain.
 
 2
-00:00:09,717 --> 00:00:16,297
-Kiln's Qwen3-32B explains it in plain words. It is shown only because it repeats the audit's verdict.
+00:00:10,101 --> 00:00:14,701
+Kiln explains it in plain words, shown only because it repeats the audit's verdict.
 
 3
-00:00:17,199 --> 00:00:24,109
-This is the vault's public event: SpendBlocked, with the receipt hash and the reason. Anyone can read it. No key needed.
+00:00:15,602 --> 00:00:21,452
+This is the vault's public event: SpendBlocked, with the receipt hash and the reason. Anyone can read it.
 
 4
-00:00:25,013 --> 00:00:33,923
+00:00:22,353 --> 00:00:31,263
 This is Spendline, a wallet and policy layer for an AI purchasing agent. A person draws the line. The agent only asks. The vault decides.
 
 5
-00:00:34,826 --> 00:00:41,246
+00:00:32,163 --> 00:00:38,583
 The person sets a budget, a per-payment cap, the sellers, and a deadline, one short step at a time.
 
 6
-00:00:42,148 --> 00:00:47,018
+00:00:39,484 --> 00:00:44,354
 Then signs it with the owner key, on their own machine. STOP is signed the same way.
 
 7
-00:00:47,920 --> 00:00:53,120
+00:00:45,257 --> 00:00:50,457
 The feed shows spending against the line, newest first: paid, or stopped with a reason.
 
 8
-00:00:54,022 --> 00:00:57,042
+00:00:51,356 --> 00:00:54,376
 Over budget once the fee is added: stopped on-chain.
 
 9
-00:00:57,943 --> 00:01:03,223
+00:00:55,277 --> 00:01:00,557
 The person can press STOP at any time. The next payment was stopped as PAUSED, on-chain.
 
 10
-00:01:04,124 --> 00:01:11,214
+00:01:01,459 --> 00:01:08,549
 A short time window: one payment inside it, then the same request after it closed. Stopped: deadline passed.
 
 11
-00:01:12,115 --> 00:01:20,145
-Now the audit, rebuilt from public records only: 21 receipts, 13 paid inside, 8 stopped, 0 problems.
+00:01:09,451 --> 00:01:17,421
+The audit, rebuilt from public records only: 28 receipts, 16 paid inside, 12 stopped, 0 problems.
 
 12
-00:01:21,047 --> 00:01:27,447
-The same check from the command line. No key. It re-hashes every receipt and replays the line in force at that moment.
+00:01:18,325 --> 00:01:21,155
+The same check from the command line, with no key.
 
 13
-00:01:28,347 --> 00:01:45,887
-New in this version: any agent that speaks MCP can use Spendline as its wallet. Here the host's planner is Qwen3-32B on Kiln, live on the organizer's account. One request, three pay calls: the GPU Shop and the Kiln credit were paid, and the unknown seller was stopped on-chain.
+00:01:22,058 --> 00:01:41,558
+Any agent that speaks MCP can use Spendline as its wallet. Here the planner is Qwen3-32B on Kiln, on the organizer's account. One reply, three pay calls; code priced them. Two were paid, the unknown seller was stopped. Sent again, every call was refused on-chain as a repeat: it buys once.
 
 14
-00:01:46,789 --> 00:02:00,509
-And a second witness. Each receipt hash on TRON commits to the Kiln generation behind it, and Kiln's own record agrees on 15 of 15 calls: model, tokens and cost. Every model call came 2 to 5 seconds before its payment.
+00:01:42,461 --> 00:01:55,991
+And a second witness. In plain words: Kiln's own logbook and the blockchain tell the same story, and the AI call came first. 29 of 29 rows match Kiln's record, and every paying call came 2 to 10 seconds before its payment.
 
 15
-00:02:01,413 --> 00:02:08,983
+00:01:56,894 --> 00:02:04,464
 A teammate asks: did we pay that cheap unknown seller? Kiln picks the receipt. The verdict comes from the audit, never from the model.
 
 16
-00:02:09,886 --> 00:02:22,436
-On Friday, one command writes the statement: paid by seller, 18.20 USDT kept in the vault by 8 stops, and a CSV for the accountant. Tune shows what next week's line would have done.
+00:02:05,367 --> 00:02:16,307
+On Friday, one command writes the statement: paid by seller, refused attempts, an intent flag, and a CSV for the accountant. Tune shows what next week's line would have done.
 
 17
-00:02:23,339 --> 00:02:38,679
-Efficiency: 1.00 LLM call per purchase. With no-think, median output drops from 223 to 36 tokens, the same JSON in 12 of 12 pairs. Energy is an estimate: 180 watts times measured time.
+00:02:17,210 --> 00:02:33,740
+Efficiency: 1.00 LLM call per purchase on Spendline's own path, 1.15 through a general MCP host. No-think cut median output from 223 to 36 tokens. Energy is an estimate: 180 watts times measured time.
 
 18
-00:02:39,580 --> 00:02:44,300
+00:02:34,642 --> 00:02:39,362
 Spendline. Not an agent that can pay, but a payment that can prove it was allowed.

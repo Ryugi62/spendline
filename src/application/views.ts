@@ -92,7 +92,7 @@ export function feedView(s: Session, hash: Hasher, now: number): FeedView {
   const bySeq = new Map(s.receipts.map((r) => [r.seq, r]));
   const rows: Row[] = [...res.verdicts].reverse().map((v) => {
     const r = bySeq.get(v.seq)!;
-    return { seq: v.seq, at: r.request.at, words: r.intentText, amount: r.request.amount, fee: r.request.fee, merchant: r.request.merchant, status: statusOf(v), reasonText: reasonOf(v), txHash: v.txHash };
+    return { seq: v.seq, at: r.request.at, words: r.asked ?? r.intentText, amount: r.request.amount, fee: r.request.fee, merchant: r.request.merchant, status: statusOf(v), reasonText: reasonOf(v), txHash: v.txHash };
   });
   // The line in force = the latest grant; spent restarts there, exactly as the vault counts it.
   let line: Mandate | undefined;
@@ -157,7 +157,7 @@ export function receiptView(s: Session, seq: number, hash: Hasher): ReceiptView 
     total: r.request.amount + r.request.fee,
     status,
     line,
-    words: r.intentText,
+    words: r.asked ?? r.intentText, // v1.1: the person's request when an MCP host passed it; the model's reason stays in the receipt
     merchant: r.request.merchant,
     at: r.request.at,
     txHash: v.txHash,
