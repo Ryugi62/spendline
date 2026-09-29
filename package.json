@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
-  "description": "Receipts for AI spending: a policy vault on TRON Nile that pays only inside the line the user drew, records every stop on-chain, and lets anyone audit from receipts alone. Agent runs on Kiln (Qwen3-32B).",
+  "description": "Receipts for AI spending: a policy vault on TRON Nile that pays only inside the line the user drew, records every stop it makes on-chain, and lets anyone audit from receipts alone. Agent runs on Kiln (Qwen3-32B).",
   "engines": {
     "node": ">=22"
   },

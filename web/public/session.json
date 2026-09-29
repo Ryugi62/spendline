@@ -769,6 +769,84 @@
    "asked": "Please get two Kiln inference credits for tonight's replay, and one GPU hour from a shop on our list.",
    "prevHash": "551c39776d5818079660c8970e2ee7e345f469cd3bcbb65053df0767e69b5df8",
    "hash": "9eea6cb4ef682fbabaf39861c4d7baaeb97094301bd96ad219848b665fb94c96"
+  },
+  {
+   "seq": 32,
+   "mandateId": "0xacc05e5d78c4976629e8085a3b3c034c6434bf0520a6d8e4452f0f65cac0963e",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 2400000,
+    "fee": 200000,
+    "at": 1790693085
+   },
+   "intentText": "tonight's eval",
+   "flows": [
+    {
+     "flow": "F4_mcp_host",
+     "promptTokens": 943,
+     "completionTokens": 1507,
+     "costUsd": 0.0004687999999999999,
+     "latencyMs": 21579,
+     "generationId": "50598d32-a11c-4c95-9df5-5e205c425d2f",
+     "serverMs": 21057,
+     "args": "{\"to\": \"GPU Shop\", \"item\": \"gpu-hours\", \"quantity\": 1, \"why\": \"tonight's eval\"}",
+     "via": "tool_call"
+    }
+   ],
+   "prevHash": "9eea6cb4ef682fbabaf39861c4d7baaeb97094301bd96ad219848b665fb94c96",
+   "hash": "2dc8ac4523f555dccc6db9fe919ae0b08ea7c476625c3ede372ece5ad075d858"
+  },
+  {
+   "seq": 33,
+   "mandateId": "0xacc05e5d78c4976629e8085a3b3c034c6434bf0520a6d8e4452f0f65cac0963e",
+   "request": {
+    "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+    "amount": 1000000,
+    "fee": 0,
+    "at": 1790693088
+   },
+   "intentText": "tonight's eval",
+   "flows": [
+    {
+     "flow": "F4_mcp_host",
+     "promptTokens": 943,
+     "completionTokens": 1507,
+     "costUsd": 0.0004687999999999999,
+     "latencyMs": 21579,
+     "generationId": "50598d32-a11c-4c95-9df5-5e205c425d2f",
+     "serverMs": 21057,
+     "args": "{\"to\": \"Kiln credits\", \"item\": \"inference-credits\", \"quantity\": 1, \"why\": \"tonight's eval\"}",
+     "via": "tool_call"
+    }
+   ],
+   "prevHash": "2dc8ac4523f555dccc6db9fe919ae0b08ea7c476625c3ede372ece5ad075d858",
+   "hash": "bf35c46371558896232c549d4d4b42457203bac9011c6e42429e12fef22bb566"
+  },
+  {
+   "seq": 34,
+   "mandateId": "0xacc05e5d78c4976629e8085a3b3c034c6434bf0520a6d8e4452f0f65cac0963e",
+   "request": {
+    "merchant": "TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh",
+    "amount": 900000,
+    "fee": 0,
+    "at": 1790693091
+   },
+   "intentText": "cheaper option in catalog",
+   "flows": [
+    {
+     "flow": "F4_mcp_host",
+     "promptTokens": 943,
+     "completionTokens": 1507,
+     "costUsd": 0.0004687999999999999,
+     "latencyMs": 21579,
+     "generationId": "50598d32-a11c-4c95-9df5-5e205c425d2f",
+     "serverMs": 21057,
+     "args": "{\"to\": \"Unknown seller\", \"item\": \"gpu-hours\", \"quantity\": 1, \"why\": \"cheaper option in catalog\"}",
+     "via": "tool_call"
+    }
+   ],
+   "prevHash": "bf35c46371558896232c549d4d4b42457203bac9011c6e42429e12fef22bb566",
+   "hash": "f480a745ed81cbd0bc54669e68a0d2bb3e3320bf9eeeef4f2d4c9d43981e649b"
   }
  ],
  "events": [
@@ -1267,9 +1345,37 @@
    "fee": 200000,
    "at": 1790690994,
    "txHash": "3d03cbc297dd32991ed422922d57795d57ed9c2f3a5cb21b85926b65d25aac52"
+  },
+  {
+   "kind": "paid",
+   "receiptHash": "2dc8ac4523f555dccc6db9fe919ae0b08ea7c476625c3ede372ece5ad075d858",
+   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "amount": 2400000,
+   "fee": 200000,
+   "at": 1790693088,
+   "txHash": "2dc067cee7bab60225f8ad9c344e8231d541b652b4bcc05f0095243be5a6c529"
+  },
+  {
+   "kind": "paid",
+   "receiptHash": "bf35c46371558896232c549d4d4b42457203bac9011c6e42429e12fef22bb566",
+   "merchant": "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj",
+   "amount": 1000000,
+   "fee": 0,
+   "at": 1790693091,
+   "txHash": "54a9792581e0d69c2e6da74c9bce278978702473b171333a3787ef3e57cb6250"
+  },
+  {
+   "kind": "blocked",
+   "receiptHash": "f480a745ed81cbd0bc54669e68a0d2bb3e3320bf9eeeef4f2d4c9d43981e649b",
+   "merchant": "TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh",
+   "amount": 900000,
+   "fee": 0,
+   "at": 1790693094,
+   "txHash": "f044396bc1840b53eabd6f5fd10ce0b11bb860bb946b7d067356730a65710072",
+   "reason": "MERCHANT_NOT_ALLOWED"
   }
  ],
- "generatedAt": 1790691171,
+ "generatedAt": 1790693232,
  "answers": [
   {
    "key": "F2:ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
@@ -1697,6 +1803,25 @@
     "latencyMs": 1938,
     "generationId": "2c513ec0-7450-4778-9569-5fa038a03b56",
     "serverMs": 830
+   }
+  },
+  {
+   "key": "F2v3:f480a745ed81cbd0bc54669e68a0d2bb3e3320bf9eeeef4f2d4c9d43981e649b",
+   "flow": "F2_explain",
+   "seq": 34,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "txHash": "f044396bc1840b53eabd6f5fd10ce0b11bb860bb946b7d067356730a65710072",
+   "text": "The payment was blocked because the seller is not on the allowed list. The agent tried to buy from an unknown seller.",
+   "grounded": true,
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 373,
+    "completionTokens": 60,
+    "costUsd": 0.0000424,
+    "latencyMs": 1872,
+    "generationId": "cfe5544f-0368-41e4-838a-78478969f411",
+    "serverMs": 1012
    }
   }
  ]

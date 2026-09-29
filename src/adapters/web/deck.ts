@@ -48,7 +48,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     },
     {
       id: 'boundaries',
-      title: 'Boundaries & stopping — every stop is on-chain',
+      title: 'Boundaries & stopping — every stop the vault makes is on-chain',
       html: `<div class="split"><div><p class="num">${f.stopped}<span> stops recorded</span></p><ul class="ev">${stops}
 <li><b>replay</b> a paid receipt's hash sent again <span class="r">DUPLICATE_RECEIPT</span> ${tx(f.replayTx)}</li></ul>
 <p class="note">Enforced in <code>SpendlineVault.pay() → check()</code>. A stop is an event (<code>SpendBlocked</code>), never a silent revert.</p></div>
@@ -94,7 +94,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'value',
       title: 'Who pays · where it plugs in',
-      html: `<ul class="big-list tight"><li><b>Plugs in</b> two ways: as an MCP server any agent host can add (<code>spendline_line</code> · <code>spendline_pay</code> · <code>spendline_check</code> — a stock OpenAI Agents SDK agent on Kiln paid through it; live on TRON with Qwen3-32B on Kiln as the host${f.mcp ? `, ${f.mcp.attempts} pay attempts` : ''}; code prices every payment; the same request sent twice buys once, the repeat refused on-chain), or as a drop-in <code>spendlineWallet(…)</code>. The person keeps the owner key; the agent key can only ask.</li>
+      html: `<ul class="big-list tight"><li><b>Plugs in</b> two ways: as an MCP server any agent host can add (<code>spendline_line</code> · <code>spendline_pay</code> · <code>spendline_check</code> — an unmodified OpenAI Agents SDK agent on Kiln paid on the live vault, each receipt bound to its Kiln call by Spendline's pass-through; our own Kiln host too${f.mcp ? `, ${f.mcp.attempts} pay attempts` : ''}; code prices every payment; the same request sent twice buys once, the repeat refused on-chain), or as a drop-in <code>spendlineWallet(…)</code>. The person keeps the owner key; the agent key can only ask.</li>
 <li><b>The lead's week</b>: grant a line → the agent spends → <code>npm run statement</code> writes the statement and a CSV for the accountant${f.kept ? ` (${f.kept.stops} refused attempts, ${f.kept.replays ?? 0} repeats refused, intent flags)` : ''} → <code>npm run tune -- next.json</code> shows what next week's line would have done to this week's requests.</li>
 ${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile): Kiln F1 $${f.cost.f1Usd} (mean) + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped (median).</li>` : ''}
 <li><b>Who needs it</b>: teams that let agents buy compute, credits and API time. Business (hypothesis, not validated): vault and audit open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>
@@ -111,7 +111,7 @@ npm run ui         # Grant · Feed · Receipt · Audit</pre>
 <ul class="big-list tight"><li>Testnet only (TRON Nile, test USDT), as the brief asks · one line per vault — a new grant replaces the old one (the audit replays every grant).</li>
 <li>Signing is on the person's machine (CLI), never in the browser · no one-off approval of a single stopped payment (grant a new line) · energy is an estimate — Kiln exposes no power telemetry.</li>
 <li>Parts were built before the event window; the README lists every commit, before and during.</li></ul>
-<p class="kicker">${f.tests} tests · every model call on live Kiln · every stop on-chain — Spendline, a payment that can prove it was allowed.</p>`,
+<p class="kicker">${f.tests} tests · every model call on live Kiln · every stop the vault makes on-chain — Spendline, a payment that can prove it was allowed.</p>`,
     },
   ];
 }

@@ -7,7 +7,7 @@
 
 ## 0. One line
 Spendline is the wallet-and-policy layer for an AI agent that spends: a person grants a USDT budget with a merchant list and a deadline,
-the agent (Qwen3-32B on Kiln) proposes purchases, a policy vault on TRON Nile pays only inside the line and **records every stop on-chain**,
+the agent (Qwen3-32B on Kiln) proposes purchases, a policy vault on TRON Nile pays only inside the line and **records every stop it makes on-chain**,
 and anyone can reconstruct from the receipts alone whether a payment was allowed.
 Essence: not "an agent that can pay" but "**a payment that can prove it was allowed**".
 
@@ -194,6 +194,14 @@ M1 said: the demo only replays the 2026-09-26 record, no live receipt comes thro
   system prompt (no model call), Qwen3-32B on Kiln (flow F4) is offered the tools (without `kiln_usage` / `request`), every tool call of a reply is run, each reply's tool call (proper, or leaked into the text) is sent to the MCP server one at a time — `spendline_pay` with the
   host's `kiln_usage` of that call, a model-written one replaced — and the result goes back to the model, until a plain answer or 8 tool
   calls. `npm run mcp:host -- "<words>"` runs it over stdio against `npm run mcp` and saves the run to `docs/live/mcp-host-*.json`.
+- AC-45 (the Kiln witness for an unmodified host) Given an agent host we do not control, pointed at the Spendline pass-through instead of
+  Kiln When it plans on Kiln and calls `spendline_pay` Then the pass-through forwards to Kiln with the Kiln key, returns the reply unchanged and
+  journals {generation id, usage, the tool calls asked for (proper or written into the text)}; the MCP server binds the pay call to the newest
+  journaled reply (≤ 120 s) whose tool call has exactly these arguments (canonical JSON) and that no receipt used yet, and seals that usage
+  (with the arguments) into the receipt. Streamed requests are passed through unjournaled. `npm run kiln:proxy` · `SPENDLINE_KILN_JOURNAL`.
+- Round-3 review (3 mock judges): a repeat must match an earlier PAID purchase, per identical item (`spendline/occurrence`); the host uses the
+  native tool protocol (assistant `tool_calls` + `role: tool`); attest: NO_KILN_CALL for a receipt in scope that no Kiln call decided, a
+  generation may not span two requests, an F1 seller hint (address or catalog name) must be the seller paid and within the model's price cap.
 
 ## 7. Architecture (Clean)
 ```
@@ -218,4 +226,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 - v0.9 2026-09-29 §6g (during the window): README proof of API usage per flow, generated and checked (AC-38) · plug-in wallet + example, tested (AC-37) · deck ≤ 10 pages (AC-32 tightened to the organizer's limit).
 - v0.9.1 2026-09-29 (during the window, M1 check): live receipt #12 · a seller named in the words reaches the vault (AC-39) · README record numbers pinned by a test.
 - v1.0.0 2026-09-29 (during the window, v1 freeze): live receipts #13–#15 and F2 / F3 on the organizer-issued Kiln account (team32) · README's account sentence pinned to the record by a test.
-- v1.1.0 2026-09-29 night (during the window) §6h: two witnesses — Kiln's own generation record vs the receipts on TRON (AC-40) · statement + tune for the lead's week (AC-41/42) · MCP server + a Kiln-planned MCP host, 3 live runs → #16–#21, three host bugs from the live runs fixed with tests (AC-43/44).
+- v1.1.0 2026-09-29 night (during the window) §6h (+ AC-45 and three rounds of mock-judge fixes): two witnesses — Kiln's own generation record vs the receipts on TRON (AC-40) · statement + tune for the lead's week (AC-41/42) · MCP server + a Kiln-planned MCP host, 3 live runs → #16–#21, three host bugs from the live runs fixed with tests (AC-43/44).

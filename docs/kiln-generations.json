@@ -1,6 +1,6 @@
 {
  "source": "GET https://api.bricksum.com/v1/generations/{id}",
- "fetchedAt": "2026-09-29T14:14:20.009Z",
+ "fetchedAt": "2026-09-29T14:48:48.742Z",
  "generations": {
   "d919cfd0-5e71-46fc-8ec0-6fad043902de": null,
   "a83ece71-1d04-48cf-8cbf-38d1789e184f": null,
@@ -190,6 +190,17 @@
    "status_code": 200,
    "created_at": "2026-09-29T14:09:48.710266Z"
   },
+  "50598d32-a11c-4c95-9df5-5e205c425d2f": {
+   "id": "50598d32-a11c-4c95-9df5-5e205c425d2f",
+   "model": "qwen3-32b",
+   "total_cost": 0.0004688,
+   "tokens_prompt": 943,
+   "tokens_completion": 1507,
+   "cached_tokens": 715,
+   "latency_ms": 21070,
+   "status_code": 200,
+   "created_at": "2026-09-29T14:44:45.304634Z"
+  },
   "e6ebd78a-1c0c-4863-97bc-0754f3ea8549": null,
   "04da11bb-35cc-4626-9ee5-a68e277ad32c": null,
   "d1bdd9c8-718d-4782-88d2-7c0ec57565c4": null,
@@ -262,6 +273,17 @@
    "latency_ms": 701,
    "status_code": 200,
    "created_at": "2026-09-29T13:38:45.371128Z"
+  },
+  "cfe5544f-0368-41e4-838a-78478969f411": {
+   "id": "cfe5544f-0368-41e4-838a-78478969f411",
+   "model": "qwen3-32b",
+   "total_cost": 0.0000424,
+   "tokens_prompt": 373,
+   "tokens_completion": 60,
+   "cached_tokens": 106,
+   "latency_ms": 955,
+   "status_code": 200,
+   "created_at": "2026-09-29T14:47:11.083274Z"
   },
   "72f43818-9583-477d-8ca5-95d04226a1f1": {
    "id": "72f43818-9583-477d-8ca5-95d04226a1f1",
@@ -361,6 +383,28 @@
    "latency_ms": 575,
    "status_code": 200,
    "created_at": "2026-09-29T14:09:56.635173Z"
+  },
+  "7015e0c6-5295-4fb2-8aeb-7a5d89baf351": {
+   "id": "7015e0c6-5295-4fb2-8aeb-7a5d89baf351",
+   "model": "qwen3-32b",
+   "total_cost": 0.0006504,
+   "tokens_prompt": 677,
+   "tokens_completion": 2226,
+   "cached_tokens": 676,
+   "latency_ms": 31006,
+   "status_code": 200,
+   "created_at": "2026-09-29T14:44:23.099884Z"
+  },
+  "2f9547d3-5373-47ce-95b3-ead8a1135a7d": {
+   "id": "2f9547d3-5373-47ce-95b3-ead8a1135a7d",
+   "model": "qwen3-32b",
+   "total_cost": 0.00022152,
+   "tokens_prompt": 1709,
+   "tokens_completion": 405,
+   "cached_tokens": 715,
+   "latency_ms": 5882,
+   "status_code": 200,
+   "created_at": "2026-09-29T14:45:02.329114Z"
   }
  }
 }
