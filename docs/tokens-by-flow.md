@@ -4,14 +4,14 @@ Sources: `docs/receipts-nile-live.jsonl` · `docs/answers-nile-live.jsonl`. Ever
 
 | Flow | What the model does | Calls | Prompt tokens | Output tokens | Total tokens | USD (Kiln `usage.cost`) | Median latency | Total wall time | Wh (est.) | Wh / call (est.) |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| F1 intent | request words → `{item, quantity, maxUnitPrice?, merchantHint?}`; code picks the offer and does the money math | 15 | 3074 | 469 | 3543 | $0.0002754 | 1.76 s | 28.86 s | 1.4429 | 0.0962 |
+| F1 intent | request words → `{item, quantity, maxUnitPrice?, merchantHint?}`; code picks the offer and does the money math | 21 | 7869 | 1139 | 9008 | $0.0007300 | 1.76 s | 44.42 s | 2.2209 | 0.1058 |
 | F2 explain | audit facts → two plain sentences about one receipt (shown only if it echoes the audit verdict) | 7 | 2617 | 396 | 3013 | $0.0002992 | 3.20 s | 19.78 s | 0.9889 | 0.1413 |
 | F3 dispute | a teammate's question → which receipt it is about (verdict always from the audit) | 13 | 16242 | 850 | 17092 | $0.0013045 | 2.25 s | 35.61 s | 1.7807 | 0.1370 |
-| **Total** | | **35** | **21933** | **1715** | **23648** | **$0.0018791** | 1.93 s | **84.25 s** | **4.2125** | 0.1204 |
+| **Total** | | **41** | **26728** | **2385** | **29113** | **$0.0023336** | 1.99 s | **99.81 s** | **4.9905** | 0.1217 |
 
-- LLM calls per purchase: **1.00** (15 F1 calls / 15 receipts) — the design limit is 2. Offer choice, money math, the rule and the receipt are code: no call is spent on them.
+- LLM calls per purchase: **1.00** (21 F1 calls / 21 receipts) — the design limit is 2. Offer choice, money math, the rule and the receipt are code: no call is spent on them.
 - F2 and F3 run only when a person asks, and the same question on the same record is answered from the answers log with 0 calls.
-- Energy per purchase (F1, est.): **0.0962 Wh**.
+- Energy per purchase (F1, est.): **0.1058 Wh**.
 - F2 explain: 7 calls = v1 ×2 · v2 ×2 · v3 ×3 (one call per receipt per prompt version)
 - F3 dispute: 13 calls = v1 ×3 · v2 ×3 · v3 ×3 · v4 ×4 (one call per question per prompt version)
 - Prompt revisions came from live answers: v1 → times to the second and a code-written STOP relation → numbers only from the facts (see the commit log).
@@ -20,7 +20,7 @@ Sources: `docs/receipts-nile-live.jsonl` · `docs/answers-nile-live.jsonl`. Ever
 Kiln exposes no power telemetry, so Wh = 180 W × measured wall time ÷ 3600 per call. 180 W source: FuriosaAI RNGD card TDP — "180W TDP", furiosa.ai/rngd, checked 2026-09-26. It is an upper bound: 180 W NPU card × request wall time (upper bound; whole card attributed to this request). Wall time is measured at the client, so it also includes network time.
 
 ## Generation ids (Kiln `X-Neocloud-Generation-Id`)
-- F1 intent: `d919cfd0-5e71-46fc-8ec0-6fad043902de` · `a83ece71-1d04-48cf-8cbf-38d1789e184f` · `00d1184c-2b24-43b9-b4f0-43a09039447b` · `0d72f2ca-d20d-40e5-af68-eb3ed9000660` · `bec549da-0c5e-4c45-b845-7a922da104c7` · `6bd3f0d9-086c-4a7c-8fe4-a8e5aac42b44` · `08b3ef5e-d928-428a-8d39-ff7e50d4d8c4` · `1985998e-c88d-4ed3-806e-713c7fd5ef24` · `36145ff2-cb1c-4414-adec-fecb566643da` · `71dc1400-07b0-4b84-aa3d-3b29cbf5b374` · `adfb41df-ce96-4ccd-a785-5f0daaa918ed` · `f1e7aa9a-d4fc-49e7-bef7-959b8191108e` · `f88084b3-e332-4cd4-a2d4-33ad024936bf` · `14c26f4e-d054-4a97-8a1a-aad8b2d9c959` · `2ad75081-1720-4145-9f9c-6a10c53d076a`
+- F1 intent: `d919cfd0-5e71-46fc-8ec0-6fad043902de` · `a83ece71-1d04-48cf-8cbf-38d1789e184f` · `00d1184c-2b24-43b9-b4f0-43a09039447b` · `0d72f2ca-d20d-40e5-af68-eb3ed9000660` · `bec549da-0c5e-4c45-b845-7a922da104c7` · `6bd3f0d9-086c-4a7c-8fe4-a8e5aac42b44` · `08b3ef5e-d928-428a-8d39-ff7e50d4d8c4` · `1985998e-c88d-4ed3-806e-713c7fd5ef24` · `36145ff2-cb1c-4414-adec-fecb566643da` · `71dc1400-07b0-4b84-aa3d-3b29cbf5b374` · `adfb41df-ce96-4ccd-a785-5f0daaa918ed` · `f1e7aa9a-d4fc-49e7-bef7-959b8191108e` · `f88084b3-e332-4cd4-a2d4-33ad024936bf` · `14c26f4e-d054-4a97-8a1a-aad8b2d9c959` · `2ad75081-1720-4145-9f9c-6a10c53d076a` · `74aaa6f8-644e-46c7-83bf-d9fac9952e9f` · `03a3f569-ebf1-4a5e-81fe-38a32d3694fe` · `2622f88d-b806-4214-b8d8-f31e5576cdd5` · `bfdb4f53-7d41-4307-8f6f-8a6d690e4f8a` · `c5d5876e-f6c0-4b1b-bfb0-335c699bb0d1` · `7ade1952-d2a6-4176-9cd8-b4119c1dbba7`
 - F2 explain: `e6ebd78a-1c0c-4863-97bc-0754f3ea8549` · `04da11bb-35cc-4626-9ee5-a68e277ad32c` · `53f41100-4caa-4377-aac1-abc3dfaa7d46` · `cccd1a4b-b964-4c53-bf96-9d8c2181b896` · `3a712866-d843-45a5-9058-dd1dbdb82b87` · `db754b5e-4b0e-425e-95a7-52903e4be32a` · `46108f55-baa2-4e65-bbb6-d1a2f0fb51b6`
 - F3 dispute: `d1bdd9c8-718d-4782-88d2-7c0ec57565c4` · `2389917f-9859-4351-abd0-45c6dbad197f` · `ffa30c87-4961-40fc-88cd-28393651542c` · `7c4141f9-35c4-46af-9b51-8a852328d94d` · `35c56cc2-328c-4fa0-ba8d-449afa868d54` · `74dda3ce-ce35-4aba-9627-390e55e79c2b` · `b720fc26-26ae-43e0-af6e-fc7a16d3a7d1` · `c856ef6f-93ef-4b67-b27c-0105ffc7caa7` · `1a19f663-d670-4b27-a5da-5490ebcb3a39` · `9040d65b-c3d2-408e-a9c4-e479e8053f1c` · `952891d8-988e-4397-8f6c-465fc1256204` · `a9e39d12-f8e3-40fa-9862-447222db447d` · `f2699a73-4f40-44fc-8b22-8040eaa0b25d`
 
@@ -68,5 +68,10 @@ Kiln returns `x-envoy-upstream-service-time` on every response: the time spent b
 | Kiln upstream time | 8.68 s | 0.4338 | 0.0362 |
 
 - Server time is 66% of wall time on these calls; F1 paths: tool_calls 8 · call leaked into text 3 · plain JSON 1 — parsed 12 / 12. Raw: `docs/energy-server-time-2026-09-28.json`. New receipts carry `serverMs` from v0.7 on.
+
+## MCP host on Kiln (AC-44) — the same payments through a general agent
+- 3 runs of `npm run mcp:host`: 10 Kiln calls for 6 pay attempts that reached the vault (1.67 per attempt; 4 calls decided no payment — closing answers and a refused call) · 9,886 tokens · $0.0007747
+- Median prompt 871 tokens per call vs 321 for Spendline's own F1 with the tool offered (1 call per purchase): the purpose-built F1 stays the efficient path; MCP is the path for an agent that already has a planner.
+- The pay calls are inside the F1 row above (each receipt carries its host call, AC-43); the other calls are only here.
 
 Regenerate: `npm run report` (reads the files above; no key).

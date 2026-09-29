@@ -86,26 +86,27 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'new',
       title: "What's new",
-      html: `<ul class="big-list"><li><b>A stop is an event.</b> Refusals are recorded on-chain with the reason, so the history shows what the agent was <i>not</i> allowed to do.</li>
+      html: `<ul class="big-list tight"><li><b>Two witnesses per payment.</b> The receipt hash on TRON commits to the Kiln generation behind it; Kiln's own record (<code>GET /v1/generations/{id}</code>) is the second witness.${f.attest ? ` On the organizer's account ${f.attest.match} of ${f.attest.shown} calls match — model, tokens, cost — and every F1 call is dated ${f.attest.leadMin}–${f.attest.leadMax} s before its <code>pay()</code> (<code>npm run attest</code>).` : ''}</li>
+<li><b>A stop is an event.</b> Refusals are recorded on-chain with the reason, so the history shows what the agent was <i>not</i> allowed to do.</li>
 <li><b>Receipts are hash-chained and anchored.</b> Each receipt's hash is an argument of <code>pay()</code>; the vault decides each hash once.</li>
-<li><b>The model phrases, the audit decides.</b> Kiln explains a receipt and settles a teammate's question — its words are shown only if they repeat the audit's verdict and use only numbers from the record.</li></ul>`,
+<li><b>The model phrases, the audit decides.</b> Kiln's words about a receipt are shown only if they repeat the audit's verdict and use only numbers from the record.</li></ul>`,
     },
     {
       id: 'value',
       title: 'Who pays · where it plugs in',
-      html: `<ul class="big-list tight"><li><b>Plugs in</b> where an agent would call a wallet: swap in <code>spendlineWallet(…)</code> — same <code>transfer(to, amount, memo)</code> call, the loop unchanged (<code>examples/plug-in.ts</code>, tested). The person keeps the owner key; the agent key can only ask.</li>
-<li><b>Who needs it</b>: teams that let agents buy compute, credits and API time — and any finance or compliance reader who must check a payment without trusting the operator.</li>
-${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile, median): Kiln F1 $${f.cost.f1Usd} + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped — a stop costs less than half of a payment and is still on the record.</li>` : ''}
-<li><b>Business (hypothesis, not validated)</b>: the vault and the audit stay open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>
-<li><b>Why TRON · USDT</b>: an agent's budget is money people already hold as a stablecoin; USDT settles as a plain TRC20 transfer inside <code>pay()</code>. The vault is ordinary Solidity on the TVM — nothing in it is specific to one seller or one app.</li>
-<li><b>For Kiln</b>: a reference pattern for an agent that spends — every decision through Kiln, tokens and energy reported per flow.</li></ul>`,
+      html: `<ul class="big-list tight"><li><b>Plugs in</b> two ways: as an MCP server any agent host can add (<code>npm run mcp</code>: <code>spendline_line</code> · <code>spendline_pay</code> · <code>spendline_check</code>${f.mcp ? ` — live with Qwen3-32B on Kiln as the host, ${f.mcp.runs} runs, ${f.mcp.attempts} pay attempts` : ''}), or as a drop-in <code>spendlineWallet(…)</code> with the same <code>transfer(to, amount, memo)</code> call. The person keeps the owner key; the agent key can only ask.</li>
+<li><b>The lead's week</b>: grant a line → the agent spends → <code>npm run statement</code> writes the statement and a CSV for the accountant${f.kept ? ` (${f.kept.usdt} USDT kept in the vault by ${f.kept.stops} stops)` : ''} → <code>npm run tune -- next.json</code> shows what next week's line would have done to this week's requests.</li>
+${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile): Kiln F1 $${f.cost.f1Usd} + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped (median).</li>` : ''}
+<li><b>Who needs it</b>: teams that let agents buy compute, credits and API time. Business (hypothesis, not validated): vault and audit open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>
+<li><b>Why TRON · USDT</b>: an agent's budget is money people already hold as a stablecoin, settled as a plain TRC20 transfer inside <code>pay()</code>.</li></ul>`,
     },
     {
       id: 'limits',
       title: 'Check it yourself · not done, stated',
       html: `<pre class="cmd">npm install
 npm run audit -- docs/receipts-nile-live.jsonl --vault ${esc(f.vault)}
-npm run report     # tokens · USD · latency · Wh by flow
+npm run attest -- --saved   # Kiln's own record vs the receipts
+npm run statement  # the week's statement + CSV
 npm run ui         # Grant · Feed · Receipt · Audit</pre>
 <ul class="big-list tight"><li>Testnet only (TRON Nile, test USDT), as the brief asks · one line per vault — a new grant replaces the old one (the audit replays every grant).</li>
 <li>Signing is on the person's machine (CLI), never in the browser · energy is an estimate from wall time — Kiln exposes no power telemetry.</li>

@@ -1,0 +1,6 @@
+Under the candidate line: 2 paid · 4 stopped · 5.20 USDT spent (recorded: 5 paid)
+3 requests would end differently:
+  #18 Kiln credits 1.00 USDT: PAID → OVER_BUDGET_WITH_FEES
+  #19 GPU Shop 2.60 USDT: PAID → OVER_BUDGET_WITH_FEES
+  #20 Kiln credits 1.00 USDT: PAID → OVER_BUDGET_WITH_FEES
+Same rule and order as the vault (evaluate()); STOP and deadline stops are kept as recorded; nothing is sent to the chain.

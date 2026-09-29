@@ -1,5 +1,4 @@
-$ npm run audit -- docs/receipts-nile-live.jsonl --vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu
-Spendline audit · vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu · 15 receipts · events: https://nile.trongrid.io (public, no key)
+Spendline audit · vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu · 21 receipts · events: https://nile.trongrid.io (public, no key)
 hash chain: intact
 #1 PAID_INSIDE · tx e67cc9b87a591d0c70dbb5fe8ed892209bca206579c7da09a3ef77e5a2224f48 · paid, and the mandate allowed it at that time
 #2 STOPPED MERCHANT_NOT_ALLOWED · tx 819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6 · stopped on-chain: MERCHANT_NOT_ALLOWED
@@ -16,5 +15,11 @@ hash chain: intact
 #13 STOPPED MERCHANT_NOT_ALLOWED · tx 1208bbba318c2cf0456a18231ecfa8a21d443dc317032e2fa8aa37c88c0e78dc · stopped on-chain: MERCHANT_NOT_ALLOWED
 #14 PAID_INSIDE · tx 9b59ef11e2bd365bc8f2688558715f649563b6d6e975f705d34c4778e12b921f · paid, and the mandate allowed it at that time
 #15 STOPPED OVER_BUDGET_WITH_FEES · tx f38ef7e9bf98b55cf507b91ed9194a96439f9d85474db65892c1e0debf29839d · stopped on-chain: OVER_BUDGET_WITH_FEES
+#16 PAID_INSIDE · tx 38a229d3879bf08864b5f1a70cdc95e6dcb439cc460d4918a796efb0d498ab23 · paid, and the mandate allowed it at that time
+#17 PAID_INSIDE · tx 3bbe97966c6812021c87b422d95b5bc73424f84d48a451ed7f9403f2dca36ce2 · paid, and the mandate allowed it at that time
+#18 PAID_INSIDE · tx 3314dffdc20576dbb4c84cd7e057a7fe03dd5f37274e2bed4e289f6997c3a5d9 · paid, and the mandate allowed it at that time
+#19 PAID_INSIDE · tx 27cc6993469e7ab03439c9f83badc359352607414f27bcf449638cb72c0e5b79 · paid, and the mandate allowed it at that time
+#20 PAID_INSIDE · tx 0ef2b0943ac1437b451c9c29b472f3e5422d178f3a8aa4a853f12cd0ed33b18e · paid, and the mandate allowed it at that time
+#21 STOPPED MERCHANT_NOT_ALLOWED · tx 4c187eb9ad73d4bccd9534b8c84f7df60955f5f5e69f92f30928998fb49e96aa · stopped on-chain: MERCHANT_NOT_ALLOWED
 ~ replay of #1 stopped on-chain DUPLICATE_RECEIPT · tx efcc92fb22e968d9c32a2ed0dcc9d8c63072d3f6caa21a847020e945b5452330 · the vault decides a receipt once
-8 paid inside · 7 stopped · 0 mismatch · 0 without chain event · 0 chain spends without a receipt · 1 replay stopped · paid 20.20 USDT → OK
+13 paid inside · 8 stopped · 0 mismatch · 0 without chain event · 0 chain spends without a receipt · 1 replay stopped · paid 30.00 USDT → OK

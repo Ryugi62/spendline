@@ -8,6 +8,10 @@ import type { Session } from '../application/views';
 import { audit } from '../domain/audit';
 import { abSummary, flowReport, type AbPair } from '../domain/flowReport';
 import { LIVE_ANSWERS, sha256 } from './runtime';
+import { savedAttest } from './attest-record';
+import { hostRunsSummary, type HostRunLog } from '../application/report';
+import { buildStatement } from '../domain/statement';
+import { fmtUsdt } from '../domain/money';
 
 /** Numbers our copy may state that are not in the record — each with where it comes from. */
 export const STATED = [
@@ -37,7 +41,7 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
   const grants = s.events.filter((e) => e.kind === 'granted');
   const costFile = 'docs/chain-cost-2026-09-28.json';
   const chain = existsSync(costFile) ? (JSON.parse(readFileSync(costFile, 'utf8')) as { summary: { paid: { medianTrx: number }; stopped: { medianTrx: number } } }).summary : undefined;
-  return pitchFacts(res, report, abSummary(ab.pairs), {
+  const base = pitchFacts(res, report, abSummary(ab.pairs), {
     vault: s.vault,
     tests: countTests(),
     stated: STATED,
@@ -46,4 +50,16 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
     grantTx: grants[0]?.txHash,
     ...(chain ? { chain: { paidTrx: chain.paid.medianTrx, stopTrx: chain.stopped.medianTrx } } : {}),
   });
+  // v1.1 — two witnesses (saved Kiln answers, keyless), MCP host runs, the statement's kept total
+  const at = savedAttest({ receipts: s.receipts, answers, events: s.events });
+  const leads = at?.rows.flatMap((r) => (r.leadSec !== undefined ? [r.leadSec] : [])) ?? [];
+  const logs = existsSync('docs/live') ? readdirSync('docs/live').filter((n) => /^mcp-host-.*\.json$/.test(n)).sort().map((n) => JSON.parse(readFileSync(`docs/live/${n}`, 'utf8')) as HostRunLog) : [];
+  const h = logs.length ? hostRunsSummary(logs) : undefined;
+  const st = buildStatement({ receipts: s.receipts, verdicts: res.verdicts, labels: {} });
+  return {
+    ...base,
+    ...(at ? { attest: { match: at.counts.match, shown: at.counts.match + at.counts.differs, otherAccount: at.counts.otherAccount, f1Before: leads.filter((x) => x >= 0).length, f1: leads.length, leadMin: Math.min(...leads), leadMax: Math.max(...leads) } } : {}),
+    ...(h ? { mcp: { tools: 3, runs: h.runs, calls: h.calls, attempts: h.payments, perAttempt: h.callsPerPayment.toFixed(2) } } : {}),
+    kept: { usdt: fmtUsdt(st.totalKept), stops: st.stopsByReason.reduce((n, x) => n + x.count, 0) },
+  };
 }

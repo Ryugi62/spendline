@@ -1,10 +1,10 @@
 // M0-11: Kiln tokens / cost / latency / Wh per flow → docs/tokens-by-flow.md (keyless: reads public record files only).
 // usage: npm run report [-- --receipts docs/receipts-nile-live.jsonl --answers docs/answers-nile-live.jsonl --ab docs/ab-no-think-2026-09-26.json --out docs/tokens-by-flow.md]
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { readJsonl } from '../src/adapters/files';
 import { parseReceiptsFile } from '../src/application/auditRecords';
 import type { AnswerRecord } from '../src/application/ports';
-import { formatAb, formatFlowReport, formatServerEnergy, formatToolAb, revisionNotes } from '../src/application/report';
+import { formatAb, formatFlowReport, formatHostRuns, formatServerEnergy, formatToolAb, hostRunsSummary, revisionNotes, type HostRunLog } from '../src/application/report';
 import { abSummary, flowReport, serverTimeEnergy, type AbPair } from '../src/domain/flowReport';
 import type { UsageRecord } from '../src/domain/tokenLedger';
 import { flag, LIVE_ANSWERS, LIVE_RECEIPTS } from '../src/infrastructure/runtime';
@@ -45,6 +45,13 @@ if (existsSync(energyFile)) {
   const via = en.calls.map((c) => c.usage.via);
   const paths = `F1 paths: tool_calls ${via.filter((v) => v === 'tool_call').length} · call leaked into text ${via.filter((v) => v === 'tool_call_in_text').length} · plain JSON ${via.filter((v) => v === 'text').length} — parsed ${en.calls.filter((c) => c.parsed).length} / ${en.calls.length}`;
   md += '\n' + formatServerEnergy(serverTimeEnergy(en.calls.map((c) => c.usage)), { file: energyFile, date: en.date, paths });
+}
+const hostLogs = existsSync('docs/live') ? readdirSync('docs/live').filter((n) => /^mcp-host-.*\.json$/.test(n)).sort() : [];
+if (hostLogs.length) {
+  const f1 = receipts.flatMap((r) => r.flows).filter((u) => u.flow === 'F1_intent' && u.via !== undefined); // F1 with the tool offered (v0.7+)
+  const own = f1.filter((u) => !hostLogs.some((n) => readFileSync(`docs/live/${n}`, 'utf8').includes(u.generationId))).map((u) => u.promptTokens).sort((a, b) => a - b);
+  const median = own.length % 2 ? own[(own.length - 1) / 2] : (own[own.length / 2 - 1] + own[own.length / 2]) / 2;
+  md += formatHostRuns(hostRunsSummary(hostLogs.map((n) => JSON.parse(readFileSync(`docs/live/${n}`, 'utf8')) as HostRunLog)), { f1MedianPrompt: median });
 }
 md += `\nRegenerate: \`npm run report\` (reads the files above; no key).\n`;
 writeFileSync(out, md);

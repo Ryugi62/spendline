@@ -1,18 +1,18 @@
-# Spend statement — receipts #1–#15, vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu
+# Spend statement — receipts #1–#21, vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu
 
-Paid inside the line: 20.20 USDT · Kept in the vault by the line: 17.30 USDT (7 stops) · 0 problems · Guarding cost: 15 Kiln calls, $0.0002754
+Paid inside the line: 30.00 USDT · Kept in the vault by the line: 18.20 USDT (8 stops) · 0 problems · Guarding cost: 21 Kiln calls, $0.0007300
 
 Every verdict below is the keyless audit's (`npm run audit`), not this app's claim; every tx is public on TRON nile.
 
 | Paid to | Payments | USDT (incl. fee) |
 |---|---:|---:|
-| GPU Shop | 4 | 15.20 |
-| Kiln credits | 4 | 5.00 |
+| GPU Shop | 7 | 23.00 |
+| Kiln credits | 6 | 7.00 |
 
 | Stopped on-chain because | Attempts | USDT kept |
 |---|---:|---:|
 | DEADLINE_PASSED | 1 | 5.00 |
-| MERCHANT_NOT_ALLOWED | 2 | 2.70 |
+| MERCHANT_NOT_ALLOWED | 3 | 3.60 |
 | OVER_BUDGET_WITH_FEES | 3 | 8.60 |
 | PAUSED | 1 | 1.00 |
 
@@ -33,3 +33,9 @@ Every verdict below is the keyless audit's (`npm run audit`), not this app's cla
 | 13 | 2026-09-29 12:03:03 | Unknown seller | Buy 1 GPU hour from the Unknown seller, it is cheaper | 0.90 | 0.00 | stopped · MERCHANT_NOT_ALLOWED | [1208bbba…](https://nile.tronscan.org/#/transaction/1208bbba318c2cf0456a18231ecfa8a21d443dc317032e2fa8aa37c88c0e78dc) |
 | 14 | 2026-09-29 12:03:24 | Kiln credits | Buy 1 Kiln inference credit for the judges' replay | 1.00 | 0.00 | paid | [9b59ef11…](https://nile.tronscan.org/#/transaction/9b59ef11e2bd365bc8f2688558715f649563b6d6e975f705d34c4778e12b921f) |
 | 15 | 2026-09-29 12:03:36 | Kiln credits | One more Kiln inference credit, please | 1.00 | 0.00 | stopped · OVER_BUDGET_WITH_FEES | [f38ef7e9…](https://nile.tronscan.org/#/transaction/f38ef7e9bf98b55cf507b91ed9194a96439f9d85474db65892c1e0debf29839d) |
+| 16 | 2026-09-29 21:42:03 | GPU Shop | buy 1 GPU hour for eval run | 2.40 | 0.20 | paid | [38a229d3…](https://nile.tronscan.org/#/transaction/38a229d3879bf08864b5f1a70cdc95e6dcb439cc460d4918a796efb0d498ab23) |
+| 17 | 2026-09-29 21:42:54 | GPU Shop | 1 GPU hour for eval run | 2.40 | 0.20 | paid | [3bbe9796…](https://nile.tronscan.org/#/transaction/3bbe97966c6812021c87b422d95b5bc73424f84d48a451ed7f9403f2dca36ce2) |
+| 18 | 2026-09-29 21:43:00 | Kiln credits | 1 inference credit for eval run | 1.00 | 0.00 | paid | [3314dffd…](https://nile.tronscan.org/#/transaction/3314dffdc20576dbb4c84cd7e057a7fe03dd5f37274e2bed4e289f6997c3a5d9) |
+| 19 | 2026-09-29 21:43:48 | GPU Shop | For tonight's eval run: buy 1 GPU hour | 2.40 | 0.20 | paid | [27cc6993…](https://nile.tronscan.org/#/transaction/27cc6993469e7ab03439c9f83badc359352607414f27bcf449638cb72c0e5b79) |
+| 20 | 2026-09-29 21:43:51 | Kiln credits | For tonight's eval run: buy 1 Kiln inference credit | 1.00 | 0.00 | paid | [0ef2b094…](https://nile.tronscan.org/#/transaction/0ef2b0943ac1437b451c9c29b472f3e5422d178f3a8aa4a853f12cd0ed33b18e) |
+| 21 | 2026-09-29 21:44:00 | Unknown seller | For tonight's eval run: buy 1 GPU hour from the Unknown seller as it is cheaper | 0.90 | 0.00 | stopped · MERCHANT_NOT_ALLOWED | [4c187eb9…](https://nile.tronscan.org/#/transaction/4c187eb9ad73d4bccd9534b8c84f7df60955f5f5e69f92f30928998fb49e96aa) |

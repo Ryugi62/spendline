@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { readJsonl } from '../src/adapters/files';
 import { parseReceiptsFile } from '../src/application/auditRecords';
 import type { AnswerRecord } from '../src/application/ports';
-import { recordFacts } from '../src/infrastructure/record-facts';
+import { countTests, recordFacts } from '../src/infrastructure/record-facts';
 import { LIVE_ANSWERS, LIVE_RECEIPTS } from '../src/infrastructure/runtime';
 
 // M1 check 2026-09-29: a new live receipt left README prose (audit line, Kiln row, UI captures line) on the old record while the
@@ -30,6 +30,16 @@ describe('README says the record the facts say', () => {
     const row = readme.split('\n').find((l) => l.startsWith('| Kiln Integration & Efficiency'))!;
     expect(row).toContain('**Organizer-issued Kiln account** (team32');
     expect(row).toContain(`${usage.length} calls, ${tokens.toLocaleString('en-US')} tokens, $${usd.toFixed(7)} in the record`);
+  });
+  it('the test count in "What is verified" = the tests in tests/', () => {
+    expect(readme).toContain(`- \`npm test\` → ${countTests()} tests green`);
+  });
+  // v1.1 AC-40: the "New in v1.1" row quotes the two-witness numbers of the saved Kiln answers.
+  it('the two-witness numbers = npm run attest -- --saved on the record', () => {
+    const a = f.attest!;
+    expect(readme).toContain(`**${a.match} / ${a.shown} Kiln calls match**`);
+    expect(readme).toContain(`**${a.f1Before} / ${a.f1} F1 calls are dated ${a.leadMin}–${a.leadMax} s before the \`pay()\`**`);
+    expect(readFileSync('docs/kiln-attest.txt', 'utf8')).toContain(`${a.match} MATCH · 0 DIFFERS · 0 NOT_FOUND`);
   });
   it('the version in package.json is the one the README evidence table states', () => {
     const { version } = JSON.parse(readFileSync('package.json', 'utf8')) as { version: string };

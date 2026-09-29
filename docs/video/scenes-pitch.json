@@ -17,12 +17,12 @@
  {
   "id": "p04",
   "url": "docs/deck/deck.html#boundaries",
-  "en": "Boundaries are enforced on-chain, in the vault's pay function. We recorded 7 stops on TRON Nile: a seller not on the list (twice), over budget once fees are added (three times), a payment after the person pressed STOP, and one after the time window closed. A replayed receipt hash was stopped too. Each stop is an event with its reason, never a silent revert."
+  "en": "Boundaries are enforced on-chain, in the vault's pay function. We recorded 8 stops on TRON Nile: a seller not on the list, three times, over budget once fees are added, three times, a payment after the person pressed STOP, and one after the time window closed. A replayed receipt hash was stopped too. Each stop is an event with its reason, never a silent revert."
  },
  {
   "id": "p05",
   "url": "docs/deck/deck.html#kiln",
-  "en": "Kiln does real work, and we count it. The request goes to Kiln as a tool call, chosen by a rule we fixed before a live test. The model sometimes answers in plain JSON instead; the code parses both, and each receipt says which. 1.00 LLM call per purchase, against a design limit of 2. 35 live Kiln calls across 3 flows, 23,648 tokens in total. From receipt 13 on, every call runs on the organizer-issued team account. No-think cut median output from 223 to 36 tokens, with the same JSON. Energy is an estimate we state: 180 watts times measured time."
+  "en": "Kiln does real work, and we count it. The request goes to Kiln as a tool call, chosen by a rule we fixed before a live test. The model sometimes answers in plain JSON instead; the code parses both, and each receipt says which. 1.00 LLM call per purchase, against a design limit of 2. 41 live Kiln calls across 3 flows, 29,113 tokens in total. From receipt 13 on, every call runs on the organizer-issued team account. No-think cut median output from 223 to 36 tokens, with the same JSON. Energy is an estimate we state: 180 watts times measured time."
  },
  {
   "id": "p06",
@@ -32,17 +32,17 @@
  {
   "id": "p07",
   "url": "docs/deck/deck.html#evidence",
-  "en": "Approval and evidence. One command, no key, rebuilds every verdict from the receipts file and the vault's public events: 15 receipts, 8 paid inside, 7 stopped, 0 problems, 20.20 USDT paid. Edit a receipt and the hash chain breaks. Drop one and the vault event with no receipt is flagged."
+  "en": "Approval and evidence. One command, no key, rebuilds every verdict from the receipts file and the vault's public events: 21 receipts, 13 paid inside, 8 stopped, 0 problems, 30.00 USDT paid. Edit a receipt and the hash chain breaks. Drop one and the vault event with no receipt is flagged."
  },
  {
   "id": "p08",
   "url": "docs/deck/deck.html#new",
-  "en": "What is new: a stop is an event, so the history shows what the agent was not allowed to do. Receipts are hash-chained and anchored in the vault. And the model's explanations are shown only when they repeat the audit and use numbers from the record."
+  "en": "What is new. Two witnesses per payment: the receipt hash on TRON commits to the Kiln generation behind it, and Kiln's own record is the second witness. On the organizer's account, 15 of 15 calls match on model, tokens and cost, and every model call came 2 to 5 seconds before its payment. A stop is an event, so the history shows what the agent was not allowed to do. And the model's explanations are shown only when they repeat the audit."
  },
  {
   "id": "p09",
   "url": "docs/deck/deck.html#value",
-  "en": "Where it plugs in: wherever an agent calls a wallet, swap in the Spendline wallet. Same transfer call, the agent's loop does not change, and the example is tested. We measured what one guarded decision costs on Nile: 7.01 TRX when paid, 2.80 when stopped, plus a fraction of a cent of Kiln. Who needs it: teams that let agents buy compute and credits. Our business hypothesis, not yet validated: open vault and audit, with a hosted audit and alerts as the paid layer."
+  "en": "Where it plugs in. Spendline is an MCP server with three tools, so any agent host can use it as its wallet; we ran it live with Qwen3-32B on Kiln as the host, 3 runs, 6 pay attempts. Or swap in the Spendline wallet, same transfer call. The lead's week closes with one command: a statement with a CSV for the accountant, 18.20 USDT kept in the vault by 8 stops, and tune, which replays this week's requests under next week's line. One guarded decision costs 7.01 TRX when paid, 2.80 when stopped. Business hypothesis, not yet validated: open vault and audit, a hosted audit with alerts as the paid layer."
  },
  {
   "id": "p10",

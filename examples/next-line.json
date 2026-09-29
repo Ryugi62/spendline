@@ -1,6 +1,6 @@
 {
- "budget": 25000000,
- "perTxCap": 8000000,
+ "budget": 6000000,
+ "perTxCap": 3000000,
  "merchants": [
   "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
   "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"

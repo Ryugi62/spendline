@@ -40,6 +40,12 @@ export type PitchFacts = {
   grantTx?: string;
   /** stated assumptions with their numbers, e.g. "180 W — RNGD card TDP (furiosa.ai/rngd)" */
   stated: string[];
+  /** v1.1 AC-40: Kiln's own record vs the receipts (team32 account) — MATCH count, calls Kiln shows, F1 calls dated before pay(), lead range in s */
+  attest?: { match: number; shown: number; otherAccount: number; f1Before: number; f1: number; leadMin: number; leadMax: number };
+  /** v1.1 AC-43/44: MCP tools, host runs on Kiln, their Kiln calls, pay attempts that reached the vault, calls per attempt */
+  mcp?: { tools: number; runs: number; calls: number; attempts: number; perAttempt: string };
+  /** v1.1 AC-41: what the statement adds up — USDT kept in the vault by stops */
+  kept?: { usdt: string; stops: number };
 };
 
 export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, o: { vault: string; tests: number; extraTx?: string[]; stated: string[]; stopTx?: string; grantTx?: string; chain?: { paidTrx: number; stopTrx: number } }): PitchFacts {
