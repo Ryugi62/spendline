@@ -4,7 +4,7 @@
 
 GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum "Agent Finance" track · Challenge B (Controls and Records for an AI Agent That Spends).
 
-**Required items:** public repo ✓ · [demo video, 2:33](docs/video/spendline-demo.mp4) (≤ 3:00) ✓ · [deck PDF, 10 pages](docs/deck.pdf) ✓ · [proof of API usage per flow](#proof-of-api-usage--per-flow-on-chain-tx--kiln-call-log) — on-chain tx + Kiln generation ids, checked by `npm run proof -- --check` ✓ · pre-event work disclosed: [timeline](#timeline--built-before--during-the-event-honest-disclosure) and [every commit with its time](docs/commits.md) ✓. Also: [pitch, 4:25](docs/video/spendline-pitch.mp4) · [ten judge questions](docs/qa.md). Captions burned in, synthetic voice; every number in them is checked against the record by `tests/pitch.test.ts`.
+**Required items:** public repo ✓ · [demo video, 2:40](docs/video/spendline-demo.mp4) (≤ 3:00) ✓ · [deck PDF, 10 pages](docs/deck.pdf) ✓ · [proof of API usage per flow](#proof-of-api-usage--per-flow-on-chain-tx--kiln-call-log) — on-chain tx + Kiln generation ids, checked by `npm run proof -- --check` ✓ · pre-event work disclosed: [timeline](#timeline--built-before--during-the-event-honest-disclosure) and [every commit with its time](docs/commits.md) ✓. Also: [pitch, 4:33](docs/video/spendline-pitch.mp4) · [ten judge questions](docs/qa.md). Captions burned in, synthetic voice; every number in them is checked against the record by `tests/pitch.test.ts`.
 
 ## Check it in 60 seconds — no key
 ```bash
