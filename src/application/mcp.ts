@@ -115,12 +115,18 @@ export function mcpTools(d: McpDeps): McpTool[] {
           if (prior) {
             // the same request again: send the ORIGINAL receipt hash — the vault decides a receipt once, so the repeat is stopped on-chain (DUPLICATE_RECEIPT)
             const out = await d.chain.pay({ merchant: to, amount, fee, receiptHash: prior.hash });
-            return ok({ ok: out.kind === 'paid', ...(out.kind === 'blocked' ? { reason: out.reason } : {}), ...base, tx: out.txHash, replay_of: prior.seq, ...(flows[0] ? { kiln_witness: flows[0].generationId } : {}), ...(await left()) });
+            const l = await left();
+            return ok({ ok: out.kind === 'paid', ...(out.kind === 'blocked' ? { reason: out.reason } : {}), ...base, tx: out.txHash, replay_of: prior.seq, ...(flows[0] ? { kiln_witness: flows[0].generationId } : {}), ...l, summary: `Refused on-chain as a repeat of receipt #${prior.seq} — nothing paid; ${l.left_usdt} USDT left on the line.` });
           }
         }
         const r = await guardedPay(d, { merchant: to, amount, fee, why: a.why.trim(), flows, ...(asked ? { asked } : {}) });
         session.set(sameCall, { seq: r.receipt.seq, at: now });
-        const rest = { ...base, tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash, ...(flows[0] ? { kiln_witness: flows[0].generationId } : {}), ...(await left()) };
+        const l = await left();
+        const who = nameOf(to) ?? to;
+        const summary = r.outcome.kind === 'paid'
+          ? `Paid ${fmtUsdt(amount + fee)} USDT (${fmtUsdt(amount)} + fee ${fmtUsdt(fee)}) to ${who}; ${l.left_usdt} USDT left on the line.`
+          : `Stopped on-chain (${r.outcome.reason}) — nothing paid to ${who}; ${l.left_usdt} USDT left on the line.`;
+        const rest = { ...base, tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash, ...(flows[0] ? { kiln_witness: flows[0].generationId } : {}), ...l, summary };
         return r.outcome.kind === 'paid' ? ok({ ok: true, ...rest }) : ok({ ok: false, reason: r.outcome.reason, ...rest });
   }
   return [
@@ -141,7 +147,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
     {
       name: 'spendline_pay',
       description:
-        'Pay a seller in test USDT through the Spendline vault on TRON. For a seller in the catalog (spendline_line.offers) give the item and quantity: code prices it. The vault pays only inside the line; outside it the payment is stopped and the reason is recorded on-chain (ok: false). Every attempt that reaches the vault leaves a hash-chained receipt anyone can audit.',
+        'Pay a seller in test USDT through the Spendline vault on TRON. Tell the person the reply\'s `summary` (what was paid with the fee, and what is left). For a seller in the catalog (spendline_line.offers) give the item and quantity: code prices it. The vault pays only inside the line; outside it the payment is stopped and the reason is recorded on-chain (ok: false). Every attempt that reaches the vault leaves a hash-chained receipt anyone can audit.',
       inputSchema: {
         type: 'object',
         properties: {

@@ -200,6 +200,7 @@ describe('MCP tools (AC-43)', () => {
     const tools = mcpTools({ chain, store, hash: sha, events: { events: async () => chain.events }, labels, offers, vault: 'TVault', witness });
     const pay = () => tools[1].run({ to: 'Kiln credits', why: 'credit' });
     const a = await pay(); const b = await pay(); const c = await pay();
+    expect(a.data).toMatchObject({ summary: 'Paid 1.00 USDT (1.00 + fee 0.00) to Kiln credits; 8.90 USDT left on the line.' });
     expect([a.data, b.data, c.data]).toMatchObject([{ ok: true, receipt_seq: 1, left_usdt: '8.90' }, { ok: true, receipt_seq: 2, left_usdt: '7.90' }, { ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1, left_usdt: '7.90' }]);
     expect((await store.all()).map((r) => r.asked)).toEqual(['Two Kiln credits please', 'Two Kiln credits please']);
   });

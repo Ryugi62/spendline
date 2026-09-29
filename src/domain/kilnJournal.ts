@@ -37,6 +37,9 @@ export function entryFromKilnResponse(j: KilnReply, o: { generationId: string; l
 }
 
 const same = (raw: string, args: unknown) => { try { return canonical(JSON.parse(raw)) === canonical(args); } catch { return false; } };
+/** the same item = seller, item and quantity (what the vault is asked to pay for), whatever free text (`why`) the model wrote */
+const itemOf = (a: unknown) => { const o = (a ?? {}) as Record<string, unknown>; return `${String(o.to ?? '').trim().toLowerCase()}|${String(o.item ?? '')}|${String(o.quantity ?? 1)}`; };
+const sameItem = (raw: string, args: unknown) => { try { return itemOf(JSON.parse(raw)) === itemOf(args); } catch { return false; } };
 
 /** The Kiln call behind this tool call, as the receipt's usage (with the model's arguments verbatim), or undefined. `key` marks it used. */
 /** The conversation instance of an entry: the latest reply at or before it that opened a conversation with the same opening. */
@@ -56,7 +59,7 @@ export function findWitness(entries: JournalEntry[], call: { name: string; args:
         // occurrence = identical calls earlier in the same conversation instance (the model's own sequence): two identical items → 0, 1
         const conversation = instanceOf(entries, e);
         const earlier = entries.filter((x) => instanceOf(entries, x) === conversation).flatMap((x) => x.toolCalls.map((t, j) => ({ x, t, j })))
-          .filter(({ x, t, j }) => (x.at < e.at || (x === e && j < i)) && t.name === call.name && same(t.arguments, call.args)).length;
+          .filter(({ x, t, j }) => (x.at < e.at || (x === e && j < i)) && t.name === call.name && sameItem(t.arguments, call.args)).length;
         return { ...e.usage, args: tc.arguments, via: tc.via, key, occurrence: earlier, conversation, ...(e.asked ? { asked: e.asked } : {}) };
       }
     }
@@ -77,4 +80,17 @@ export function journalCheck(receipts: { seq: number; flows: UsageRecord[] }[], 
     else mismatches.push(`#${r.seq}: the journal has no such call for ${u.generationId}`);
   }
   return { inJournal, checked, mismatches };
+}
+
+/** Published reply bodies (docs/live/kiln-replies-*) hash to the journal's bodySha256 — the journal's tool calls are what Kiln returned. */
+export function bodyCheck(entries: JournalEntry[], bodies: Map<string, string>, hash: (s: string) => string): { checked: number; ok: number; bad: string[] } {
+  let checked = 0, ok = 0;
+  const bad: string[] = [];
+  for (const e of entries) {
+    const b = bodies.get(e.generationId);
+    if (b === undefined || !e.bodySha256) continue;
+    checked++;
+    if (hash(b) === e.bodySha256) ok++; else bad.push(e.generationId);
+  }
+  return { checked, ok, bad };
 }

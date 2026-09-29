@@ -4,7 +4,7 @@
 // (generation id, usage, the tool calls asked for — no prompt text). `npm run mcp` with SPENDLINE_KILN_JOURNAL set binds each
 // spendline_pay to the Kiln reply whose tool call carries exactly its arguments.
 import { createHash } from 'node:crypto';
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import { dirname } from 'node:path';
 import { proxyChat } from '../application/kilnProxy';
@@ -12,7 +12,7 @@ import { flag, need, readEnv } from './runtime';
 
 export const DEFAULT_JOURNAL = '.spendline/kiln-journal.jsonl';
 
-export function startKilnProxy(o: { port: number; kiln: { baseUrl: string; apiKey: string }; journalPath: string; noThink?: boolean }): Promise<{ url: string; close: () => Promise<void>; server: Server }> {
+export function startKilnProxy(o: { port: number; kiln: { baseUrl: string; apiKey: string }; journalPath: string; noThink?: boolean; bodiesDir?: string }): Promise<{ url: string; close: () => Promise<void>; server: Server }> {
   mkdirSync(dirname(o.journalPath), { recursive: true });
   const server = createServer(async (req, res) => {
     const chunks: Buffer[] = [];
@@ -20,7 +20,7 @@ export function startKilnProxy(o: { port: number; kiln: { baseUrl: string; apiKe
     const body = Buffer.concat(chunks).toString('utf8');
     try {
       if (req.method === 'POST' && req.url?.replace(/\/$/, '').endsWith('/chat/completions')) {
-        const out = await proxyChat({ body, kiln: o.kiln, fetchImpl: fetch, record: async (e) => appendFileSync(o.journalPath, JSON.stringify(e) + '\n'), now: () => Date.now(), hash: (x) => createHash('sha256').update(x).digest('hex'), ...(o.noThink ? { noThink: true } : {}) });
+        const out = await proxyChat({ body, kiln: o.kiln, fetchImpl: fetch, record: async (e) => appendFileSync(o.journalPath, JSON.stringify(e) + '\n'), now: () => Date.now(), hash: (x) => createHash('sha256').update(x).digest('hex'), ...(o.noThink ? { noThink: true } : {}), ...(o.bodiesDir ? { saveBody: async (g: string, b: string) => { mkdirSync(o.bodiesDir!, { recursive: true }); writeFileSync(`${o.bodiesDir}/${g}.json`, b); } } : {}) });
         res.writeHead(out.status, out.headers).end(out.body);
       } else if (req.method === 'GET' && req.url?.endsWith('/models')) {
         const r = await fetch(`${o.kiln.baseUrl}/models`, { headers: { Authorization: `Bearer ${o.kiln.apiKey}` } });

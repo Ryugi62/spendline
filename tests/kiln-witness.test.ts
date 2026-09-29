@@ -108,3 +108,29 @@ describe('round-4 review: the published journal is checked against the receipts'
     expect(journalCheck([r(1, 'g1', '{"to":"Kiln credits"}')] as never, j)).toEqual({ inJournal: 0, checked: 1, mismatches: ['#1: the journal has no such call for g1'] });
   });
 });
+
+describe('round-5 review', () => {
+  const r = (calls: string[]) => reply(calls.map((a) => ({ name: 'spendline_pay', arguments: a })));
+  it('occurrence counts the same item (seller, item, quantity) whatever the model wrote as `why` — two GPU hours for two jobs are two purchases', () => {
+    const e: JournalEntry = { ...entryFromKilnResponse(r(['{"to":"GPU Shop","item":"gpu-hours","quantity":1,"why":"for the eval"}', '{"to":"GPU Shop","item":"gpu-hours","quantity":1,"why":"for training"}']), { generationId: 'g', latencyMs: 1, at: 1000 }), conversationKey: 'K', conversationStart: true };
+    const first = findWitness([e], { name: 'spendline_pay', args: { to: 'GPU Shop', item: 'gpu-hours', quantity: 1, why: 'for the eval' } }, { now: 2000, used: new Set() });
+    const second = findWitness([e], { name: 'spendline_pay', args: { to: 'GPU Shop', item: 'gpu-hours', quantity: 1, why: 'for training' } }, { now: 2000, used: new Set([first!.key]) });
+    expect([first?.occurrence, second?.occurrence]).toEqual([0, 1]);
+  });
+  it('the person\'s request is the LAST user turn, and a new user turn in the same chat opens a new conversation instance', async () => {
+    const journal: JournalEntry[] = [];
+    const upstream = async () => new Response(JSON.stringify(r([])), { status: 200, headers: { 'x-neocloud-generation-id': 'g' } });
+    const deps = { kiln: { baseUrl: 'https://k/v1', apiKey: 'K' }, fetchImpl: upstream as unknown as typeof fetch, record: async (e: JournalEntry) => { journal.push(e); }, now: () => 1, hash: (s: string) => s };
+    const sys = { role: 'system', content: 'S' };
+    await proxyChat({ ...deps, body: JSON.stringify({ messages: [sys, { role: 'user', content: 'first request' }] }) });
+    await proxyChat({ ...deps, body: JSON.stringify({ messages: [sys, { role: 'user', content: 'first request' }, { role: 'assistant', content: 'done' }, { role: 'user', content: 'second request' }] }) });
+    expect(journal.map((e) => [e.asked, e.conversationStart])).toEqual([['first request', true], ['second request', true]]);
+    expect(journal[0].conversationKey).not.toBe(journal[1].conversationKey);
+  });
+  it('bodyCheck: a published reply body hashes to the journal\'s bodySha256', async () => {
+    const { bodyCheck } = await import('../src/domain/kilnJournal');
+    const e = { ...entryFromKilnResponse(r([]), { generationId: 'g', latencyMs: 1, at: 1 }), bodySha256: 'h(abc)' };
+    expect(bodyCheck([e], new Map([['g', 'abc']]), (s) => `h(${s})`)).toEqual({ checked: 1, ok: 1, bad: [] });
+    expect(bodyCheck([e], new Map([['g', 'abd']]), (s) => `h(${s})`)).toEqual({ checked: 1, ok: 0, bad: ['g'] });
+  });
+});

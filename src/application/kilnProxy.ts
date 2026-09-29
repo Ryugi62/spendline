@@ -8,7 +8,8 @@ const textOf = (c: unknown): string => (typeof c === 'string' ? c : Array.isArra
 
 export async function proxyChat(o: { body: string; kiln: { baseUrl: string; apiKey: string }; fetchImpl: typeof fetch; record: (e: JournalEntry) => Promise<void>; now: () => number;
   /** sha256 hex (the adapter passes node:crypto) — for the reply body and the conversation key */ hash?: (s: string) => string;
-  /** add Qwen3's /no_think soft switch to the last user turn (a stock host does not) */ noThink?: boolean }): Promise<ProxyOut> {
+  /** add Qwen3's /no_think soft switch to the last user turn (a stock host does not) */ noThink?: boolean;
+  /** keep Kiln's reply body verbatim (published next to the journal, so bodySha256 can be recomputed) */ saveBody?: (generationId: string, body: string) => Promise<void> }): Promise<ProxyOut> {
   let body = o.body;
   let msgs: Msg[] = [];
   try {
@@ -19,10 +20,12 @@ export async function proxyChat(o: { body: string; kiln: { baseUrl: string; apiK
       if (last && !/\/(no_)?think\b/.test(String(last.content))) { last.content = `${String(last.content)} /no_think`; body = JSON.stringify(j); }
     }
   } catch { /* not JSON: Kiln answers it */ }
-  const firstUser = msgs.find((m) => m.role === 'user');
-  const asked = firstUser ? textOf(firstUser.content).replace(/ \/no_think$/, '') : undefined;
-  const opening = `${textOf(msgs.find((m) => m.role === 'system')?.content)}\n${asked ?? ''}`;
-  const convo = { ...(asked ? { asked } : {}), conversationKey: o.hash ? o.hash(opening) : opening, conversationStart: !msgs.some((m) => m.role === 'assistant' || m.role === 'tool'), ...(o.noThink ? { noThink: true } : {}) };
+  // the person's request = the LAST user turn; the conversation instance = the chat up to that turn (a new turn opens a new instance)
+  const users = msgs.filter((m) => m.role === 'user').map((m) => textOf(m.content).replace(/ \/no_think$/, ''));
+  const asked = users.at(-1);
+  const opening = [textOf(msgs.find((m) => m.role === 'system')?.content), ...users].join('\n');
+  const lastUser = msgs.map((m) => m.role).lastIndexOf('user');
+  const convo = { ...(asked ? { asked } : {}), conversationKey: o.hash ? o.hash(opening) : opening, conversationStart: lastUser >= 0 && !msgs.slice(lastUser + 1).some((m) => m.role === 'assistant' || m.role === 'tool'), ...(o.noThink ? { noThink: true } : {}) };
   let streamed = false;
   try { streamed = (JSON.parse(body) as { stream?: unknown }).stream === true; } catch { /* Kiln answers a bad body itself */ }
   const t0 = o.now();
@@ -36,6 +39,7 @@ export async function proxyChat(o: { body: string; kiln: { baseUrl: string; apiK
     try {
       const server = Number(res.headers.get('x-envoy-upstream-service-time'));
       await o.record({ ...entryFromKilnResponse(JSON.parse(text), { generationId: gen, latencyMs: o.now() - t0, ...(Number.isFinite(server) && res.headers.has('x-envoy-upstream-service-time') ? { serverMs: server } : {}), at: o.now() }), ...convo, ...(o.hash ? { bodySha256: o.hash(text) } : {}) });
+      if (o.saveBody) await o.saveBody(gen, text);
       headers['x-spendline-witness'] = 'recorded';
     } catch { headers['x-spendline-witness'] = 'not recorded: unreadable reply'; }
   }

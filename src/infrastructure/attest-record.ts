@@ -9,7 +9,8 @@ import { attest, type AccountScope, type AttestAnswer, type AttestResult, type K
 import type { ChainEvent } from '../domain/audit';
 import type { Receipt } from '../domain/receipt';
 import type { UsageRecord } from '../domain/tokenLedger';
-import { journalCheck, type JournalEntry } from '../domain/kilnJournal';
+import { bodyCheck, journalCheck, type JournalEntry } from '../domain/kilnJournal';
+import { createHash } from 'node:crypto';
 
 export const SAVED = 'docs/kiln-generations.json';
 /** The live record's split (README "Kiln account"): the organizer-issued account (team32, key made 2026-09-29 12:00 KST) made
@@ -42,5 +43,7 @@ export function savedAttest(o: { receipts: Receipt[]; answers: AnswerRecord[]; e
 export function publishedJournal(receipts: Receipt[], dir = 'docs/live') {
   const files = existsSync(dir) ? readdirSync(dir).filter((n) => /^kiln-journal-.*\.jsonl$/.test(n)) : [];
   const entries = files.flatMap((n) => readFileSync(`${dir}/${n}`, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as JournalEntry));
-  return { ...journalCheck(receipts, entries), files: files.length };
+  const bodies = new Map(existsSync(dir) ? readdirSync(dir).filter((n) => /^kiln-replies-/.test(n)).flatMap((d) => readdirSync(`${dir}/${d}`).map((f) => [f.replace(/\.json$/, ''), readFileSync(`${dir}/${d}/${f}`, 'utf8')] as [string, string])) : []);
+  const b = bodyCheck(entries, bodies, (x) => createHash('sha256').update(x).digest('hex'));
+  return { ...journalCheck(receipts, entries), files: files.length, bodies: b };
 }

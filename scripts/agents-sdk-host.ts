@@ -19,7 +19,7 @@ const started = new Date().toISOString();
 const stamp = started.slice(0, 19).replace(/[-:T]/g, '');
 const commit = execSync('git rev-parse --short HEAD').toString().trim() + (execSync('git status --porcelain --untracked-files=no -- . ":(exclude)docs" ":(exclude)web/public"').toString().trim() ? '+dirty' : '');
 const journalPath = live ? `docs/live/kiln-journal-${stamp}.jsonl` : `.spendline/kiln-journal-${stamp}.jsonl`; // live runs publish the journal (no prompt text but the person's request)
-const proxy = await startKilnProxy({ port: 0, kiln: kilnFromEnv(), journalPath, noThink });
+const proxy = await startKilnProxy({ port: 0, kiln: kilnFromEnv(), journalPath, noThink, ...(live ? { bodiesDir: `docs/live/kiln-replies-${stamp}` } : {}) }); // live: Kiln's reply bodies published so bodySha256 can be recomputed
 setTracingDisabled(true);
 setDefaultOpenAIClient(new OpenAI({ apiKey: 'the-pass-through-adds-the-kiln-key', baseURL: proxy.url }));
 setOpenAIAPI('chat_completions');
