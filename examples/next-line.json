@@ -1,10 +1,5 @@
 {
- "budget": 6000000,
- "perTxCap": 3000000,
- "merchants": [
-  "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
-  "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"
- ],
- "deadline": 1790780340,
- "paused": false
+ "budget_usdt": 6,
+ "per_payment_cap_usdt": 3,
+ "sellers": ["GPU Shop", "Kiln credits"]
 }

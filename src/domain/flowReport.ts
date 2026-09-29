@@ -57,7 +57,7 @@ export function flowReport(records: UsageRecord[], o: { purchases: number; npuWa
   return {
     rows,
     total: row('total', kiln, npuWatts),
-    standIns: records.length - kiln.length,
+    standIns: records.filter((r) => !isKilnCall(r)).length,
     purchases: o.purchases,
     callsPerPurchase: o.purchases ? f1 / o.purchases : 0,
     npuWatts,

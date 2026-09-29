@@ -55,11 +55,11 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
   const leads = at?.rows.flatMap((r) => (r.leadSec !== undefined ? [r.leadSec] : [])) ?? [];
   const logs = existsSync('docs/live') ? readdirSync('docs/live').filter((n) => /^mcp-host-.*\.json$/.test(n)).sort().map((n) => JSON.parse(readFileSync(`docs/live/${n}`, 'utf8')) as HostRunLog) : [];
   const h = logs.length ? hostRunsSummary(logs) : undefined;
-  const st = buildStatement({ receipts: s.receipts, verdicts: res.verdicts, labels: {} });
+  const st = buildStatement({ receipts: s.receipts, verdicts: res.verdicts, labels: {}, replays: res.replays.length });
   return {
     ...base,
     ...(at ? { attest: { match: at.counts.match, shown: at.counts.match + at.counts.differs, otherAccount: at.counts.otherAccount, f1Before: leads.filter((x) => x >= 0).length, f1: leads.length, leadMin: Math.min(...leads), leadMax: Math.max(...leads) } } : {}),
     ...(h ? { mcp: { tools: 3, runs: h.runs, calls: h.calls, attempts: h.payments, perAttempt: h.callsPerPayment.toFixed(2) } } : {}),
-    kept: { usdt: fmtUsdt(st.totalKept), stops: st.stopsByReason.reduce((n, x) => n + x.count, 0) },
+    kept: { usdt: fmtUsdt(st.totalKept), stops: st.stopsByReason.reduce((n, x) => n + x.count, 0), distinct: st.refusedDistinct, replays: st.replays },
   };
 }

@@ -6,7 +6,7 @@ import { JsonCatalog } from '../adapters/files';
 import { TronGridEvents } from '../adapters/trongrid';
 import { auditRecords, parseReceiptsFile } from '../application/auditRecords';
 import { formatStatementCsv, formatStatementMd, formatTune } from '../application/statement';
-import { buildStatement, tune, type CandidateLine } from '../domain/statement';
+import { buildStatement, parseCandidate, tune } from '../domain/statement';
 import { CATALOG, flag, LIVE_RECEIPTS, positionals, sha256 } from './runtime';
 
 const LIVE_VAULT = 'TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu';
@@ -25,7 +25,7 @@ async function main(args: string[]): Promise<number> {
   const receipts = file.receipts.filter((r) => r.seq >= from);
   const labels = JsonCatalog.fromFile(CATALOG).labels();
   if (cmd === 'statement') {
-    const s = buildStatement({ receipts, verdicts: res.verdicts, labels });
+    const s = buildStatement({ receipts, verdicts: res.verdicts, labels, offers: JsonCatalog.fromFile(CATALOG).all(), replays: res.replays.filter((x) => x.seq >= from).length });
     const title = flag(args, '--title') ?? `receipts #${receipts[0]?.seq ?? '-'}–#${receipts.at(-1)?.seq ?? '-'}, vault ${vault}`;
     writeFileSync(flag(args, '--md') ?? 'docs/statement.md', formatStatementMd(s, { network: 'nile', title }));
     writeFileSync(flag(args, '--csv') ?? 'docs/statement.csv', formatStatementCsv(s));
@@ -33,8 +33,9 @@ async function main(args: string[]): Promise<number> {
     console.log(`→ docs/statement.md · docs/statement.csv (${s.lines.length} lines)`);
     return s.problems ? 1 : 0;
   }
-  const m = JSON.parse(readFileSync(arg!, 'utf8')) as CandidateLine;
-  console.log(formatTune(tune({ receipts, verdicts: res.verdicts, candidate: { budget: m.budget, perTxCap: m.perTxCap, merchants: m.merchants } }), { labels }));
+  const m = parseCandidate(JSON.parse(readFileSync(arg!, 'utf8')) as Record<string, unknown>, labels);
+  if (typeof m === 'string') return console.error(`${arg}: ${m}`), 2;
+  console.log(formatTune(tune({ receipts, verdicts: res.verdicts, candidate: m }), { labels }));
   return 0;
 }
 

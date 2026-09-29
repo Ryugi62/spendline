@@ -1,0 +1,15 @@
+# A third-party MCP client — the official MCP Inspector (@modelcontextprotocol/inspector, CLI mode) — against Spendline's keyless demo server.
+# Each command starts a fresh server (in-memory vault with the live line's budget, cap and sellers; nothing is sent to TRON). 2026-09-29T13:33:17Z · commit 989e68f
+
+$ npx @modelcontextprotocol/inspector --cli npx tsx src/infrastructure/mcp-demo.ts --method tools/list
+      "name": "spendline_line",
+      "name": "spendline_pay",
+      "name": "spendline_check",
+
+$ npx @modelcontextprotocol/inspector --cli npx tsx src/infrastructure/mcp-demo.ts --method tools/call --tool-name spendline_pay --tool-arg 'to=GPU Shop' --tool-arg 'item=gpu-hours' --tool-arg 'why=1 GPU hour for the eval'
+      "type": "text",
+      "text": "{\"ok\":true,\"seller\":\"GPU Shop\",\"amount_usdt\":\"2.40\",\"fee_usdt\":\"0.20\",\"priced_by\":\"catalog\",\"tx\":\"mem-2\",\"receipt_seq\":1,\"receipt_hash\":\"572bff0993100fea089e8c2ae32fb5e873669f3e7415df5bcb194bebabfbf275\"}"
+
+$ npx @modelcontextprotocol/inspector --cli npx tsx src/infrastructure/mcp-demo.ts --method tools/call --tool-name spendline_pay --tool-arg 'to=Unknown seller' --tool-arg 'why=cheaper GPU hour'
+      "type": "text",
+      "text": "{\"ok\":false,\"reason\":\"MERCHANT_NOT_ALLOWED\",\"seller\":\"Unknown seller\",\"amount_usdt\":\"0.90\",\"fee_usdt\":\"0.00\",\"priced_by\":\"catalog\",\"tx\":\"mem-2\",\"receipt_seq\":1,\"receipt_hash\":\"83397599e57935c0f8df1b06d744da8e06f1c82272dd0b88880098d7dfeeafa6\"}"

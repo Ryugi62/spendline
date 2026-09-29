@@ -28,7 +28,7 @@ async function demoTools() {
 }
 
 async function main(args: string[]) {
-  if (args.includes('--demo')) {
+  if (args.includes('--demo') || process.env.SPENDLINE_DEMO === '1') {
     const tools = await demoTools();
     await createMcpServer(tools, { name: 'spendline-demo', version: '1.1.0' }).connect(new StdioServerTransport());
     console.error('spendline MCP server on stdio · DEMO: in-memory vault, no key, nothing sent to TRON');

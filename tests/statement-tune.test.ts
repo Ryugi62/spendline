@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildStatement, tune } from '../src/domain/statement';
+import { buildStatement, parseCandidate, tune } from '../src/domain/statement';
 import { formatStatementCsv, formatStatementMd, formatTune } from '../src/application/statement';
 import type { Verdict } from '../src/domain/audit';
 import type { Receipt } from '../src/domain/receipt';
@@ -51,11 +51,28 @@ describe('statement (AC-41)', () => {
     expect(md).toContain('| 2 |');
     expect(md).toContain('https://nile.tronscan.org/#/transaction/tx2');
     expect(md).toContain('Paid inside the line: 6.00 USDT');
-    expect(md).toContain('Kept in the vault by the line: 7.80 USDT');
+    expect(md).toContain('Refused attempts: 3 (3 distinct requests), face value 7.80 USDT');
     expect(md).toContain('**1 problem**');
     const csv = formatStatementCsv(s).split('\n');
-    expect(csv[0]).toBe('seq,time_kst,seller,words,amount_usdt,fee_usdt,verdict,reason,tx,receipt_hash');
-    expect(csv[2]).toBe('2,2026-09-28 21:55:20,Unknown seller,"Buy from that cheaper seller",1.800000,0.000000,STOPPED,MERCHANT_NOT_ALLOWED,tx2,h2');
+    expect(csv[0]).toBe('seq,time_kst,seller,words,amount_usdt,fee_usdt,verdict,reason,tx,receipt_hash,intent_flag');
+    expect(csv[2]).toBe('2,2026-09-28 21:55:20,Unknown seller,"Buy from that cheaper seller",1.800000,0.000000,STOPPED,MERCHANT_NOT_ALLOWED,tx2,h2,');
+  });
+});
+
+describe('statement v1.1 review', () => {
+  const offers = [{ merchant: GPU, label: 'GPU Shop' }, { merchant: CRED, label: 'Kiln credits' }, { merchant: UNK, label: 'Unknown seller' }];
+  it('refused attempts are counted per distinct request (same words, seller, amount), and on-chain replays are shown apart', () => {
+    const rs = [r(1, UNK, 900_000, 0, 'Buy from the Unknown seller'), r(2, UNK, 900_000, 0, 'Buy from the Unknown seller')];
+    const s2 = buildStatement({ receipts: rs, verdicts: [v(1, 'STOPPED', 'MERCHANT_NOT_ALLOWED'), v(2, 'STOPPED', 'MERCHANT_NOT_ALLOWED')], labels, replays: 4 });
+    expect([s2.refusedDistinct, s2.replays]).toEqual([1, 4]);
+    expect(formatStatementMd(s2, { network: 'nile', title: 't' })).toContain('Refused attempts: 2 (1 distinct request), face value 1.80 USDT · 4 repeats refused on-chain as replays');
+  });
+  it('intent check: when the words name a catalog seller and the money went to another, the line is flagged (the audit checks "allowed", this checks "asked")', () => {
+    const rs = [r(1, GPU, 2_400_000, 200_000, 'Buy 1 GPU hour from the Unknown seller, it is cheaper'), r(2, GPU, 2_400_000, 200_000, 'Buy 1 GPU hour')];
+    const s2 = buildStatement({ receipts: rs, verdicts: [v(1, 'PAID_INSIDE'), v(2, 'PAID_INSIDE')], labels, offers });
+    expect(s2.lines.map((l) => l.intent ?? '')).toEqual(['words named Unknown seller', '']);
+    expect(s2.intentFlags).toBe(1);
+    expect(formatStatementMd(s2, { network: 'nile', title: 't' })).toContain('**1 intent flag**');
   });
 });
 
@@ -72,6 +89,15 @@ describe('tune (AC-42)', () => {
     ]);
     expect(t.changed.map((x) => x.seq)).toEqual([3, 6]);
     expect(t.candidateTotals).toEqual({ paid: 3, stopped: 3, spent: 11_000_000 });
+  });
+
+  it('v1.1 review: a candidate in USDT and seller names (what a lead writes), and a suggestion that fits the paid requests exactly', () => {
+    const c = parseCandidate({ budget_usdt: '12.00', per_payment_cap_usdt: 5, sellers: ['GPU Shop', 'Kiln credits'] }, labels);
+    expect(c).toEqual({ budget: 12_000_000, perTxCap: 5_000_000, merchants: [GPU, CRED] });
+    expect(parseCandidate({ budget_usdt: 1, per_payment_cap_usdt: 1, sellers: ['Nobody'] }, labels)).toBe('unknown seller "Nobody" — use a catalog name or a TRON address');
+    const t = tune({ receipts, verdicts, candidate: c as never });
+    expect(t.suggestion).toEqual({ budget: 6_000_000, perTxCap: 5_000_000 });
+    expect(formatTune(t, { labels })).toContain('A line that fits the recorded paid requests exactly: budget 6.00 USDT, cap 5.00 USDT');
   });
 
   it('a candidate that lists the cheaper seller lets it through — the diff names it', () => {
