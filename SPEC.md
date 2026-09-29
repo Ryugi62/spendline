@@ -182,3 +182,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 - v0.8 2026-09-28 §6f (during the window, from 19:00 KST): live agent receipts on the tool-call F1 with `via` · `serverMs` in the report line (AC-35) · terminal scene in the demo from the transcripts, checked against the record (AC-36).
 - v0.9 2026-09-29 §6g (during the window): README proof of API usage per flow, generated and checked (AC-38) · plug-in wallet + example, tested (AC-37) · deck ≤ 10 pages (AC-32 tightened to the organizer's limit).
 - v0.9.1 2026-09-29 (during the window, M1 check): live receipt #12 · a seller named in the words reaches the vault (AC-39) · README record numbers pinned by a test.
+- v1.0.0 2026-09-29 (during the window, v1 freeze): live receipts #13–#15 and F2 / F3 on the organizer-issued Kiln account (team32) · README's account sentence pinned to the record by a test.

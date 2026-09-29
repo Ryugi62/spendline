@@ -36,7 +36,7 @@ section{height:720px;margin-bottom:240px;box-sizing:border-box;padding:56px 72px
 pre{font:17px/1.55 ui-monospace,Menlo,monospace;background:#1b1d21;border-radius:16px;padding:20px 24px;margin:0;white-space:pre-wrap;word-break:break-all}
 .hl{color:#ff6b78;font-weight:700}.ok{color:#3ddc84;font-weight:700}
 table{border-collapse:collapse;font-size:20px}td,th{padding:10px 16px;border-bottom:1px solid #2c2f35;text-align:right}td:first-child,th:first-child{text-align:left}th{color:#b0b8c1;font-weight:600}
-section#agent{justify-content:flex-start;gap:10px}.term{display:flex;flex-direction:column;gap:8px}.term pre{font-size:13px;line-height:1.36;padding:9px 16px}#agent .s{font-size:15px}
+section#agent{justify-content:flex-start;gap:8px}.term{display:flex;flex-direction:column;gap:5px}.term pre{font-size:13px;line-height:1.24;padding:6px 14px}#agent .s{font-size:15px}
 h1{font-size:72px;margin:0;color:#3182f6}.big{font-size:30px;line-height:1.4;margin:0}
 </style></head><body>
 ${panel('title', 'Spendline — receipts for AI spending', `<h1>Spendline</h1><p class="big">A person draws the line. The agent only asks. The vault on TRON decides — and records every stop.</p>`)}

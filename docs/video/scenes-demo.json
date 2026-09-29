@@ -9,11 +9,11 @@
   { "id": "d08", "url": "ui:#/receipt/3", "en": "Over budget once the fee is added: stopped on-chain." },
   { "id": "d09", "url": "ui:#/feed", "actions": ["click:[data-action=stop]", "wait:1200"], "en": "The person can press STOP at any time. The next payment was stopped as PAUSED, on-chain." },
   { "id": "d10", "url": "ui:#/receipt/7", "en": "A new line with a short window: one payment inside it, then the same request after it closed. Stopped: deadline passed." },
-  { "id": "d11", "url": "ui:#/audit", "en": "Now the audit, rebuilt from public records only: 12 receipts, 7 paid inside, 5 stopped, 0 problems." },
+  { "id": "d11", "url": "ui:#/audit", "en": "Now the audit, rebuilt from public records only: 15 receipts, 8 paid inside, 7 stopped, 0 problems." },
   { "id": "d12", "url": "docs/video/stage.html#audit", "en": "The same check from the command line. No key, no dot env. It re-hashes every receipt and replays the line in force at that moment. A replayed receipt hash was stopped too." },
-  { "id": "d12b", "url": "docs/video/stage.html#agent", "en": "And live, during the event window: requests typed into npm run agent. Kiln read each one, as plain JSON, as a tool call, and as a call written into its text; the code parses all three. The vault paid two inside the line, and stopped the third on-chain: over budget once fees are added." },
+  { "id": "d12b", "url": "docs/video/stage.html#agent", "en": "And live, during the event window, on the organizer's team account: three requests typed into npm run agent. The first named the unknown seller; the code matched the name, and the vault stopped it on-chain: not on the list. The second bought one Kiln credit inside the line. The third would have passed the budget, and was stopped too." },
   { "id": "d13", "url": "ui:#/audit", "actions": ["scroll:.qas"], "en": "A teammate asks: did we pay that cheap unknown seller? Kiln picks the receipt. The verdict comes from the audit, never from the model." },
-  { "id": "d14", "url": "docs/video/stage.html#tokens", "en": "Efficiency, in numbers: 1.00 LLM call per purchase. 30 live Kiln calls across 3 flows, 19,885 tokens in total." },
+  { "id": "d14", "url": "docs/video/stage.html#tokens", "en": "Efficiency, in numbers: 1.00 LLM call per purchase. 35 live Kiln calls across 3 flows, 23,648 tokens in total." },
   { "id": "d15", "url": "docs/video/stage.html#ab", "en": "With no-think, median output drops from 223 to 36 tokens, with the same JSON in 12 of 12 pairs. Energy is an estimate: 180 watts times measured time." },
   { "id": "d16", "url": "docs/video/stage.html#end", "en": "Spendline. Not an agent that can pay, but a payment that can prove it was allowed." }
 ]

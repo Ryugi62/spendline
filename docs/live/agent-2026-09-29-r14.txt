@@ -1,0 +1,6 @@
+$ date -u; npm run agent -- "Buy 1 Kiln inference credit for the judges' replay"
+2026-09-29T03:03:20Z
+#14 PAID · 1.00 USDT to Kiln credits (1.00 + fee 0.00) · Paid inside your line
+tx 9b59ef11e2bd365bc8f2688558715f649563b6d6e975f705d34c4778e12b921f · https://nile.tronscan.org/#/transaction/9b59ef11e2bd365bc8f2688558715f649563b6d6e975f705d34c4778e12b921f
+Kiln qwen3-32b · F1_intent · 320+35 tokens · 1.90 s · server 0.66 s · $0.00002264 · gen 14c26f4e-d054-4a97-8a1a-aad8b2d9c959 · ≈0.0948 Wh · via tool call leaked into text
+web/public/session.json: 14 receipts, 19 events

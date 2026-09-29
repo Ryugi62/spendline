@@ -62,7 +62,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
 <div><p class="num">${f.whPerPurchase}<span> Wh</span></p><p>per purchase (est.)<br><small>${f.wh} Wh in total</small></p></div></div>
 <p class="lead">F1 offers a Kiln tool call (<code>propose_purchase</code>, the Qwen3-32B tool parser) — chosen by a rule we fixed before a live A/B; a reply as plain JSON or a call leaked into text is parsed too, and each receipt records which.</p>
 <p class="lead">/no_think A/B, n = ${f.ab.n}: median ${f.ab.offTokens} vs ${f.ab.onTokens} output tokens · ${f.ab.offSeconds} vs ${f.ab.onSeconds} s · same JSON ${f.ab.sameJson}/${f.ab.n} → ${f.ab.tokensSavedPct}% fewer tokens.</p>
-<p class="note">Energy is an estimate, never a measurement: 180 W (RNGD card TDP, furiosa.ai/rngd) × measured wall time. Tokens by flow, generation ids: docs/tokens-by-flow.md.</p>`,
+<p class="note">Receipt #13 on, with its F2 / F3: the organizer-issued Kiln account (team32). Energy is an estimate, never a measurement: 180 W (RNGD card TDP, furiosa.ai/rngd) × measured wall time. Tokens by flow, generation ids: docs/tokens-by-flow.md.</p>`,
     },
     {
       id: 'chain',
