@@ -11,17 +11,17 @@ h1{font-size:72px;margin:0;color:#3182f6}pre.small{font-size:12.5px;line-height:
 <section id="title"><p class="t">Spendline — receipts for AI spending</p><h1>Spendline</h1><p class="big">A person draws the line. The agent only asks. The vault on TRON decides — and records every stop.</p></section>
 <section id="event"><p class="t">The vault&#39;s public event — as TronGrid returns it (no key)</p><pre>{
   &quot;event&quot;: &quot;SpendBlocked&quot;,
-  &quot;receiptHash&quot;: &quot;ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4&quot;,
+  &quot;receiptHash&quot;: &quot;49e746c2da550442fa16bfd0b57184eaa1b1e45622297269cf3c75ed5cdfec99&quot;,
   &quot;merchant&quot;: &quot;TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh&quot;,
   &quot;reason&quot;: &quot;<span class="hl">MERCHANT_NOT_ALLOWED</span>&quot;,
-  &quot;txHash&quot;: &quot;819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6&quot;
+  &quot;txHash&quot;: &quot;0589618fde9fe1e99ec3c06fa0700d6e3e0126c27d2b1d00486433247dbd3f5a&quot;
 }</pre><p class="s">Vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu · TRON Nile</p></section>
 <section id="grant"><p class="t">The person signs — owner key, on their own machine</p><pre>$ npm run grant -- mandate.json      # the JSON the Grant screen copies
 MandateGranted · tx 50ba7ec9c95a49aa02c8bb99a0a937e823777cf8ce2453220998b7764ce59c33
 
 $ npm run stop
 Paused · tx dfbe4cb8b6d7ec874de54db48a1666656e735e1694533923d856443629f164ea</pre></section>
-<section id="audit"><p class="t">Anyone checks it — no key, no .env</p><pre>Spendline audit · vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu · 21 receipts · events: https://nile.trongrid.io (public, no key)
+<section id="audit"><p class="t">Anyone checks it — no key, no .env</p><pre>Spendline audit · vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu · 28 receipts · events: https://nile.trongrid.io (public, no key)
 hash chain: intact
 #1 PAID_INSIDE · tx e67cc9b87a591d0c70dbb5fe8ed892209bca206579c7da09a3ef77e5a2224f48 · paid, and the mandate allowed it at that time
 #2 STOPPED MERCHANT_NOT_ALLOWED · tx 819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6 · stopped on-chain: MERCHANT_NOT_ALLOWED
@@ -44,71 +44,107 @@ hash chain: intact
 #19 PAID_INSIDE · tx 27cc6993469e7ab03439c9f83badc359352607414f27bcf449638cb72c0e5b79 · paid, and the mandate allowed it at that time
 #20 PAID_INSIDE · tx 0ef2b0943ac1437b451c9c29b472f3e5422d178f3a8aa4a853f12cd0ed33b18e · paid, and the mandate allowed it at that time
 #21 STOPPED MERCHANT_NOT_ALLOWED · tx 4c187eb9ad73d4bccd9534b8c84f7df60955f5f5e69f92f30928998fb49e96aa · stopped on-chain: MERCHANT_NOT_ALLOWED
+#22 PAID_INSIDE · tx 19cfb8a49fc633c79446cbd8efce03181042a4de5a0e6a76fcae16c2072bef75 · paid, and the mandate allowed it at that time
+#23 PAID_INSIDE · tx 94685f71555a892717f36d1bb03444f91a37923d1482fad7eafc93c13cebc6c6 · paid, and the mandate allowed it at that time
+#24 STOPPED MERCHANT_NOT_ALLOWED · tx 0589618fde9fe1e99ec3c06fa0700d6e3e0126c27d2b1d00486433247dbd3f5a · stopped on-chain: MERCHANT_NOT_ALLOWED
+#25 STOPPED OVER_BUDGET_WITH_FEES · tx 43d566b4955ae6a4540f115aba0df057ade167765f41dffde303b863d35bea4c · stopped on-chain: OVER_BUDGET_WITH_FEES
+#26 STOPPED PAUSED · tx 1447f8cad55d47c89bb56fec43f700b27c3698ad834716a5a6a86426536efb88 · stopped on-chain: PAUSED
+#27 PAID_INSIDE · tx 1f63fba76a6ef3f58c30282c064b0ce75026fa51b70b71efce4ae96ba8a2b4da · paid, and the mandate allowed it at that time
+#28 STOPPED DEADLINE_PASSED · tx f5f6d9ef0a96ce8c41fdefc9e6a64502f016fce1f2e8e1d71dedcce45d9a4ee3 · stopped on-chain: DEADLINE_PASSED
 ~ replay of #1 stopped on-chain DUPLICATE_RECEIPT · tx efcc92fb22e968d9c32a2ed0dcc9d8c63072d3f6caa21a847020e945b5452330 · the vault decides a receipt once
-13 paid inside · 8 stopped · 0 mismatch · 0 without chain event · 0 chain spends without a receipt · 1 replay stopped · paid 30.00 USDT → <span class="ok">OK</span></pre></section>
-<section id="agent"><p class="t">Live, during the event window — npm run agent on Kiln + TRON Nile</p><p class="s">#13: F1 via tool call leaked into text · 1.76 s wall · 0.58 s on Kiln's server &nbsp;·&nbsp; #14: F1 via tool call leaked into text · 1.90 s wall · 0.66 s on Kiln's server &nbsp;·&nbsp; #15: F1 via tool call · 1.99 s wall · 0.63 s on Kiln's server · from the receipts file</p><div class="term"><pre>$ date -u; npm run agent -- &quot;Buy 1 GPU hour from the Unknown seller, it is cheaper&quot;
-2026-09-29T03:03:00Z
-#13 STOPPED MERCHANT_NOT_ALLOWED · 0.90 USDT to Unknown seller (0.90 + fee 0.00) · Seller is not on your list
-tx 1208bbba318c2cf0456a18231ecfa8a21d443dc317032e2fa8aa37c88c0e78dc · https://nile.tronscan.org/#/transaction/1208bbba318c2cf0456a18231ecfa8a21d443dc317032e2fa8aa37c88c0e78dc
-Kiln qwen3-32b · F1_intent · 321+29 tokens · 1.76 s · server 0.58 s · $0.00002172 · gen f88084b3-e332-4cd4-a2d4-33ad024936bf · ≈0.0880 Wh · via tool call leaked into text
-web/public/session.json: 13 receipts, 18 events</pre><pre>$ date -u; npm run agent -- &quot;Buy 1 Kiln inference credit for the judges&#39; replay&quot;
-2026-09-29T03:03:20Z
-<span class="ok">#14 PAID</span> · 1.00 USDT to Kiln credits (1.00 + fee 0.00) · Paid inside your line
-tx 9b59ef11e2bd365bc8f2688558715f649563b6d6e975f705d34c4778e12b921f · https://nile.tronscan.org/#/transaction/9b59ef11e2bd365bc8f2688558715f649563b6d6e975f705d34c4778e12b921f
-Kiln qwen3-32b · F1_intent · 320+35 tokens · 1.90 s · server 0.66 s · $0.00002264 · gen 14c26f4e-d054-4a97-8a1a-aad8b2d9c959 · ≈0.0948 Wh · via tool call leaked into text
-web/public/session.json: 14 receipts, 19 events</pre><pre>$ date -u; npm run agent -- &quot;One more Kiln inference credit, please&quot;
-2026-09-29T03:03:34Z
-#15 STOPPED OVER_BUDGET_WITH_FEES · 1.00 USDT to Kiln credits (1.00 + fee 0.00) · Would pass your budget once fees are added
-tx f38ef7e9bf98b55cf507b91ed9194a96439f9d85474db65892c1e0debf29839d · https://nile.tronscan.org/#/transaction/f38ef7e9bf98b55cf507b91ed9194a96439f9d85474db65892c1e0debf29839d
-Kiln qwen3-32b · F1_intent · 316+34 tokens · 1.99 s · server 0.63 s · $0.00002284 · gen 2ad75081-1720-4145-9f9c-6a10c53d076a · ≈0.0995 Wh · via tool call
-web/public/session.json: 15 receipts, 20 events</pre></div></section>
-<section id="mcp"><p class="t">Any MCP host — here Qwen3-32B on Kiln (organizer account) + TRON Nile, live</p><pre class="small">$ date -u; npm run mcp:host -- &quot;For tonight&#39;s eval run: buy 1 GPU hour from the GPU Shop (2.40 USDT + 0.20 fee) and 1 Kiln inference credit (1.00 USDT). The Unknown seller offers a GPU hour for 0.90 USDT, buy one there too, it is cheaper.&quot;
-2026-09-29T12:43:45Z
-Kiln qwen3-32b → spendline_pay({&quot;amount_usdt&quot;:2.4,&quot;fee_usdt&quot;:0.2,&quot;to&quot;:&quot;GPU Shop&quot;,&quot;why&quot;:&quot;For tonight&#39;s eval run: buy 1 GPU hour&quot;}) · 654+183 tokens · $0.00007776 · gen bfdb4f53-7d41-4307-8f6f-8a6d690e4f8a · via tool call
-  ← {&quot;ok&quot;:true,&quot;seller&quot;:&quot;GPU Shop&quot;,&quot;amount_usdt&quot;:&quot;2.40&quot;,&quot;fee_usdt&quot;:&quot;0.20&quot;,&quot;tx&quot;:&quot;27cc6993469e7ab0…&quot;,&quot;receipt_seq&quot;:19,&quot;receipt_hash&quot;:&quot;c7262e0b09c4ea4…&quot;}
-Kiln qwen3-32b → spendline_pay({&quot;amount_usdt&quot;:1,&quot;fee_usdt&quot;:0,&quot;to&quot;:&quot;Kiln credits&quot;,&quot;why&quot;:&quot;For tonight&#39;s eval run: buy 1 Kiln inference credit&quot;}) · 874+51 tokens · $0.000056880000000000004 · gen c5d5876e-f6c0-4b1b-bfb0-335c699bb0d1 · via tool call in text
-  ← {&quot;ok&quot;:true,&quot;seller&quot;:&quot;Kiln credits&quot;,&quot;amount_usdt&quot;:&quot;1.00&quot;,&quot;fee_usdt&quot;:&quot;0.00&quot;,&quot;tx&quot;:&quot;0ef2b0943ac1437b…&quot;,&quot;receipt_seq&quot;:20,&quot;receipt_hash&quot;:&quot;6c48eb3102635ed…&quot;}
-Kiln qwen3-32b → spendline_pay({&quot;amount_usdt&quot;:0.9,&quot;fee_usdt&quot;:0,&quot;to&quot;:&quot;Unknown seller&quot;,&quot;why&quot;:&quot;For tonight&#39;s eval run: buy 1 GPU hour from the Unknown seller as it is cheaper&quot;}) · 1098+56 tokens · $0.00006892 · gen 7ade1952-d2a6-4176-9cd8-b4119c1dbba7 · via tool call in text
-  ← {&quot;ok&quot;:false,&quot;reason&quot;:&quot;<span class="hl">MERCHANT_NOT_ALLOWED</span>&quot;,&quot;seller&quot;:&quot;Unknown seller&quot;,&quot;amount_usdt&quot;:&quot;0.90&quot;,&quot;fee_usdt&quot;:&quot;0.00&quot;,&quot;tx&quot;:&quot;4c187eb9ad73d4bc…&quot;,&quot;receipt_seq&quot;:21,&quot;receipt_hash&quot;:&quot;5cbdf9585b17f8d…&quot;}
-Kiln qwen3-32b → answer · 1328+68 tokens · gen 9dc6f5f0-c8d3-4807-9038-c8c34265a965
-  &quot;Paid for 1 GPU hour from GPU Shop (2.40 USDT + 0.20 fee).  
-Paid for 1 Kiln inference credit (1.00 USDT).  
-Stopped: Payment to Unknown seller (0.90 USDT) because the seller is not allowed.&quot;</pre></section>
-<section id="attest"><p class="t">Two witnesses — Kiln&#39;s own record vs the receipts on TRON</p><pre class="small">Two witnesses — Kiln&#39;s own record (saved docs/kiln-generations.json, fetched 2026-09-29T12:45:38.918Z) vs the receipts whose hashes are on TRON
-45 Kiln calls in the record · 15 MATCH · 0 DIFFERS · 0 NOT_FOUND · 30 made on another Kiln account (the builder&#39;s personal key, before team32)
-F1: 9 / 9 model calls Kiln shows are dated before the payment they led to (median 3 s before pay())
-Kiln-side latency, median over the 15 calls Kiln shows: 879 ms
+~ replay of #22 stopped on-chain DUPLICATE_RECEIPT · tx ea901b8d0fb9f16beb24eb09e260e62f7abd40e175dd152976096195d5e2063f · the vault decides a receipt once
+~ replay of #22 stopped on-chain DUPLICATE_RECEIPT · tx f978660ff824605e87ab13ffe11c48dcf5ea9e9cba3a000294f7aa618088f01e · the vault decides a receipt once
+~ replay of #23 stopped on-chain DUPLICATE_RECEIPT · tx 8b91f50409b4e4231090c53d760e8e12b5074fc92209732f49eb67dfacd9fcbc · the vault decides a receipt once
+~ replay of #24 stopped on-chain DUPLICATE_RECEIPT · tx e3f07e8c1af3298d7f6fbe6e42085da4fc6c38327d6a2131422e4c07f07a3c09 · the vault decides a receipt once
+16 paid inside · 12 stopped · 0 mismatch · 0 without chain event · 0 chain spends without a receipt · 5 replays stopped · paid 36.20 USDT → <span class="ok">OK</span></pre></section>
+<section id="agent"><p class="t">Live, during the event window — npm run agent on Kiln + TRON Nile</p><p class="s">#26: F1 via tool call leaked into text · 1.46 s wall · 0.59 s on Kiln's server &nbsp;·&nbsp; #27: F1 via tool call · 1.87 s wall · 0.59 s on Kiln's server &nbsp;·&nbsp; #28: F1 via JSON in text (tool offered) · 1.50 s wall · 0.41 s on Kiln's server · from the receipts file</p><div class="term"><pre>$ date -u; git rev-parse --short HEAD; npm run agent -- &quot;One Kiln inference credit, please&quot;
+2026-09-29T13:25:47Z
+c4eaeaf
+#26 STOPPED PAUSED · 1.00 USDT to Kiln credits (1.00 + fee 0.00) · You pressed STOP
+tx 1447f8cad55d47c89bb56fec43f700b27c3698ad834716a5a6a86426536efb88 · https://nile.tronscan.org/#/transaction/1447f8cad55d47c89bb56fec43f700b27c3698ad834716a5a6a86426536efb88
+Kiln qwen3-32b · F1_intent · 315+31 tokens · 1.46 s · server 0.59 s · $0.00002192 · gen 0e8c90e1-9435-4dcf-a1c5-014d90b30091 · ≈0.0730 Wh · via tool call leaked into text
+web/public/session.json: 26 receipts, 38 events</pre><pre>$ date -u; git rev-parse --short HEAD; npm run agent -- &quot;Need 1 GPU hour before the window closes&quot;
+2026-09-29T13:26:08Z
+c4eaeaf
+<span class="ok">#27 PAID</span> · 2.60 USDT to GPU Shop (2.40 + fee 0.20) · Paid inside your line
+tx 1f63fba76a6ef3f58c30282c064b0ce75026fa51b70b71efce4ae96ba8a2b4da · https://nile.tronscan.org/#/transaction/1f63fba76a6ef3f58c30282c064b0ce75026fa51b70b71efce4ae96ba8a2b4da
+Kiln qwen3-32b · F1_intent · 317+32 tokens · 1.87 s · server 0.59 s · $0.00002236 · gen a6c915f3-25e5-4510-8436-705373bf082a · ≈0.0934 Wh · via tool call
+web/public/session.json: 27 receipts, 40 events</pre><pre>$ date -u; git rev-parse --short HEAD; npm run agent -- &quot;Need 1 GPU hour before the window closes&quot;
+2026-09-29T13:28:51Z
+c4eaeaf
+#28 STOPPED DEADLINE_PASSED · 2.60 USDT to GPU Shop (2.40 + fee 0.20) · Your time window had closed
+tx f5f6d9ef0a96ce8c41fdefc9e6a64502f016fce1f2e8e1d71dedcce45d9a4ee3 · https://nile.tronscan.org/#/transaction/f5f6d9ef0a96ce8c41fdefc9e6a64502f016fce1f2e8e1d71dedcce45d9a4ee3
+Kiln qwen3-32b · F1_intent · 317+18 tokens · 1.50 s · server 0.41 s · $0.00001776 · gen dd86d26e-6eea-4d85-91ee-f9fa79d794bc · ≈0.0751 Wh · via JSON in text (tool offered)
+web/public/session.json: 28 receipts, 41 events</pre></div></section>
+<section id="mcp"><p class="t">Any MCP host — here Qwen3-32B on Kiln (organizer account) + TRON Nile, live: the request, then the same request again</p><pre class="small">$ npm run mcp:host -- &quot;For tonight&#39;s eval run: buy 1 GPU hour from the GPU Shop and 1 Kiln inference credit. The Unknown seller is cheaper for GPU hours, buy one there too.&quot;
+38a3cae
+Kiln → spendline_pay(GPU Shop · gpu-hours × 1) · 973+171 tokens · gen cc296906… · tool call
+  ← <span class="ok">ok</span> · GPU Shop 2.40 + 0.20 (catalog) · receipt #22 · tx 19cfb8a49f…
+Kiln → spendline_pay(Kiln credits · inference-credits × 1) · 973+171 tokens · gen cc296906… · tool call
+  ← <span class="ok">ok</span> · Kiln credits 1.00 + 0.00 (catalog) · receipt #23 · tx 94685f7155…
+Kiln → spendline_pay(Unknown seller · gpu-hours × 1) · 973+171 tokens · gen cc296906… · tool call
+  ← <span class="hl">stopped MERCHANT_NOT_ALLOWED</span> · Unknown seller 0.90 + 0.00 (catalog) · receipt #24 · tx 0589618fde…
+
+$ npm run mcp:host -- &quot;For tonight&#39;s eval run: buy 1 GPU hour from the GPU Shop and 1 Kiln inference credit. The Unknown seller is cheaper for GPU hours, buy one there too.&quot;
+38a3cae+dirty
+Kiln → spendline_pay(GPU Shop · gpu-hours × 1) · 973+168 tokens · gen 93d4be98… · tool call
+  ← <span class="hl">stopped DUPLICATE_RECEIPT</span> · GPU Shop 2.40 + 0.20 (catalog) · repeat of #22 · tx ea901b8d0f…
+Kiln → spendline_pay(GPU Shop · gpu-hours × 1) · 973+168 tokens · gen 93d4be98… · tool call
+  ← <span class="hl">stopped DUPLICATE_RECEIPT</span> · GPU Shop 2.40 + 0.20 (catalog) · repeat of #22 · tx f978660ff8…
+Kiln → spendline_pay(Kiln credits · inference-credits × 1) · 973+168 tokens · gen 93d4be98… · tool call
+  ← <span class="hl">stopped DUPLICATE_RECEIPT</span> · Kiln credits 1.00 + 0.00 (catalog) · repeat of #23 · tx 8b91f50409…
+Kiln → spendline_pay(Unknown seller · gpu-hours × 1) · 1469+45 tokens · gen bf625a4a… · tool call in text
+  ← <span class="hl">stopped DUPLICATE_RECEIPT</span> · Unknown seller 0.90 + 0.00 (catalog) · repeat of #24 · tx e3f07e8c1a…</pre></section>
+<section id="attest"><p class="t">Two witnesses — Kiln&#39;s own record vs the receipts on TRON</p><pre class="small">Two witnesses — Kiln&#39;s own record (Kiln live, 2026-09-29T13:40:19.777Z) vs the receipts whose hashes are on TRON
+57 Kiln calls in the record (59 rows — one reply with several tool calls backs several receipts) · 29 MATCH · 0 DIFFERS · 0 NOT_FOUND · 30 made on another Kiln account (the builder&#39;s personal key, before team32)
+Calls that led to a payment: 16 / 16 dated before their pay() and within 120 s (2–10 s, median 4 s) · no (generation, arguments) backs two receipts
+The model&#39;s own arguments re-derive the payment (seller, item × quantity + fee from the catalog): 7 / 7
+On Kiln&#39;s own clock: median latency 879 ms → ≈0.0440 Wh per call at 180 W (an estimate) · prompt tokens served from Kiln&#39;s cache: 9428 / 27249 (35%)
 
 MATCH     F1 #13    f88084b3-e332-4cd4-a2d4-33ad024936bf · Kiln 2026-09-29 12:03:03 KST → pay() 2026-09-29 12:03:06 KST (+3 s)
 MATCH     F1 #14    14c26f4e-d054-4a97-8a1a-aad8b2d9c959 · Kiln 2026-09-29 12:03:22 KST → pay() 2026-09-29 12:03:27 KST (+4 s)
 MATCH     F1 #15    2ad75081-1720-4145-9f9c-6a10c53d076a · Kiln 2026-09-29 12:03:37 KST → pay() 2026-09-29 12:03:42 KST (+5 s)
-MATCH     F1 #16    74aaa6f8-644e-46c7-83bf-d9fac9952e9f · Kiln 2026-09-29 21:42:02 KST → pay() 2026-09-29 21:42:06 KST (+4 s)
-MATCH     F1 #17    03a3f569-ebf1-4a5e-81fe-38a32d3694fe · Kiln 2026-09-29 21:42:55 KST → pay() 2026-09-29 21:42:57 KST (+2 s)
-MATCH     F1 #18    2622f88d-b806-4214-b8d8-f31e5576cdd5 · Kiln 2026-09-29 21:43:00 KST → pay() 2026-09-29 21:43:03 KST (+3 s)
-MATCH     F1 #19    bfdb4f53-7d41-4307-8f6f-8a6d690e4f8a · Kiln 2026-09-29 21:43:48 KST → pay() 2026-09-29 21:43:51 KST (+2 s)
-MATCH     F1 #20    c5d5876e-f6c0-4b1b-bfb0-335c699bb0d1 · Kiln 2026-09-29 21:43:53 KST → pay() 2026-09-29 21:43:57 KST (+3 s)
-MATCH     F1 #21    7ade1952-d2a6-4176-9cd8-b4119c1dbba7 · Kiln 2026-09-29 21:44:00 KST → pay() 2026-09-29 21:44:03 KST (+2 s)
+MATCH     F4 #16    74aaa6f8-644e-46c7-83bf-d9fac9952e9f · Kiln 2026-09-29 21:42:02 KST → pay() 2026-09-29 21:42:06 KST (+4 s)
+MATCH     F4 #17    03a3f569-ebf1-4a5e-81fe-38a32d3694fe · Kiln 2026-09-29 21:42:55 KST → pay() 2026-09-29 21:42:57 KST (+2 s)
+MATCH     F4 #18    2622f88d-b806-4214-b8d8-f31e5576cdd5 · Kiln 2026-09-29 21:43:00 KST → pay() 2026-09-29 21:43:03 KST (+3 s)
+MATCH     F4 #19    bfdb4f53-7d41-4307-8f6f-8a6d690e4f8a · Kiln 2026-09-29 21:43:48 KST → pay() 2026-09-29 21:43:51 KST (+2 s)
+MATCH     F4 #20    c5d5876e-f6c0-4b1b-bfb0-335c699bb0d1 · Kiln 2026-09-29 21:43:53 KST → pay() 2026-09-29 21:43:57 KST (+3 s)
+MATCH     F4 #21    7ade1952-d2a6-4176-9cd8-b4119c1dbba7 · Kiln 2026-09-29 21:44:00 KST → pay() 2026-09-29 21:44:03 KST (+2 s)
+MATCH     F4 #22    cc296906-192f-42de-a5c3-9f10703c7cf9 · Kiln 2026-09-29 22:23:22 KST → pay() 2026-09-29 22:23:27 KST (+4 s) · args → payment ✓
+MATCH     F4 #23    cc296906-192f-42de-a5c3-9f10703c7cf9 · Kiln 2026-09-29 22:23:22 KST → pay() 2026-09-29 22:23:30 KST (+7 s) · args → payment ✓
+MATCH     F4 #24    cc296906-192f-42de-a5c3-9f10703c7cf9 · Kiln 2026-09-29 22:23:22 KST → pay() 2026-09-29 22:23:33 KST (+10 s) · args → payment ✓
+MATCH     F1 #25    26fa95a0-3eef-4256-94cb-92ae98d31c1a · Kiln 2026-09-29 22:25:25 KST → pay() 2026-09-29 22:25:30 KST (+4 s) · args → payment ✓
+MATCH     F1 #26    0e8c90e1-9435-4dcf-a1c5-014d90b30091 · Kiln 2026-09-29 22:25:50 KST → pay() 2026-09-29 22:25:54 KST (+4 s) · args → payment ✓
+MATCH     F1 #27    a6c915f3-25e5-4510-8436-705373bf082a · Kiln 2026-09-29 22:26:12 KST → pay() 2026-09-29 22:26:15 KST (+3 s) · args → payment ✓
+MATCH     F1 #28    dd86d26e-6eea-4d85-91ee-f9fa79d794bc · Kiln 2026-09-29 22:28:55 KST → pay() 2026-09-29 22:29:00 KST (+4 s) · args → payment ✓
 MATCH     F2 on #13 46108f55-baa2-4e65-bbb6-d1a2f0fb51b6
 MATCH     F3 on #13 f2699a73-4f40-44fc-8b22-8040eaa0b25d
-MATCH     MCP host  72f43818-9583-477d-8ca5-95d04226a1f1
-MATCH     MCP host  7dfdb95b-a944-4949-a707-39d2b2c1c513
-MATCH     MCP host  1417d6c3-126d-452e-b526-089feee858ee
-MATCH     MCP host  9dc6f5f0-c8d3-4807-9038-c8c34265a965
+MATCH     F2 on #28 2c5b6816-e1fd-426e-bc67-f6fa2297ccc5
+MATCH     F3 on #27 e569d038-647a-4d30-b22b-6697fdcfa186
+MATCH     F2 on #24 2c513ec0-7450-4778-9569-5fa038a03b56
+MATCH     F4 host   72f43818-9583-477d-8ca5-95d04226a1f1
+MATCH     F4 host   7dfdb95b-a944-4949-a707-39d2b2c1c513
+MATCH     F4 host   1417d6c3-126d-452e-b526-089feee858ee
+MATCH     F4 host   9dc6f5f0-c8d3-4807-9038-c8c34265a965
+MATCH     F4 host   6538542f-fee0-4a67-9c2f-23230a1c5cc7
+MATCH     F4 host   93d4be98-8966-4aef-adee-d8202df5ccdc
+MATCH     F4 host   bf625a4a-3d3c-4886-9d26-57e2d5026aaa
+MATCH     F4 host   bb378748-d273-4602-adc0-35f028b09ae2
 
-<span class="ok">OK — every model call this Kiln account made is on Kiln&#39;s record as written (15 / 15)</span></pre></section>
-<section id="weekly"><p class="t">The lead&#39;s Friday — npm run statement · npm run tune -- next.json</p><pre>Paid inside the line: 30.00 USDT · Kept in the vault by the line: 18.20 USDT (8 stops) · 0 problems · Guarding cost: 21 Kiln calls, $0.0007300
-| GPU Shop | 7 | 23.00 |
-| Kiln credits | 6 | 7.00 |
-| DEADLINE_PASSED | 1 | 5.00 |
-| MERCHANT_NOT_ALLOWED | 3 | 3.60 |
-| OVER_BUDGET_WITH_FEES | 3 | 8.60 |
-| PAUSED | 1 | 1.00 |</pre><pre>Under the candidate line: 2 paid · 4 stopped · 5.20 USDT spent (recorded: 5 paid)
-3 requests would end differently:
-  #18 Kiln credits 1.00 USDT: PAID → OVER_BUDGET_WITH_FEES
-  #19 GPU Shop 2.60 USDT: PAID → OVER_BUDGET_WITH_FEES
-  #20 Kiln credits 1.00 USDT: PAID → OVER_BUDGET_WITH_FEES
+<span class="ok">OK — every call in the record made on this Kiln account matches Kiln&#39;s own record (29 / 29 rows)</span></pre></section>
+<section id="weekly"><p class="t">The lead&#39;s Friday — npm run statement · npm run tune -- next.json</p><pre>Paid inside the line: 36.20 USDT · Refused attempts: 12 (12 distinct requests), face value 30.10 USDT · 5 repeats refused on-chain as replays · 0 problems · **1 intent flag** (the words named another seller than the one paid) · Kiln calls behind these receipts: 26, $0.0009531
+| GPU Shop | 9 | 28.20 |
+| Kiln credits | 7 | 8.00 |
+| DEADLINE_PASSED | 2 | 7.60 |
+| MERCHANT_NOT_ALLOWED | 4 | 4.50 |
+| OVER_BUDGET_WITH_FEES | 4 | 16.00 |
+| PAUSED | 2 | 2.00 |</pre><pre>Under the candidate line: 2 paid · 5 stopped · 3.60 USDT spent (recorded: 3 paid)
+2 requests would end differently:
+  #25 GPU Shop 7.40 USDT: OVER_BUDGET_WITH_FEES → OVER_TX_CAP
+  #27 GPU Shop 2.60 USDT: PAID → OVER_BUDGET_WITH_FEES
+A line that fits the recorded paid requests exactly: budget 6.20 USDT, cap 2.60 USDT (the same sellers).
 Same rule and order as the vault (evaluate()); STOP and deadline stops are kept as recorded; nothing is sent to the chain.</pre></section>
-<section id="tokens"><p class="t">Kiln tokens by flow — live qwen3-32b</p><table><tr><th>Flow</th><th>Calls</th><th>Tokens</th><th>USD</th><th>Median latency</th><th>Wh (est.)</th></tr><tr><td>F1 intent</td><td>21</td><td>9008</td><td>$0.0007300</td><td>1.76 s</td><td>2.2209</td></tr><tr><td>F2 explain</td><td>7</td><td>3013</td><td>$0.0002992</td><td>3.20 s</td><td>0.9889</td></tr><tr><td>F3 dispute</td><td>13</td><td>17092</td><td>$0.0013045</td><td>2.25 s</td><td>1.7807</td></tr><tr><td>Total</td><td>41</td><td>29113</td><td>$0.0023336</td><td>1.99 s</td><td>4.9905</td></tr></table><p class="s">1.00 LLM call per purchase · Wh = 180 W (RNGD TDP) × measured wall time — an estimate, stated</p></section>
+<section id="tokens"><p class="t">Kiln tokens by flow — live qwen3-32b</p><table><tr><th>Flow</th><th>Calls</th><th>Tokens</th><th>USD</th><th>Median latency</th><th>Wh (est.)</th></tr><tr><td>F1 intent</td><td>19</td><td>4933</td><td>$0.0003742</td><td>1.68 s</td><td>1.7667</td></tr><tr><td>F2 explain</td><td>9</td><td>3896</td><td>$0.0003936</td><td>2.26 s</td><td>1.1922</td></tr><tr><td>F3 dispute</td><td>14</td><td>21261</td><td>$0.0016574</td><td>2.37 s</td><td>1.9320</td></tr><tr><td>F4 MCP host</td><td>15</td><td>17061</td><td>$0.0013437</td><td>2.00 s</td><td>1.7046</td></tr></table><p class="s">1.00 LLM call per purchase · Wh = 180 W (RNGD TDP) × measured wall time — an estimate, stated</p></section>
 <section id="ab"><p class="t">/no_think A/B — the same request, n = 12</p><table><tr><th>Arm</th><th>n</th><th>JSON parsed</th><th>Median output tokens</th><th>Median latency</th><th>Median Wh</th></tr><tr><td>/no_think (production)</td><td>12</td><td>100%</td><td>36</td><td>0.95 s</td><td>0.0474</td></tr><tr><td>thinking on</td><td>12</td><td>100%</td><td>223</td><td>3.50 s</td><td>0.1748</td></tr></table><p class="s">Same JSON 12 / 12 pairs</p></section>
-<section id="end"><p class="t">Spendline</p><h1>Spendline</h1><p class="big">Not an agent that can pay — a payment that can prove it was allowed.</p><p class="s">21 receipts · 0 problems · every model call on Kiln · every stop on-chain</p></section>
+<section id="end"><p class="t">Spendline</p><h1>Spendline</h1><p class="big">Not an agent that can pay — a payment that can prove it was allowed.</p><p class="s">28 receipts · 0 problems · every model call on Kiln · every stop on-chain</p></section>
 </body></html>

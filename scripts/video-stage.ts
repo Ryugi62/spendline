@@ -30,10 +30,18 @@ const agentPre = live.map((r) => `<pre>${esc(r.transcript).replace(/(#\d+ PAID)/
 const agentNote = live.map((r) => `#${r.seq}: F1 via ${esc(r.via)} · ${r.latencyS} s wall · ${r.serverS} s on Kiln's server`).join(' &nbsp;·&nbsp; ');
 // v1.1: #mcp = the clean MCP host run (docs/live/mcp-*-run*.txt, newest), every tx checked against the record · #attest = `npm run attest -- --saved`
 // (docs/kiln-attest.txt, team32 rows) · #weekly = the statement's head + `npm run tune` on examples/next-line.json (saved in docs/tune-next-line.txt)
-const mcpRun = readdirSync('docs/live').filter((n) => /^mcp-.*-run\d+\.txt$/.test(n)).sort().at(-1)!;
-const mcpText = readFileSync(`docs/live/${mcpRun}`, 'utf8').trim().split('\n').filter((l) => !l.startsWith('→ docs/')).join('\n');
-for (const tx of mcpText.match(/\b[0-9a-f]{64}\b/g) ?? []) if (!txs.includes(tx) && !s.receipts.some((r) => r.hash === tx)) throw new Error(`#mcp refused: ${tx} is not in the record`);
-const mcpShown = mcpText.replace(/"receipt_hash":"[0-9a-f]{64}"/g, (m) => m.slice(0, 31) + '…"').replace(/("tx":"[0-9a-f]{16})[0-9a-f]{48}"/g, '$1…"');
+// runs 4–5: the plain-words request (Kiln sent three tool calls in one reply; code priced them) and the same request again (repeats refused on-chain)
+const condense = (t: string) => t.slice(0, t.indexOf('Kiln qwen3-32b → answer')).trim().split('\n').filter((l) => !l.startsWith('→ docs/') && !/^\d{4}-\d\d-\d\dT/.test(l)).map((l) => {
+  if (l.startsWith('$ ')) return l.replace('$ date -u; git rev-parse --short HEAD; ', '$ ');
+  const call = l.match(/spendline_pay\((\{.*?\})\) · (\d+)\+(\d+) tokens.* gen ([0-9a-f]{8})[0-9a-f-]* · via (.*)$/);
+  if (call) { const a = JSON.parse(call[1]) as Record<string, unknown>; return `Kiln → spendline_pay(${a.to} · ${a.item} × ${a.quantity ?? 1}) · ${call[2]}+${call[3]} tokens · gen ${call[4]}… · ${call[5]}`; }
+  const m = l.match(/^  ← (\{.*\})$/);
+  if (!m) return l.replace(/ · \$[0-9.]+ · gen ([0-9a-f]{8})[0-9a-f-]+/, ' · gen $1…');
+  const r = JSON.parse(m[1]) as Record<string, unknown>;
+  if (typeof r.tx === 'string' && !txs.includes(r.tx)) throw new Error(`#mcp refused: ${r.tx} is not in the record`);
+  return `  ← ${r.ok ? 'ok' : `stopped ${r.reason}`} · ${r.seller} ${r.amount_usdt} + ${r.fee_usdt} (${r.priced_by}) · ${r.replay_of ? `repeat of #${r.replay_of}` : `receipt #${r.receipt_seq}`} · tx ${String(r.tx).slice(0, 10)}…`;
+}).join('\n');
+const mcpShown = ['docs/live/mcp-2026-09-29-run4.txt', 'docs/live/mcp-2026-09-29-run5.txt'].map((f) => condense(readFileSync(f, 'utf8').trim())).join('\n\n');
 const attestOut = readFileSync('docs/kiln-attest.txt', 'utf8').trim().split('\n').filter((l) => !l.startsWith('OTHER_ACCOUNT')).map((l) => l.replace(/ \(the builder's personal key[^)]*\)/, ' (the builder\'s personal key, before team32)')).join('\n');
 const statementHead = readFileSync('docs/statement.md', 'utf8').split('\n').filter((l) => l.startsWith('Paid inside') || /^\| (GPU Shop|Kiln credits|[A-Z_]+ \|)/.test(l)).join('\n');
 const tuneOut = readFileSync('docs/tune-next-line.txt', 'utf8').trim();
@@ -57,7 +65,7 @@ $ npm run stop
 Paused · tx ${esc(f.stopTx ?? '')}</pre>`)}
 ${panel('audit', 'Anyone checks it — no key, no .env', `<pre>${esc(auditOut).replace(/→ OK/, '→ <span class="ok">OK</span>')}</pre>`)}
 ${panel('agent', 'Live, during the event window — npm run agent on Kiln + TRON Nile', `<p class="s">${agentNote} · from the receipts file</p><div class="term">${agentPre}</div>`)}
-${panel('mcp', 'Any MCP host — here Qwen3-32B on Kiln (organizer account) + TRON Nile, live', `<pre class="small">${esc(mcpShown).replace(/("ok":true)/g, '<span class="ok">$1</span>').replace(/(MERCHANT_NOT_ALLOWED)/, '<span class="hl">$1</span>')}</pre>`)}
+${panel('mcp', 'Any MCP host — here Qwen3-32B on Kiln (organizer account) + TRON Nile, live: the request, then the same request again', `<pre class="small">${esc(mcpShown).replace(/← ok/g, '← <span class="ok">ok</span>').replace(/(stopped [A-Z_]+)/g, '<span class="hl">$1</span>')}</pre>`)}
 ${panel('attest', "Two witnesses — Kiln's own record vs the receipts on TRON", `<pre class="small">${esc(attestOut).replace(/^(OK — .*)$/m, '<span class="ok">$1</span>')}</pre>`)}
 ${panel('weekly', "The lead's Friday — npm run statement · npm run tune -- next.json", `<pre>${esc(statementHead)}</pre><pre>${esc(tuneOut)}</pre>`)}
 ${panel('tokens', 'Kiln tokens by flow — live qwen3-32b', `<table><tr><th>Flow</th><th>Calls</th><th>Tokens</th><th>USD</th><th>Median latency</th><th>Wh (est.)</th></tr>${rows}</table><p class="s">${f.callsPerPurchase} LLM call per purchase · Wh = 180 W (RNGD TDP) × measured wall time — an estimate, stated</p>`)}

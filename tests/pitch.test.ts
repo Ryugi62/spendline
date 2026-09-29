@@ -40,11 +40,11 @@ describe('checkScript (AC-31)', () => {
 
 describe('the real record (offline: session.json + answers log + A/B file)', () => {
   const real = recordFacts();
-  it('facts come from the audit: 21 receipts (13 live during the window), 0 problems, the seller-not-listed stop is #2', () => {
-    expect(real).toMatchObject({ receipts: 21, paid: 13, stopped: 8, replays: 1, problems: 0, paidUsdt: '30.00', merchantStopSeq: 2, kilnCalls: 41, callsPerPurchase: '1.00', flows: 3 });
-    expect(real.attest).toEqual({ match: 15, shown: 15, otherAccount: 30, f1Before: 9, f1: 9, leadMin: 2, leadMax: 5 });
-    expect(real.mcp).toEqual({ tools: 3, runs: 3, calls: 10, attempts: 6, perAttempt: '1.67' });
-    expect(real.kept).toEqual({ usdt: '18.20', stops: 8 });
+  it('facts come from the audit: 28 receipts, 0 problems, the demo opens on the newest seller-not-listed stop (#24, organizer account, Kiln-attested)', () => {
+    expect(real).toMatchObject({ receipts: 28, paid: 16, stopped: 12, replays: 5, problems: 0, paidUsdt: '36.20', merchantStopSeq: 24, kilnCalls: 57, callsPerPurchase: '1.00', flows: 3 });
+    expect(real.attest).toEqual({ match: 29, shown: 29, otherAccount: 30, f1Before: 16, f1: 16, leadMin: 2, leadMax: 10, kilnMedianMs: 879, whPerCallKiln: '0.0440', cachedPct: 35 });
+    expect(real.mcp).toEqual({ tools: 3, runs: 5, calls: 15, attempts: 13, perAttempt: '1.15' });
+    expect(real.kept).toEqual({ usdt: '30.10', stops: 12, distinct: 12, replays: 5 });
     expect(real.ab).toMatchObject({ n: 12, offTokens: 36, onTokens: 223, sameJson: 12 });
     expect(real.stopTx && real.grantTx && real.replayTx).toBeTruthy();
   });
@@ -79,6 +79,6 @@ describe('the real record (offline: session.json + answers log + A/B file)', () 
 describe('cost of one guarded decision in the facts (M1 review)', () => {
   it('Kiln F1 USD per purchase and median TRX per paid / stopped pay() come from the record files', () => {
     const c = recordFacts().cost!;
-    expect(c).toEqual({ f1Usd: '0.0000348', paidTrx: '7.01', stopTrx: '2.80' });
+    expect(c).toEqual({ f1Usd: '0.0000197', paidTrx: '7.01', stopTrx: '2.80' });
   });
 });

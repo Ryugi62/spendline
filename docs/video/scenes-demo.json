@@ -1,21 +1,21 @@
 [
  {
   "id": "d01",
-  "url": "ui:#/receipt/2",
-  "en": "An AI agent was asked to buy 2 GPU hours from a cheaper seller that is not on the list. The vault on TRON refused, and recorded the stop on-chain."
+  "url": "ui:#/receipt/24",
+  "en": "A purchasing agent on Kiln was asked to buy a GPU hour from a cheaper seller that is not on the list. The vault on TRON refused, and recorded the stop on-chain."
  },
  {
   "id": "d02",
-  "url": "ui:#/receipt/2",
+  "url": "ui:#/receipt/24",
   "actions": [
    "scroll:.why"
   ],
-  "en": "Kiln's Qwen3-32B explains it in plain words. It is shown only because it repeats the audit's verdict."
+  "en": "Kiln explains it in plain words, shown only because it repeats the audit's verdict."
  },
  {
   "id": "d03",
   "url": "docs/video/stage.html#event",
-  "en": "This is the vault's public event: SpendBlocked, with the receipt hash and the reason. Anyone can read it. No key needed."
+  "en": "This is the vault's public event: SpendBlocked, with the receipt hash and the reason. Anyone can read it."
  },
  {
   "id": "d04",
@@ -48,7 +48,7 @@
  },
  {
   "id": "d08",
-  "url": "ui:#/receipt/3",
+  "url": "ui:#/receipt/25",
   "en": "Over budget once the fee is added: stopped on-chain."
  },
  {
@@ -62,28 +62,28 @@
  },
  {
   "id": "d10",
-  "url": "ui:#/receipt/7",
+  "url": "ui:#/receipt/28",
   "en": "A short time window: one payment inside it, then the same request after it closed. Stopped: deadline passed."
  },
  {
   "id": "d11",
   "url": "ui:#/audit",
-  "en": "Now the audit, rebuilt from public records only: 21 receipts, 13 paid inside, 8 stopped, 0 problems."
+  "en": "The audit, rebuilt from public records only: 28 receipts, 16 paid inside, 12 stopped, 0 problems."
  },
  {
   "id": "d12",
   "url": "docs/video/stage.html#audit",
-  "en": "The same check from the command line. No key. It re-hashes every receipt and replays the line in force at that moment."
+  "en": "The same check from the command line, with no key."
  },
  {
   "id": "d12b",
   "url": "docs/video/stage.html#mcp",
-  "en": "New in this version: any agent that speaks MCP can use Spendline as its wallet. Here the host's planner is Qwen3-32B on Kiln, live on the organizer's account. One request, three pay calls: the GPU Shop and the Kiln credit were paid, and the unknown seller was stopped on-chain."
+  "en": "Any agent that speaks MCP can use Spendline as its wallet. Here the planner is Qwen3-32B on Kiln, on the organizer's account. One reply, three pay calls; code priced them. Two were paid, the unknown seller was stopped. Sent again, every call was refused on-chain as a repeat: it buys once."
  },
  {
   "id": "d12c",
   "url": "docs/video/stage.html#attest",
-  "en": "And a second witness. Each receipt hash on TRON commits to the Kiln generation behind it, and Kiln's own record agrees on 15 of 15 calls: model, tokens and cost. Every model call came 2 to 5 seconds before its payment."
+  "en": "And a second witness. In plain words: Kiln's own logbook and the blockchain tell the same story, and the AI call came first. 29 of 29 rows match Kiln's record, and every paying call came 2 to 10 seconds before its payment."
  },
  {
   "id": "d13",
@@ -96,12 +96,12 @@
  {
   "id": "d13b",
   "url": "docs/video/stage.html#weekly",
-  "en": "On Friday, one command writes the statement: paid by seller, 18.20 USDT kept in the vault by 8 stops, and a CSV for the accountant. Tune shows what next week's line would have done."
+  "en": "On Friday, one command writes the statement: paid by seller, refused attempts, an intent flag, and a CSV for the accountant. Tune shows what next week's line would have done."
  },
  {
   "id": "d14",
   "url": "docs/video/stage.html#tokens",
-  "en": "Efficiency: 1.00 LLM call per purchase. With no-think, median output drops from 223 to 36 tokens, the same JSON in 12 of 12 pairs. Energy is an estimate: 180 watts times measured time."
+  "en": "Efficiency: 1.00 LLM call per purchase on Spendline's own path, 1.15 through a general MCP host. No-think cut median output from 223 to 36 tokens. Energy is an estimate: 180 watts times measured time."
  },
  {
   "id": "d16",

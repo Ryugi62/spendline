@@ -1129,7 +1129,7 @@
    }
   }
  ],
- "generatedAt": 1790688569,
+ "generatedAt": 1790689127,
  "answers": [
   {
    "key": "F2:ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
@@ -1538,6 +1538,25 @@
     "latencyMs": 3026,
     "generationId": "e569d038-647a-4d30-b22b-6697fdcfa186",
     "serverMs": 1994
+   }
+  },
+  {
+   "key": "F2v3:49e746c2da550442fa16bfd0b57184eaa1b1e45622297269cf3c75ed5cdfec99",
+   "flow": "F2_explain",
+   "seq": 24,
+   "verdict": "STOPPED",
+   "reason": "MERCHANT_NOT_ALLOWED",
+   "txHash": "0589618fde9fe1e99ec3c06fa0700d6e3e0126c27d2b1d00486433247dbd3f5a",
+   "text": "The payment was stopped because the seller is not on the allowed list.",
+   "grounded": true,
+   "usage": {
+    "flow": "F2_explain",
+    "promptTokens": 385,
+    "completionTokens": 42,
+    "costUsd": 0.00004236000000000001,
+    "latencyMs": 1938,
+    "generationId": "2c513ec0-7450-4778-9569-5fa038a03b56",
+    "serverMs": 830
    }
   }
  ]

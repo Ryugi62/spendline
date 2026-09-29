@@ -112,7 +112,7 @@ export function formatServerEnergy(e: { calls: number; wallMs: number; serverMs:
 }
 
 // AC-44 — the Kiln calls of MCP host runs (docs/live/mcp-host-*.json): a general host plans with more calls and longer prompts than F1.
-export type HostRunLog = { calls: UsageRecord[]; steps: { tool: string; isError: boolean }[]; answer?: string; commit?: string };
+export type HostRunLog = { calls: UsageRecord[]; steps: { tool: string; isError: boolean; generationId?: string }[]; answer?: string; commit?: string };
 export type HostRunsSummary = {
   runs: number; calls: number; payments: number; noPayment: number; callsPerPayment: number; medianPromptTokens: number; tokens: number; costUsd: number;
   /** runs that ended in a plain answer (the request handled) · a pay decision the host could not parse · pay calls refused before the chain */
@@ -124,11 +124,14 @@ export function hostRunsSummary(runs: HostRunLog[]): HostRunsSummary {
   const prompts = calls.map((c) => c.promptTokens).sort((a, b) => a - b);
   const mid = prompts.length % 2 ? prompts[(prompts.length - 1) / 2] : (prompts[prompts.length / 2 - 1] + prompts[prompts.length / 2]) / 2;
   const dropped = runs.filter((r) => r.answer !== undefined && leakedToolCall(r.answer, 'spendline_pay') !== undefined).length;
+  // a call reached the vault when one of its pay steps did (a reply may hold several tool calls)
+  const reached = new Set(runs.flatMap((r) => r.steps.filter((s) => s.tool === 'spendline_pay' && !s.isError && s.generationId).map((s) => s.generationId!)));
+  const refusedCalls = new Set(runs.flatMap((r) => r.steps.filter((s) => s.isError && s.generationId && !reached.has(s.generationId)).map((s) => s.generationId!)));
   return {
-    runs: runs.length, calls: calls.length, payments, noPayment: calls.length - payments,
+    runs: runs.length, calls: calls.length, payments, noPayment: calls.filter((c) => !reached.has(c.generationId)).length,
     callsPerPayment: payments ? Math.round((calls.length / payments) * 100) / 100 : 0, medianPromptTokens: mid ?? 0,
     tokens: calls.reduce((n, c) => n + c.promptTokens + c.completionTokens, 0), costUsd: Math.round(calls.reduce((n, c) => n + c.costUsd, 0) * 1e8) / 1e8,
-    completed: runs.length - dropped, dropped, refused: runs.reduce((n, r) => n + r.steps.filter((s) => s.isError).length, 0),
+    completed: runs.length - dropped, dropped, refused: refusedCalls.size,
   };
 }
 export function formatHostRuns(h: HostRunsSummary, o: { f1MedianPrompt: number }): string {

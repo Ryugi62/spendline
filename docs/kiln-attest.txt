@@ -1,8 +1,8 @@
-Two witnesses — Kiln's own record (saved docs/kiln-generations.json, fetched 2026-09-29T13:30:53.268Z) vs the receipts whose hashes are on TRON
-56 Kiln calls in the record (58 rows — one reply with several tool calls backs several receipts) · 28 MATCH · 0 DIFFERS · 0 NOT_FOUND · 30 made on another Kiln account (the builder's personal key, before the organizer-issued team32 account: receipts #1-#12, answer lines 1-18 — Kiln shows a generation only to its own account)
+Two witnesses — Kiln's own record (Kiln live, 2026-09-29T13:40:19.777Z) vs the receipts whose hashes are on TRON
+57 Kiln calls in the record (59 rows — one reply with several tool calls backs several receipts) · 29 MATCH · 0 DIFFERS · 0 NOT_FOUND · 30 made on another Kiln account (the builder's personal key, before the organizer-issued team32 account: receipts #1-#12, answer lines 1-18 — Kiln shows a generation only to its own account)
 Calls that led to a payment: 16 / 16 dated before their pay() and within 120 s (2–10 s, median 4 s) · no (generation, arguments) backs two receipts
 The model's own arguments re-derive the payment (seller, item × quantity + fee from the catalog): 7 / 7
-On Kiln's own clock: median latency 885 ms → ≈0.0442 Wh per call at 180 W (an estimate) · prompt tokens served from Kiln's cache: 9423 / 26864 (35%)
+On Kiln's own clock: median latency 879 ms → ≈0.0440 Wh per call at 180 W (an estimate) · prompt tokens served from Kiln's cache: 9428 / 27249 (35%)
 
 OTHER_ACCOUNT F1 #1     d919cfd0-5e71-46fc-8ec0-6fad043902de
 OTHER_ACCOUNT F1 #2     a83ece71-1d04-48cf-8cbf-38d1789e184f
@@ -54,6 +54,7 @@ MATCH     F2 on #13 46108f55-baa2-4e65-bbb6-d1a2f0fb51b6
 MATCH     F3 on #13 f2699a73-4f40-44fc-8b22-8040eaa0b25d
 MATCH     F2 on #28 2c5b6816-e1fd-426e-bc67-f6fa2297ccc5
 MATCH     F3 on #27 e569d038-647a-4d30-b22b-6697fdcfa186
+MATCH     F2 on #24 2c513ec0-7450-4778-9569-5fa038a03b56
 MATCH     F4 host   72f43818-9583-477d-8ca5-95d04226a1f1
 MATCH     F4 host   7dfdb95b-a944-4949-a707-39d2b2c1c513
 MATCH     F4 host   1417d6c3-126d-452e-b526-089feee858ee
@@ -63,4 +64,4 @@ MATCH     F4 host   93d4be98-8966-4aef-adee-d8202df5ccdc
 MATCH     F4 host   bf625a4a-3d3c-4886-9d26-57e2d5026aaa
 MATCH     F4 host   bb378748-d273-4602-adc0-35f028b09ae2
 
-OK — every call in the record made on this Kiln account matches Kiln's own record (28 / 28 rows)
+OK — every call in the record made on this Kiln account matches Kiln's own record (29 / 29 rows)

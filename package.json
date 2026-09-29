@@ -40,7 +40,8 @@
     "mcp:host": "tsx src/infrastructure/mcp-host-cli.ts",
     "mcp:smoke": "tsx scripts/mcp-smoke.ts",
     "fund": "tsx scripts/fund-nile.ts",
-    "mcp:demo": "tsx src/infrastructure/mcp-demo.ts"
+    "mcp:demo": "tsx src/infrastructure/mcp-demo.ts",
+    "commits": "tsx scripts/commits.ts"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

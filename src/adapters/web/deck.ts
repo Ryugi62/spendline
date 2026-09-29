@@ -58,7 +58,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
       id: 'kiln',
       title: 'Kiln integration & efficiency',
       html: `<div class="stats"><div><p class="num">${f.callsPerPurchase}</p><p>LLM call per purchase<br><small>design limit 2</small></p></div>
-<div><p class="num">${f.kilnCalls}</p><p>live Kiln calls in ${f.flows} flows<br><small>${f.tokens} tokens · $${f.usd}</small></p></div>
+<div><p class="num">${f.kilnCalls}</p><p>live Kiln calls in ${f.flows} flows + an MCP host<br><small>${f.tokens} tokens · $${f.usd}</small></p></div>
 <div><p class="num">${f.whPerPurchase}<span> Wh</span></p><p>per purchase (est.)<br><small>${f.wh} Wh in total</small></p></div></div>
 <p class="lead">F1 offers a Kiln tool call (<code>propose_purchase</code>, the Qwen3-32B tool parser) — chosen by a rule we fixed before a live A/B; a reply as plain JSON or a call leaked into text is parsed too, and each receipt records which.</p>
 <p class="lead">/no_think A/B, n = ${f.ab.n}: median ${f.ab.offTokens} vs ${f.ab.onTokens} output tokens · ${f.ab.offSeconds} vs ${f.ab.onSeconds} s · same JSON ${f.ab.sameJson}/${f.ab.n} → ${f.ab.tokensSavedPct}% fewer tokens.</p>
@@ -86,7 +86,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'new',
       title: "What's new",
-      html: `<ul class="big-list tight"><li><b>Two witnesses per payment.</b> The receipt hash on TRON commits to the Kiln generation behind it; Kiln's own record (<code>GET /v1/generations/{id}</code>) is the second witness.${f.attest ? ` On the organizer's account ${f.attest.match} of ${f.attest.shown} calls match — model, tokens, cost — and every F1 call is dated ${f.attest.leadMin}–${f.attest.leadMax} s before its <code>pay()</code> (<code>npm run attest</code>).` : ''}</li>
+      html: `<ul class="big-list tight"><li><b>Two witnesses per payment.</b> The receipt hash on TRON commits to the Kiln generation behind it; Kiln's own record (<code>GET /v1/generations/{id}</code>) is the second witness.${f.attest ? ` On the organizer's account ${f.attest.match} of ${f.attest.shown} rows match — model, tokens, cost — every paying call is dated ${f.attest.leadMin}–${f.attest.leadMax} s before its <code>pay()</code>, and code re-derives each payment from the model's own arguments kept in the receipt (<code>npm run attest</code>). Plainly: Kiln's logbook and the chain tell the same story, and the AI call came first.` : ''}</li>
 <li><b>A stop is an event.</b> Refusals are recorded on-chain with the reason, so the history shows what the agent was <i>not</i> allowed to do.</li>
 <li><b>Receipts are hash-chained and anchored.</b> Each receipt's hash is an argument of <code>pay()</code>; the vault decides each hash once.</li>
 <li><b>The model phrases, the audit decides.</b> Kiln's words about a receipt are shown only if they repeat the audit's verdict and use only numbers from the record.</li></ul>`,
@@ -94,9 +94,9 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'value',
       title: 'Who pays · where it plugs in',
-      html: `<ul class="big-list tight"><li><b>Plugs in</b> two ways: as an MCP server any agent host can add (<code>npm run mcp</code>: <code>spendline_line</code> · <code>spendline_pay</code> · <code>spendline_check</code>${f.mcp ? ` — live with Qwen3-32B on Kiln as the host, ${f.mcp.runs} runs, ${f.mcp.attempts} pay attempts` : ''}), or as a drop-in <code>spendlineWallet(…)</code> with the same <code>transfer(to, amount, memo)</code> call. The person keeps the owner key; the agent key can only ask.</li>
-<li><b>The lead's week</b>: grant a line → the agent spends → <code>npm run statement</code> writes the statement and a CSV for the accountant${f.kept ? ` (${f.kept.usdt} USDT kept in the vault by ${f.kept.stops} stops)` : ''} → <code>npm run tune -- next.json</code> shows what next week's line would have done to this week's requests.</li>
-${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile): Kiln F1 $${f.cost.f1Usd} + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped (median).</li>` : ''}
+      html: `<ul class="big-list tight"><li><b>Plugs in</b> two ways: as an MCP server any agent host can add (<code>spendline_line</code> · <code>spendline_pay</code> · <code>spendline_check</code> — driven by the official MCP Inspector; live with Qwen3-32B on Kiln as the host${f.mcp ? `, ${f.mcp.attempts} pay attempts` : ''}; code prices every payment; the same request sent twice buys once, the repeat refused on-chain), or as a drop-in <code>spendlineWallet(…)</code>. The person keeps the owner key; the agent key can only ask.</li>
+<li><b>The lead's week</b>: grant a line → the agent spends → <code>npm run statement</code> writes the statement and a CSV for the accountant${f.kept ? ` (${f.kept.stops} refused attempts, ${f.kept.replays ?? 0} repeats refused, intent flags)` : ''} → <code>npm run tune -- next.json</code> shows what next week's line would have done to this week's requests.</li>
+${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile): Kiln F1 $${f.cost.f1Usd} (mean) + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped (median).</li>` : ''}
 <li><b>Who needs it</b>: teams that let agents buy compute, credits and API time. Business (hypothesis, not validated): vault and audit open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>
 <li><b>Why TRON · USDT</b>: an agent's budget is money people already hold as a stablecoin, settled as a plain TRC20 transfer inside <code>pay()</code>.</li></ul>`,
     },

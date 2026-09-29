@@ -9,6 +9,8 @@ import { audit } from '../domain/audit';
 import { abSummary, flowReport, type AbPair } from '../domain/flowReport';
 import { LIVE_ANSWERS, sha256 } from './runtime';
 import { savedAttest } from './attest-record';
+import { summarizeAttest } from '../application/attest';
+import { hostCallsOutsideReceipts, withHostFlows } from './host-runs';
 import { hostRunsSummary, type HostRunLog } from '../application/report';
 import { buildStatement } from '../domain/statement';
 import { fmtUsdt } from '../domain/money';
@@ -36,8 +38,9 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
   const answers = readJsonl<AnswerRecord>(o.answers ?? LIVE_ANSWERS);
   const ab = JSON.parse(readFileSync(o.ab ?? 'docs/ab-no-think-2026-09-26.json', 'utf8')) as { pairs: AbPair[] };
   const res = audit({ mandates: [], receipts: s.receipts, events: s.events, hash: sha256 });
-  const usage = [...s.receipts.flatMap((r) => r.flows), ...answers.flatMap((a) => (a.usage ? [a.usage] : []))];
-  const report = flowReport(usage, { purchases: s.receipts.length });
+  const labelled = withHostFlows(s.receipts); // MCP host planner calls as F4 (copies — the audit above uses the receipts as recorded)
+  const usage = [...labelled.flatMap((r) => r.flows), ...answers.flatMap((a) => (a.usage ? [a.usage] : [])), ...hostCallsOutsideReceipts(s.receipts)];
+  const report = flowReport(usage, { purchases: labelled.filter((r) => r.flows.some((u) => u.flow === 'F1_intent')).length });
   const grants = s.events.filter((e) => e.kind === 'granted');
   const costFile = 'docs/chain-cost-2026-09-28.json';
   const chain = existsSync(costFile) ? (JSON.parse(readFileSync(costFile, 'utf8')) as { summary: { paid: { medianTrx: number }; stopped: { medianTrx: number } } }).summary : undefined;
@@ -52,13 +55,15 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
   });
   // v1.1 — two witnesses (saved Kiln answers, keyless), MCP host runs, the statement's kept total
   const at = savedAttest({ receipts: s.receipts, answers, events: s.events });
+  const sa = at ? summarizeAttest(at) : undefined;
   const leads = at?.rows.flatMap((r) => (r.leadSec !== undefined ? [r.leadSec] : [])) ?? [];
   const logs = existsSync('docs/live') ? readdirSync('docs/live').filter((n) => /^mcp-host-.*\.json$/.test(n)).sort().map((n) => JSON.parse(readFileSync(`docs/live/${n}`, 'utf8')) as HostRunLog) : [];
   const h = logs.length ? hostRunsSummary(logs) : undefined;
   const st = buildStatement({ receipts: s.receipts, verdicts: res.verdicts, labels: {}, replays: res.replays.length });
   return {
     ...base,
-    ...(at ? { attest: { match: at.counts.match, shown: at.counts.match + at.counts.differs, otherAccount: at.counts.otherAccount, f1Before: leads.filter((x) => x >= 0).length, f1: leads.length, leadMin: Math.min(...leads), leadMax: Math.max(...leads) } } : {}),
+    ...(at ? { attest: { match: at.counts.match, shown: at.counts.match + at.counts.differs, otherAccount: at.counts.otherAccount, f1Before: leads.filter((x) => x >= 0).length, f1: leads.length, leadMin: Math.min(...leads), leadMax: Math.max(...leads),
+      ...(sa?.medianKilnLatencyMs !== undefined ? { kilnMedianMs: sa.medianKilnLatencyMs, whPerCallKiln: sa.whPerCallKiln!.toFixed(4) } : {}), ...(sa?.prompt ? { cachedPct: Math.round((100 * sa.cached!) / sa.prompt) } : {}) } } : {}),
     ...(h ? { mcp: { tools: 3, runs: h.runs, calls: h.calls, attempts: h.payments, perAttempt: h.callsPerPayment.toFixed(2) } } : {}),
     kept: { usdt: fmtUsdt(st.totalKept), stops: st.stopsByReason.reduce((n, x) => n + x.count, 0), distinct: st.refusedDistinct, replays: st.replays },
   };

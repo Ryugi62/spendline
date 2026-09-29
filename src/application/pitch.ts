@@ -17,7 +17,7 @@ export type PitchFacts = {
   replays: number;
   problems: number;
   paidUsdt: string;
-  /** seq of the receipt stopped because the seller was not on the list — the demo opens on it */
+  /** seq of the newest receipt stopped because the seller was not on the list — the demo opens on it */
   merchantStopSeq?: number;
   kilnCalls: number;
   tokens: string;
@@ -41,7 +41,7 @@ export type PitchFacts = {
   /** stated assumptions with their numbers, e.g. "180 W — RNGD card TDP (furiosa.ai/rngd)" */
   stated: string[];
   /** v1.1 AC-40: Kiln's own record vs the receipts (team32 account) — MATCH count, calls Kiln shows, F1 calls dated before pay(), lead range in s */
-  attest?: { match: number; shown: number; otherAccount: number; f1Before: number; f1: number; leadMin: number; leadMax: number };
+  attest?: { match: number; shown: number; otherAccount: number; f1Before: number; f1: number; leadMin: number; leadMax: number; kilnMedianMs?: number; whPerCallKiln?: string; cachedPct?: number };
   /** v1.1 AC-43/44: MCP tools, host runs on Kiln, their Kiln calls, pay attempts that reached the vault, calls per attempt */
   mcp?: { tools: number; runs: number; calls: number; attempts: number; perAttempt: string };
   /** v1.1 AC-41: what the statement adds up — USDT kept in the vault by stops */
@@ -59,7 +59,7 @@ export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, 
     replays: res.replays.length,
     problems: problemCount(res),
     paidUsdt: fmtUsdt(res.totalPaid),
-    merchantStopSeq: res.verdicts.find((v) => v.verdict === 'STOPPED' && v.reason === 'MERCHANT_NOT_ALLOWED')?.seq,
+    merchantStopSeq: [...res.verdicts].reverse().find((v) => v.verdict === 'STOPPED' && v.reason === 'MERCHANT_NOT_ALLOWED')?.seq, // the newest: in the window, on the organizer account, Kiln-attested
     kilnCalls: report.total.calls,
     tokens: report.total.totalTokens.toLocaleString('en-US'),
     usd: report.total.costUsd.toFixed(7),
