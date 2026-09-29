@@ -1,0 +1,2 @@
+granted · mandate 0xacc05e5d78c4976629e8085a3b3c034c6434bf0520a6d8e4452f0f65cac0963e · 9.90 USDT · cap 8.00 · 2 sellers · deadline 2026-09-30 14:59:00 UTC
+tx 71df05fbb19623cb268918428f050c0ad6b890107f5f0dc93a9d697ede550396 · https://nile.tronscan.org/#/transaction/71df05fbb19623cb268918428f050c0ad6b890107f5f0dc93a9d697ede550396

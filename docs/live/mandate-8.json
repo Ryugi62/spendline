@@ -1,0 +1,10 @@
+{
+ "budget": 9900000,
+ "perTxCap": 2000000,
+ "merchants": [
+  "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+  "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"
+ ],
+ "deadline": 1790780340,
+ "paused": false
+}

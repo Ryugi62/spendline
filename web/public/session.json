@@ -689,6 +689,32 @@
    ],
    "prevHash": "cbe4c57964a28acb8cc8cd6dd7d5ddd0122487830551290c384522cff08fac19",
    "hash": "38fcfc8f148c0030428e82309f68345bbf5c630bbe22dcde5c50fec605ef794d"
+  },
+  {
+   "seq": 29,
+   "mandateId": "0x20824f62c6b137e29473e1922dee10cbdb60a6fc0a8589315970d0b0796b82d3",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 2400000,
+    "fee": 200000,
+    "at": 1790690964
+   },
+   "intentText": "Need 1 GPU hour for the eval tonight",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 317,
+     "completionTokens": 32,
+     "costUsd": 0.000034200000000000005,
+     "latencyMs": 2419,
+     "generationId": "fb110855-a964-4b44-8994-6776282d1f42",
+     "serverMs": 616,
+     "via": "tool_call",
+     "args": "{\"item\": \"gpu-hours\", \"quantity\": 1}"
+    }
+   ],
+   "prevHash": "38fcfc8f148c0030428e82309f68345bbf5c630bbe22dcde5c50fec605ef794d",
+   "hash": "68e676587258ddd3d16c483327d9294566286cb7227dc5106313a72034b884ee"
   }
  ],
  "events": [
@@ -1127,9 +1153,35 @@
     ],
     "paused": false
    }
+  },
+  {
+   "kind": "granted",
+   "at": 1790690961,
+   "txHash": "0ee36b6605103ad0af2726fb2b74a6fdf87b3dd41d27e8ce1bc49cccd5fb4d23",
+   "mandate": {
+    "id": "0x20824f62c6b137e29473e1922dee10cbdb60a6fc0a8589315970d0b0796b82d3",
+    "budget": 9900000,
+    "perTxCap": 2000000,
+    "deadline": 1790780340,
+    "merchants": [
+     "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+     "TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj"
+    ],
+    "paused": false
+   }
+  },
+  {
+   "kind": "blocked",
+   "receiptHash": "68e676587258ddd3d16c483327d9294566286cb7227dc5106313a72034b884ee",
+   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "amount": 2400000,
+   "fee": 200000,
+   "at": 1790690967,
+   "txHash": "df1cf72c9d4ada1374596e80293716ac30c188a05ba7b0e890171fe4e04794c2",
+   "reason": "OVER_TX_CAP"
   }
  ],
- "generatedAt": 1790689127,
+ "generatedAt": 1790690969,
  "answers": [
   {
    "key": "F2:ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",
