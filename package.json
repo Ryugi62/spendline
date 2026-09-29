@@ -32,7 +32,10 @@
     "deck": "tsx scripts/deck.ts",
     "ab:tool-call": "tsx scripts/ab-tool-call.ts",
     "chain:cost": "tsx scripts/chain-cost.ts",
-    "proof": "tsx scripts/proof.ts"
+    "proof": "tsx scripts/proof.ts",
+    "attest": "tsx src/infrastructure/attest-cli.ts",
+    "statement": "tsx src/infrastructure/review-cli.ts statement",
+    "tune": "tsx src/infrastructure/review-cli.ts tune"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

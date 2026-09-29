@@ -1,5 +1,6 @@
 import type { ChatMessage, ChatOptions, LlmPort, ToolCall } from '../application/ports';
 import type { Flow, UsageRecord } from '../domain/tokenLedger';
+import type { KilnGeneration } from '../domain/attest';
 
 /**
  * Kiln (Bricksum) — OpenAI-compatible chat/completions on FuriosaAI NPUs.
@@ -69,3 +70,31 @@ export class KilnLlm implements LlmPort {
 
 /** Qwen3 may emit an (empty) <think>…</think> block even with /no_think — never feed it to the parser. */
 export const stripThink = (s: string): string => s.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+// AC-40 — Kiln's own record of a generation: GET /v1/generations/{id} (measured 2026-09-29: 200 with
+// {id, model, total_cost, tokens_prompt, tokens_completion, cached_tokens, latency_ms, status_code, created_at}; unknown id → 404).
+
+type RawGeneration = { id: string; model: string; total_cost: number; tokens_prompt: number; tokens_completion: number; latency_ms?: number; created_at: string; [k: string]: unknown };
+export function parseKilnGeneration(j: RawGeneration): KilnGeneration {
+  return {
+    id: j.id, model: j.model, totalCost: j.total_cost, promptTokens: j.tokens_prompt, completionTokens: j.tokens_completion,
+    createdAt: Date.parse(j.created_at) / 1000,
+    ...(j.latency_ms !== undefined ? { latencyMs: j.latency_ms } : {}),
+  };
+}
+
+export class KilnGenerations {
+  private base: string;
+  private f: typeof fetch;
+  constructor(private cfg: { apiKey: string; baseUrl?: string; fetchImpl?: typeof fetch }) {
+    this.base = (cfg.baseUrl ?? 'https://api.bricksum.com/v1').replace(/\/$/, '');
+    this.f = cfg.fetchImpl ?? fetch;
+  }
+  /** Kiln's raw answer (kept verbatim for the saved file), or null when Kiln does not show this id. */
+  async raw(id: string): Promise<RawGeneration | null> {
+    const res = await this.f(`${this.base}/generations/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${this.cfg.apiKey}` } });
+    if (res.status === 404 || res.status === 403) return null;
+    if (!res.ok) throw new Error(`Kiln generations ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    return (await res.json()) as RawGeneration;
+  }
+}

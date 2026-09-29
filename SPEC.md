@@ -160,6 +160,28 @@ M1 said: the demo only replays the 2026-09-26 record, no live receipt comes thro
   an address from F1 still wins; two different names or none → the cheapest listed offer as before. Code, not prompt: F1 is unchanged (no new A/B).
 - README record numbers (the How-to-run audit line, the Kiln row) are pinned to the record's facts by `tests/readme-numbers.test.ts`.
 
+### 6h. v1.1 (2026-09-29 night, during the window) — a second witness, and the lead's weekly loop
+- AC-40 (two witnesses) Given the receipts, the answers log, the vault's public events and Kiln's own record of each generation
+  (`GET /v1/generations/{id}` → `{id, model, total_cost, tokens_prompt, tokens_completion, created_at}`) When `attest` Then one row per Kiln
+  call in the record (F1 per receipt, F2 / F3 per answer): MATCH when Kiln has that generation id with the same model (qwen3-32b), the same
+  prompt / output tokens and the same cost (±1e-9 USD); DIFFERS with each differing field named; NOT_FOUND when Kiln does not show the id.
+  For F1 the row also carries Kiln's `created_at` and the block time of the `pay()` event whose receipt hash commits to that generation id,
+  and the lead in seconds; a generation created **after** the payment is DIFFERS ("model call after the payment"). Stand-in usage is never a row.
+  `npm run attest` asks Kiln live and saves Kiln's answers to `docs/kiln-generations.json`; `npm run attest -- --saved`
+  re-runs the comparison keyless from that file. Exit 0 only when every row is MATCH.
+- AC-41 (weekly statement) Given the receipts, the audit and the catalog When `statement` Then one line per receipt: time (KST), seller label,
+  the request words, amount, fee, the audit's verdict and reason, the tx; totals: paid inside by seller, stops by reason, what the guarding
+  cost (Kiln USD from the record); a receipt the audit did not rebuild (MISMATCH / NO_CHAIN_EVENT) is listed as a problem, never as paid.
+  The statement's verdicts come from `audit()` only. `npm run statement` writes `docs/statement.md` + `docs/statement.csv` (keyless).
+- AC-42 (tune the next line) Given the recorded requests and a candidate line (`mandate.json`) When `tune` Then each request is re-evaluated in
+  order under the candidate (same `evaluate()` and check order as the vault, spent accumulates only on allow, time and STOP ignored — the
+  question is budget, cap and sellers) and the result is paid / stopped per reason under the candidate vs the record, and the requests whose
+  verdict would change. Keyless, no chain write.
+- AC-43 (MCP) Given an MCP host (any agent that speaks the Model Context Protocol) When it connects to `npm run mcp` (stdio) Then it sees three
+  tools: `spendline_line` (the line: budget, spent, left, cap, sellers, deadline, STOP), `spendline_pay` (`to`, `amount_usdt`, `why`,
+  optional `fee_usdt`) → `guardedPay` (AC-37) → `{ok, reason?, tx, receipt}`, and `spendline_check` (`seq`) → the audit's verdict for that
+  receipt (keyless). No model call is added; the host keeps its own planner. Amounts are USDT with ≤6 decimals, converted to micro-USDT by code.
+
 ## 7. Architecture (Clean)
 ```
 src/domain/ ← src/application/ ← src/adapters/ (kiln, tron, memory, jsonl) ← src/infrastructure/ (config, cli, composition root)
