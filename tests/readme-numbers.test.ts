@@ -36,8 +36,9 @@ describe('README says the record the facts say', () => {
   // v1.1 AC-40: the "New in v1.1" row quotes the two-witness numbers of the saved Kiln answers.
   it('the two-witness numbers = npm run attest -- --saved on the record', () => {
     const a = f.attest!;
-    expect(readme).toContain(`**${a.match} / ${a.shown} rows match Kiln's record**`);
-    expect(readme).toContain(`**${a.f1Before} / ${a.f1} paying calls are dated ${a.leadMin}–${a.leadMax} s before their \`pay()\`**`);
+    expect(readme).toContain(`**${a.match} / ${a.shown} rows (${a.calls} Kiln calls) match Kiln's record**`);
+    expect(readme).toContain(`**${a.f1Before} / ${a.f1} \`pay()\` attempts (${a.payingCalls} Kiln calls) are dated ${a.leadMin}–${a.leadMax} s after their Kiln call**`);
+    expect(readme).toContain(`(${a.argsBound} / ${a.argsBound})`);
     expect(readFileSync('docs/kiln-attest.txt', 'utf8')).toContain(`${a.match} MATCH · 0 DIFFERS · 0 NOT_FOUND`);
   });
   it('the version in package.json is the one the README evidence table states', () => {

@@ -43,15 +43,15 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
   const report = flowReport(usage, { purchases: labelled.filter((r) => r.flows.some((u) => u.flow === 'F1_intent')).length });
   const grants = s.events.filter((e) => e.kind === 'granted');
   const costFile = 'docs/chain-cost-2026-09-28.json';
-  const chain = existsSync(costFile) ? (JSON.parse(readFileSync(costFile, 'utf8')) as { summary: { paid: { medianTrx: number }; stopped: { medianTrx: number } } }).summary : undefined;
+  const chain = existsSync(costFile) ? (JSON.parse(readFileSync(costFile, 'utf8')) as { summary: { paid: { medianTrx: number; medianEnergy: number }; stopped: { medianTrx: number; medianEnergy: number } } }).summary : undefined;
   const base = pitchFacts(res, report, abSummary(ab.pairs), {
     vault: s.vault,
     tests: countTests(),
     stated: STATED,
     extraTx: s.events.map((e) => e.txHash),
-    stopTx: s.events.find((e) => e.kind === 'paused')?.txHash,
-    grantTx: grants[0]?.txHash,
-    ...(chain ? { chain: { paidTrx: chain.paid.medianTrx, stopTrx: chain.stopped.medianTrx } } : {}),
+    stopTx: [...s.events].reverse().find((e) => e.kind === 'paused')?.txHash, // the newest STOP (organizer account)
+    grantTx: grants.at(-1)?.txHash, // the newest grant
+    ...(chain ? { chain: { paidTrx: chain.paid.medianTrx, stopTrx: chain.stopped.medianTrx, paidEnergy: chain.paid.medianEnergy, stopEnergy: chain.stopped.medianEnergy } } : {}),
   });
   // v1.1 — two witnesses (saved Kiln answers, keyless), MCP host runs, the statement's kept total
   const at = savedAttest({ receipts: s.receipts, answers, events: s.events });
@@ -63,7 +63,7 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
   return {
     ...base,
     ...(at ? { attest: { match: at.counts.match, shown: at.counts.match + at.counts.differs, otherAccount: at.counts.otherAccount, f1Before: leads.filter((x) => x >= 0).length, f1: leads.length, leadMin: Math.min(...leads), leadMax: Math.max(...leads),
-      ...(sa?.medianKilnLatencyMs !== undefined ? { kilnMedianMs: sa.medianKilnLatencyMs, whPerCallKiln: sa.whPerCallKiln!.toFixed(4) } : {}), ...(sa?.prompt ? { cachedPct: Math.round((100 * sa.cached!) / sa.prompt) } : {}) } } : {}),
+      ...(sa?.medianKilnLatencyMs !== undefined ? { kilnMedianMs: sa.medianKilnLatencyMs, whPerCallKiln: sa.whPerCallKiln!.toFixed(4) } : {}), ...(sa?.prompt ? { cachedPct: Math.round((100 * sa.cached!) / sa.prompt) } : {}), ...(sa ? { calls: new Set(at.rows.filter((x) => x.status === 'MATCH').map((x) => x.generationId)).size, payingCalls: sa.payingCalls, argsBound: sa.argsBound } : {}) } } : {}),
     ...(h ? { mcp: { tools: 3, runs: h.runs, calls: h.calls, attempts: h.payments, receipts: h.newReceipts, paid: h.paid, perReceipt: (h.calls / h.newReceipts).toFixed(2) } } : {}),
     kept: { usdt: fmtUsdt(st.totalKept), stops: st.stopsByReason.reduce((n, x) => n + x.count, 0), distinct: st.refusedDistinct, replays: st.replays },
   };

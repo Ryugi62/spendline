@@ -29,7 +29,7 @@ export type PitchFacts = {
   ab: { n: number; offTokens: number; onTokens: number; offSeconds: string; onSeconds: string; sameJson: number; tokensSavedPct: number; latencySavedPct: number };
   tests: number;
   /** measured cost of one guarded decision: Kiln F1 USD per purchase, TRON fee per Paid / stopped pay() (Nile, median) */
-  cost?: { f1Usd: string; paidTrx: string; stopTrx: string };
+  cost?: { f1Usd: string; paidTrx: string; stopTrx: string; paidEnergy?: string; stopEnergy?: string };
   /** every tx hash in the public record (receipts' events, replays, grants, STOPs) */
   txHashes: string[];
   /** evidence rows the deck and the video point at — all from the audit */
@@ -41,14 +41,14 @@ export type PitchFacts = {
   /** stated assumptions with their numbers, e.g. "180 W — RNGD card TDP (furiosa.ai/rngd)" */
   stated: string[];
   /** v1.1 AC-40: Kiln's own record vs the receipts (team32 account) — MATCH count, calls Kiln shows, F1 calls dated before pay(), lead range in s */
-  attest?: { match: number; shown: number; otherAccount: number; f1Before: number; f1: number; leadMin: number; leadMax: number; kilnMedianMs?: number; whPerCallKiln?: string; cachedPct?: number };
+  attest?: { match: number; shown: number; otherAccount: number; f1Before: number; f1: number; leadMin: number; leadMax: number; kilnMedianMs?: number; whPerCallKiln?: string; cachedPct?: number; calls?: number; payingCalls?: number; argsBound?: number };
   /** v1.1 AC-43/44: MCP tools, host runs on Kiln, their Kiln calls, pay attempts that reached the vault, calls per attempt */
   mcp?: { tools: number; runs: number; calls: number; attempts: number; receipts: number; paid: number; perReceipt: string };
   /** v1.1 AC-41: what the statement adds up — USDT kept in the vault by stops */
   kept?: { usdt: string; stops: number; distinct?: number; replays?: number };
 };
 
-export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, o: { vault: string; tests: number; extraTx?: string[]; stated: string[]; stopTx?: string; grantTx?: string; chain?: { paidTrx: number; stopTrx: number } }): PitchFacts {
+export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, o: { vault: string; tests: number; extraTx?: string[]; stated: string[]; stopTx?: string; grantTx?: string; chain?: { paidTrx: number; stopTrx: number; paidEnergy?: number; stopEnergy?: number } }): PitchFacts {
   const c = countVerdicts(res.verdicts);
   const f1 = report.rows[0];
   return {
@@ -78,7 +78,7 @@ export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, 
       latencySavedPct: Math.round(ab.latencySavedPct),
     },
     tests: o.tests,
-    ...(o.chain ? { cost: { f1Usd: (f1.calls ? f1.costUsd / f1.calls : 0).toFixed(7), paidTrx: o.chain.paidTrx.toFixed(2), stopTrx: o.chain.stopTrx.toFixed(2) } } : {}),
+    ...(o.chain ? { cost: { f1Usd: (f1.calls ? f1.costUsd / f1.calls : 0).toFixed(7), paidTrx: o.chain.paidTrx.toFixed(2), stopTrx: o.chain.stopTrx.toFixed(2), ...(o.chain.paidEnergy ? { paidEnergy: o.chain.paidEnergy.toLocaleString('en-US'), stopEnergy: (o.chain.stopEnergy ?? 0).toLocaleString('en-US') } : {}) } } : {}),
     stops: res.verdicts.flatMap((v) => (v.verdict === 'STOPPED' && v.reason && v.txHash ? [{ seq: v.seq, reason: v.reason, tx: v.txHash }] : [])),
     paidTx: res.verdicts.flatMap((v) => (v.verdict === 'PAID_INSIDE' && v.txHash ? [v.txHash] : [])),
     replayTx: res.replays[0]?.txHash,

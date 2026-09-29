@@ -68,7 +68,7 @@
  {
   "id": "d11",
   "url": "ui:#/audit",
-  "en": "The audit, rebuilt from public records only: 28 receipts, 16 paid inside, 12 stopped, 0 problems."
+  "en": "The audit, rebuilt from public records only: 31 receipts, 18 paid inside, 13 stopped, 0 problems."
  },
  {
   "id": "d12",
@@ -83,7 +83,7 @@
  {
   "id": "d12c",
   "url": "docs/video/stage.html#attest",
-  "en": "And a second witness. In plain words: Kiln's own logbook and the blockchain tell the same story, and the AI call came first. 29 of 29 rows match Kiln's record, and every paying call came 2 to 10 seconds before its payment."
+  "en": "And a second witness. In plain words: Kiln's own logbook and the blockchain tell the same story for every AI call on the organizer's account, and each call came 2 to 10 seconds before its payment."
  },
  {
   "id": "d13",
@@ -91,7 +91,7 @@
   "actions": [
    "scroll:.qas"
   ],
-  "en": "A teammate asks: did we pay that cheap unknown seller? Kiln picks the receipt. The verdict comes from the audit, never from the model."
+  "en": "A teammate asks: was anything paid after I pressed STOP? Kiln picks the receipt. The verdict comes from the audit, never from the model."
  },
  {
   "id": "d13b",
@@ -101,7 +101,7 @@
  {
   "id": "d14",
   "url": "docs/video/stage.html#tokens",
-  "en": "Efficiency: 1.00 LLM call per purchase on Spendline's own path, 1.15 through a general MCP host. No-think cut median output from 223 to 36 tokens. Energy is an estimate: 180 watts times measured time."
+  "en": "Efficiency: one LLM call per purchase. No-think cut median output from 223 to 36 tokens. Energy is an estimate: 180 watts times measured time."
  },
  {
   "id": "d16",

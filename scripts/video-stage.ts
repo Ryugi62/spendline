@@ -7,6 +7,7 @@ import { esc } from '../src/adapters/web/render';
 import { checkTranscript, terminalScene } from '../src/application/terminal';
 import type { Session } from '../src/application/views';
 import { recordFacts } from '../src/infrastructure/record-facts';
+import { REASON_CODE } from '../src/domain/mandate';
 
 const f = recordFacts();
 const s = JSON.parse(readFileSync('web/public/session.json', 'utf8')) as Session;
@@ -57,7 +58,7 @@ section#agent{justify-content:flex-start;gap:8px}.term{display:flex;flex-directi
 h1{font-size:72px;margin:0;color:#3182f6}pre.small{font-size:12.5px;line-height:1.3;padding:10px 16px}section#mcp,section#attest{justify-content:flex-start;gap:10px;padding-top:40px}.big{font-size:30px;line-height:1.4;margin:0}
 </style></head><body>
 ${panel('title', 'Spendline — receipts for AI spending', `<h1>Spendline</h1><p class="big">A person draws the line. The agent only asks. The vault on TRON decides — and records every stop.</p>`)}
-${panel('event', "The vault's public event — as TronGrid returns it (no key)", `<pre>${esc(JSON.stringify({ event: 'SpendBlocked', receiptHash: (event as { receiptHash?: string }).receiptHash, merchant: (event as { merchant?: string }).merchant, reason: stop.reason, txHash: stop.tx }, null, 2)).replace(stop.reason, `<span class="hl">${stop.reason}</span>`)}</pre><p class="s">Vault ${esc(f.vault)} · TRON Nile</p>`)}
+${panel('event', "The vault's public event — read from TronGrid with no key, reason code decoded", `<pre>${esc(JSON.stringify({ event: 'SpendBlocked', receiptHash: (event as { receiptHash?: string }).receiptHash, merchant: (event as { merchant?: string }).merchant, reason: `${REASON_CODE[stop.reason as keyof typeof REASON_CODE]} = ${stop.reason}`, txHash: stop.tx }, null, 2)).replace(stop.reason, `<span class="hl">${stop.reason}</span>`)}</pre><p class="s">Vault ${esc(f.vault)} · TRON Nile</p>`)}
 ${panel('grant', 'The person signs — owner key, on their own machine', `<pre>$ npm run grant -- mandate.json      # the JSON the Grant screen copies
 MandateGranted · tx ${esc(f.grantTx ?? '')}
 

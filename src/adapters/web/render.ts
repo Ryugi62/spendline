@@ -176,7 +176,7 @@ ${o.questions?.length ? `<section><h2 class="section-title">Questions a teammate
 <li>Each receipt is matched, by that hash, to the vault's public event (paid or stopped).</li>
 <li>The rule is re-run with the line in force at that moment — grants and STOPs included — and must agree with the chain.</li>
 <li>Every paid or stopped event of the vault must belong to exactly one receipt — a spend with no receipt is a problem.</li></ol>
-<p class="hint">Same check without this page, no key needed: <code>npm run audit -- docs/receipts-nile.jsonl --vault T…</code></p>
+<p class="hint">Same check without this page, no key needed: <code>npm run audit -- docs/receipts-nile-live.jsonl --vault T…</code></p>
 <p class="hint">Records: ${esc(o.source)}${o.at ? ` · fetched ${esc(fmt.time(o.at))}` : ''}</p></details>
 <input type="file" id="receipts-file" accept=".jsonl,.json,application/json" hidden>`,
     `<label class="cta" for="receipts-file" role="button" tabindex="0">Check another receipts file</label>`,

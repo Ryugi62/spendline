@@ -86,7 +86,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'new',
       title: "What's new",
-      html: `<ul class="big-list tight"><li><b>Two witnesses per payment.</b> The receipt hash on TRON commits to the Kiln generation behind it; Kiln's own record (<code>GET /v1/generations/{id}</code>) is the second witness.${f.attest ? ` On the organizer's account ${f.attest.match} of ${f.attest.shown} rows match — model, tokens, cost — every paying call is dated ${f.attest.leadMin}–${f.attest.leadMax} s before its <code>pay()</code>, and code re-derives each payment from the model's own arguments kept in the receipt (<code>npm run attest</code>). Plainly: Kiln's logbook and the chain tell the same story, and the AI call came first.` : ''}</li>
+      html: `<ul class="big-list tight"><li><b>Two witnesses per payment.</b> The receipt hash on TRON commits to the Kiln generation behind it; Kiln's own record (<code>GET /v1/generations/{id}</code>) is the second witness.${f.attest ? ` On the organizer's account every AI call matches Kiln's record — model, tokens, cost (${f.attest.match} of ${f.attest.shown} rows) — each <code>pay()</code> came ${f.attest.leadMin}–${f.attest.leadMax} s after the call that decided it, and on ${f.attest.argsBound ?? 0} receipts that keep the model's own arguments code re-derives the payment (<code>npm run attest</code>). Plainly: Kiln's logbook and the chain tell the same story, and the AI call came first.` : ''}</li>
 <li><b>A stop is an event.</b> Refusals are recorded on-chain with the reason, so the history shows what the agent was <i>not</i> allowed to do.</li>
 <li><b>Receipts are hash-chained and anchored.</b> Each receipt's hash is an argument of <code>pay()</code>; the vault decides each hash once.</li>
 <li><b>The model phrases, the audit decides.</b> Kiln's words about a receipt are shown only if they repeat the audit's verdict and use only numbers from the record.</li></ul>`,
@@ -94,7 +94,7 @@ export function deckSlides(f: PitchFacts, declared: string): Slide[] {
     {
       id: 'value',
       title: 'Who pays · where it plugs in',
-      html: `<ul class="big-list tight"><li><b>Plugs in</b> two ways: as an MCP server any agent host can add (<code>spendline_line</code> · <code>spendline_pay</code> · <code>spendline_check</code> — driven by the official MCP Inspector; live with Qwen3-32B on Kiln as the host${f.mcp ? `, ${f.mcp.attempts} pay attempts` : ''}; code prices every payment; the same request sent twice buys once, the repeat refused on-chain), or as a drop-in <code>spendlineWallet(…)</code>. The person keeps the owner key; the agent key can only ask.</li>
+      html: `<ul class="big-list tight"><li><b>Plugs in</b> two ways: as an MCP server any agent host can add (<code>spendline_line</code> · <code>spendline_pay</code> · <code>spendline_check</code> — a stock OpenAI Agents SDK agent on Kiln paid through it; live on TRON with Qwen3-32B on Kiln as the host${f.mcp ? `, ${f.mcp.attempts} pay attempts` : ''}; code prices every payment; the same request sent twice buys once, the repeat refused on-chain), or as a drop-in <code>spendlineWallet(…)</code>. The person keeps the owner key; the agent key can only ask.</li>
 <li><b>The lead's week</b>: grant a line → the agent spends → <code>npm run statement</code> writes the statement and a CSV for the accountant${f.kept ? ` (${f.kept.stops} refused attempts, ${f.kept.replays ?? 0} repeats refused, intent flags)` : ''} → <code>npm run tune -- next.json</code> shows what next week's line would have done to this week's requests.</li>
 ${f.cost ? `<li><b>One guarded decision, measured</b> (TRON Nile): Kiln F1 $${f.cost.f1Usd} (mean) + <code>pay()</code> ${f.cost.paidTrx} TRX when paid, ${f.cost.stopTrx} TRX when stopped (median).</li>` : ''}
 <li><b>Who needs it</b>: teams that let agents buy compute, credits and API time. Business (hypothesis, not validated): vault and audit open (Apache-2.0); a hosted audit with alerts on stops is the paid layer.</li>
@@ -109,7 +109,7 @@ npm run attest -- --saved   # Kiln's own record vs the receipts
 npm run statement  # the week's statement + CSV
 npm run ui         # Grant · Feed · Receipt · Audit</pre>
 <ul class="big-list tight"><li>Testnet only (TRON Nile, test USDT), as the brief asks · one line per vault — a new grant replaces the old one (the audit replays every grant).</li>
-<li>Signing is on the person's machine (CLI), never in the browser · energy is an estimate from wall time — Kiln exposes no power telemetry.</li>
+<li>Signing is on the person's machine (CLI), never in the browser · no one-off approval of a single stopped payment (grant a new line) · energy is an estimate — Kiln exposes no power telemetry.</li>
 <li>Parts were built before the event window; the README lists every commit, before and during.</li></ul>
 <p class="kicker">${f.tests} tests · every model call on live Kiln · every stop on-chain — Spendline, a payment that can prove it was allowed.</p>`,
     },

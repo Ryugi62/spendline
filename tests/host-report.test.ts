@@ -10,10 +10,13 @@ const runs = [
 
 describe('hostRunsSummary (AC-44)', () => {
   it('runs, Kiln calls, payments that reached the vault, calls per payment, median prompt tokens', () => {
-    expect(hostRunsSummary(runs)).toEqual({ runs: 2, calls: 7, payments: 4, noPayment: 3, callsPerPayment: 1.75, medianPromptTokens: 874, tokens: 7031, costUsd: 0.00050, completed: 2, dropped: 0, refused: 1 });
+    expect(hostRunsSummary(runs)).toEqual({ runs: 2, calls: 7, payments: 4, noPayment: 3, callsPerPayment: 1.75, medianPromptTokens: 874, tokens: 7031, costUsd: 0.00050, completed: 2, dropped: 0, refused: 1, newReceipts: 0, paid: 0, repeatCalls: 0 });
   });
   it('formats one line for docs/tokens-by-flow.md', () => {
-    expect(formatHostRuns(hostRunsSummary(runs), { f1MedianPrompt: 320 })).toContain('7 Kiln calls for 4 pay attempts that reached the vault (1.75 per attempt');
+    const withText = runs.map((r) => ({ ...r, steps: r.steps.map((x, i) => ({ ...x, text: x.isError ? 'unknown seller' : JSON.stringify(i === 1 && x.generationId === 'e' ? { ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1 } : { ok: true, receipt_seq: i + 1 }) })) }));
+    const line = formatHostRuns(hostRunsSummary(withText), { f1MedianPrompt: 320 });
+    expect(line).toContain('7 Kiln calls');
+    expect(line).toContain('3 new receipts (**2.33 calls per receipt**), 3 paid (2.33 per paid purchase), 3.50 per request; 4 pay attempts reached the vault, 1 of them repeats refused on-chain; 1 Kiln calls were spent only on a repeat.');
   });
 });
 
