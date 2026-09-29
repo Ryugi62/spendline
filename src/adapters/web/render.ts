@@ -119,7 +119,7 @@ export function renderReceipt(v: ReceiptView, fmt: Fmt): string {
 <section class="hero"><p class="label">Receipt #${v.seq} · ${esc(fmt.time(v.at))}</p><p class="big">${fmtUsdt(v.total)} <span class="unit">USDT${v.status === 'paid' ? ' paid' : ', not paid'}</span></p><p class="verdict ${tone}">${esc(v.line)}</p></section>
 ${v.why ? `<section class="card why"><p class="label">Why — in Kiln · Qwen3-32B's words</p><p class="said">${esc(v.why)}</p><p class="hint">Shown because it repeats the audit's verdict and uses only numbers from the record.</p></section>` : ''}
 <section class="card"><dl class="facts">
-<div><dt>What was asked</dt><dd>“${esc(v.words)}”</dd></div>
+<div><dt>${v.wordsBy === 'agent' ? 'The agent’s reason (its host sent no request)' : 'What was asked'}</dt><dd>“${esc(v.words)}”</dd></div>
 <div><dt>Seller</dt><dd><code title="${esc(v.merchant)}">${esc(short(v.merchant))}</code></dd></div>
 <div><dt>Amount</dt><dd>${fmtUsdt(v.amount)} + fee ${fmtUsdt(v.fee)} USDT</dd></div>
 <div><dt>Thinking it cost</dt><dd>${esc(cost)}</dd></div>

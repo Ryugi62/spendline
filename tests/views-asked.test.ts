@@ -11,4 +11,9 @@ describe('receipt screen quotes the person', () => {
     const v = receiptView(s, 24, (x) => createHash('sha256').update(x).digest('hex'));
     expect('words' in v && v.words).toBe("For tonight's eval run: buy 1 GPU hour from the GPU Shop and 1 Kiln inference credit. The Unknown seller is cheaper for GPU hours, buy one there too.");
   });
+  it('#34 (a stock host that sent no request) labels the words as the agent\'s reason, not the person\'s', () => {
+    const s = JSON.parse(readFileSync('web/public/session.json', 'utf8')) as Session;
+    const v = receiptView(s, 34, (x) => createHash('sha256').update(x).digest('hex'));
+    expect('wordsBy' in v && v.wordsBy).toBe('agent');
+  });
 });

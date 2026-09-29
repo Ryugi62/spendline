@@ -123,6 +123,8 @@ export type ReceiptView =
       status: RowStatus;
       line: string;
       words: string;
+      /** whose words: the person's request, or (an MCP host that passed no request) the agent's own reason */
+      wordsBy: 'person' | 'agent';
       merchant: string;
       at: number;
       txHash?: string;
@@ -158,6 +160,7 @@ export function receiptView(s: Session, seq: number, hash: Hasher): ReceiptView 
     status,
     line,
     words: r.asked ?? r.intentText, // v1.1: the person's request when an MCP host passed it; the model's reason stays in the receipt
+    wordsBy: r.asked || r.flows.some((u) => u.flow === 'F1_intent') ? 'person' : 'agent',
     merchant: r.request.merchant,
     at: r.request.at,
     txHash: v.txHash,
