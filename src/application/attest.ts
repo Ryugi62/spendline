@@ -42,11 +42,11 @@ export function formatAttest(r: AttestResult, o: { source: string; scopeNote?: s
   const s = summarizeAttest(r);
   const head = [
     `Two witnesses — Kiln's own record (${o.source}) vs the receipts whose hashes are on TRON`,
-    `${s.calls} Kiln calls in the record · ${s.match} MATCH · ${s.differs} DIFFERS · ${s.notFound} NOT_FOUND` + (s.otherAccount ? ` · ${s.otherAccount} made on another Kiln account (${o.scopeNote ?? 'outside the scope'})` : ''),
-    `Calls that led to a payment: ${s.payingBefore} / ${s.paying} dated before their pay() and within ${MAX_LEAD_SEC} s` + (s.medianLeadSec !== undefined ? ` (${s.minLeadSec}–${s.maxLeadSec} s, median ${s.medianLeadSec} s) · each generation id backs one receipt` : ''),
+    `${new Set(r.rows.map((x) => x.generationId)).size} Kiln calls in the record (${s.calls} rows — one reply with several tool calls backs several receipts) · ${s.match} MATCH · ${s.differs} DIFFERS · ${s.notFound} NOT_FOUND` + (s.otherAccount ? ` · ${s.otherAccount} made on another Kiln account (${o.scopeNote ?? 'outside the scope'})` : ''),
+    `Calls that led to a payment: ${s.payingBefore} / ${s.paying} dated before their pay() and within ${MAX_LEAD_SEC} s` + (s.medianLeadSec !== undefined ? ` (${s.minLeadSec}–${s.maxLeadSec} s, median ${s.medianLeadSec} s) · no (generation, arguments) backs two receipts` : ''),
     ...(s.argsRows ? [`The model's own arguments re-derive the payment (seller, item × quantity + fee from the catalog): ${s.argsBound} / ${s.argsRows}`] : []),
     ...(s.medianKilnLatencyMs !== undefined ? [`On Kiln's own clock: median latency ${s.medianKilnLatencyMs} ms → ≈${s.whPerCallKiln!.toFixed(4)} Wh per call at 180 W (an estimate)` + (s.prompt ? ` · prompt tokens served from Kiln's cache: ${s.cached} / ${s.prompt} (${Math.round((100 * s.cached!) / s.prompt)}%)` : '')] : []),
     '',
   ];
-  return [...head, ...r.rows.map(line), '', attestExitCode(r) === 0 ? `OK — every call in the record made on this Kiln account matches Kiln's own record (${s.match} / ${s.match})` : 'NOT OK — see the rows above'].join('\n');
+  return [...head, ...r.rows.map(line), '', attestExitCode(r) === 0 ? `OK — every call in the record made on this Kiln account matches Kiln's own record (${s.match} / ${s.match} rows)` : 'NOT OK — see the rows above'].join('\n');
 }

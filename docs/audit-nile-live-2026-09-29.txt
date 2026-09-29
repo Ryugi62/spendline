@@ -1,4 +1,4 @@
-Spendline audit · vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu · 21 receipts · events: https://nile.trongrid.io (public, no key)
+Spendline audit · vault TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu · 28 receipts · events: https://nile.trongrid.io (public, no key)
 hash chain: intact
 #1 PAID_INSIDE · tx e67cc9b87a591d0c70dbb5fe8ed892209bca206579c7da09a3ef77e5a2224f48 · paid, and the mandate allowed it at that time
 #2 STOPPED MERCHANT_NOT_ALLOWED · tx 819478c7f167688ba585f35c4d575c38cd494c317579fba7d2524bab5419dac6 · stopped on-chain: MERCHANT_NOT_ALLOWED
@@ -21,5 +21,16 @@ hash chain: intact
 #19 PAID_INSIDE · tx 27cc6993469e7ab03439c9f83badc359352607414f27bcf449638cb72c0e5b79 · paid, and the mandate allowed it at that time
 #20 PAID_INSIDE · tx 0ef2b0943ac1437b451c9c29b472f3e5422d178f3a8aa4a853f12cd0ed33b18e · paid, and the mandate allowed it at that time
 #21 STOPPED MERCHANT_NOT_ALLOWED · tx 4c187eb9ad73d4bccd9534b8c84f7df60955f5f5e69f92f30928998fb49e96aa · stopped on-chain: MERCHANT_NOT_ALLOWED
+#22 PAID_INSIDE · tx 19cfb8a49fc633c79446cbd8efce03181042a4de5a0e6a76fcae16c2072bef75 · paid, and the mandate allowed it at that time
+#23 PAID_INSIDE · tx 94685f71555a892717f36d1bb03444f91a37923d1482fad7eafc93c13cebc6c6 · paid, and the mandate allowed it at that time
+#24 STOPPED MERCHANT_NOT_ALLOWED · tx 0589618fde9fe1e99ec3c06fa0700d6e3e0126c27d2b1d00486433247dbd3f5a · stopped on-chain: MERCHANT_NOT_ALLOWED
+#25 STOPPED OVER_BUDGET_WITH_FEES · tx 43d566b4955ae6a4540f115aba0df057ade167765f41dffde303b863d35bea4c · stopped on-chain: OVER_BUDGET_WITH_FEES
+#26 STOPPED PAUSED · tx 1447f8cad55d47c89bb56fec43f700b27c3698ad834716a5a6a86426536efb88 · stopped on-chain: PAUSED
+#27 PAID_INSIDE · tx 1f63fba76a6ef3f58c30282c064b0ce75026fa51b70b71efce4ae96ba8a2b4da · paid, and the mandate allowed it at that time
+#28 STOPPED DEADLINE_PASSED · tx f5f6d9ef0a96ce8c41fdefc9e6a64502f016fce1f2e8e1d71dedcce45d9a4ee3 · stopped on-chain: DEADLINE_PASSED
 ~ replay of #1 stopped on-chain DUPLICATE_RECEIPT · tx efcc92fb22e968d9c32a2ed0dcc9d8c63072d3f6caa21a847020e945b5452330 · the vault decides a receipt once
-13 paid inside · 8 stopped · 0 mismatch · 0 without chain event · 0 chain spends without a receipt · 1 replay stopped · paid 30.00 USDT → OK
+~ replay of #22 stopped on-chain DUPLICATE_RECEIPT · tx ea901b8d0fb9f16beb24eb09e260e62f7abd40e175dd152976096195d5e2063f · the vault decides a receipt once
+~ replay of #22 stopped on-chain DUPLICATE_RECEIPT · tx f978660ff824605e87ab13ffe11c48dcf5ea9e9cba3a000294f7aa618088f01e · the vault decides a receipt once
+~ replay of #23 stopped on-chain DUPLICATE_RECEIPT · tx 8b91f50409b4e4231090c53d760e8e12b5074fc92209732f49eb67dfacd9fcbc · the vault decides a receipt once
+~ replay of #24 stopped on-chain DUPLICATE_RECEIPT · tx e3f07e8c1af3298d7f6fbe6e42085da4fc6c38327d6a2131422e4c07f07a3c09 · the vault decides a receipt once
+16 paid inside · 12 stopped · 0 mismatch · 0 without chain event · 0 chain spends without a receipt · 5 replays stopped · paid 36.20 USDT → OK

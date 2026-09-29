@@ -1,0 +1,4 @@
+$ date -u; npm run stop
+2026-09-29T13:25:43Z
+STOP signed · the vault refuses every payment until a new grant
+tx c5b7f04ca2e3bf0b8ded4e8379bc8b87ff51ab885bbffaaf812d017d683b1939 · https://nile.tronscan.org/#/transaction/c5b7f04ca2e3bf0b8ded4e8379bc8b87ff51ab885bbffaaf812d017d683b1939

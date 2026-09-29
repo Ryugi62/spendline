@@ -38,17 +38,21 @@ const COST_EPS = 1e-9;
 export const MAX_LEAD_SEC = 120;
 export type CatalogOffer = { merchant: string; item: string; unitPrice: number; fee: number; label: string };
 
-/** The payment the model's own arguments ask for: `{to, item?, quantity?}` priced from the catalog, as the MCP server does. */
-export function paymentFromArgs(args: string, offers: CatalogOffer[]): { merchant: string; amount: number; fee: number } | undefined {
+/** The payment the model's own arguments ask for, priced from the catalog as the code does:
+ *  MCP (`{to, item?, quantity?}`) names the seller; F1 (`{item, quantity, …}`) leaves the seller to code's pick rule, so the check takes the
+ *  seller that was paid and verifies it sells that item and that amount = unit price × quantity, fee = its fee. */
+export function paymentFromArgs(args: string, offers: CatalogOffer[], paidMerchant?: string): { merchant: string; amount: number; fee: number } | undefined {
   let a: Record<string, unknown>;
   try { a = JSON.parse(args) as Record<string, unknown>; } catch { return undefined; }
-  const to = typeof a.to === 'string' ? a.to.trim() : '';
-  const sells = offers.filter((o) => o.merchant === to || o.label.toLowerCase() === to.toLowerCase());
-  const item = typeof a.item === 'string' && a.item ? a.item : sells.length === 1 ? sells[0].item : undefined;
-  const offer = sells.find((o) => o.item === item);
-  if (!offer) return undefined;
   const q = a.quantity === undefined ? 1 : Number(a.quantity);
-  return { merchant: offer.merchant, amount: Math.round(offer.unitPrice * q), fee: offer.fee };
+  let offer: CatalogOffer | undefined;
+  if (typeof a.to === 'string') {
+    const to = a.to.trim();
+    const sells = offers.filter((o) => o.merchant === to || o.label.toLowerCase() === to.toLowerCase());
+    const item = typeof a.item === 'string' && a.item ? a.item : sells.length === 1 ? sells[0].item : undefined;
+    offer = sells.find((o) => o.item === item);
+  } else if (typeof a.item === 'string') offer = offers.find((o) => o.item === a.item && o.merchant === paidMerchant);
+  return offer ? { merchant: offer.merchant, amount: Math.round(offer.unitPrice * q), fee: offer.fee } : undefined;
 }
 
 function compare(u: UsageRecord, g: KilnGeneration | null | undefined, model: string): Pick<AttestRow, 'status' | 'diffs' | 'kilnLatencyMs' | 'cachedTokens' | 'promptTokens'> {
@@ -89,7 +93,7 @@ export function attest(o: { receipts: Receipt[]; answers: AttestAnswer[]; events
         }
       }
       if (u.args !== undefined && o.offers) {
-        const want = paymentFromArgs(u.args, o.offers);
+        const want = paymentFromArgs(u.args, o.offers, r.request.merchant);
         row.argsBound = !!want && want.merchant === r.request.merchant && want.amount === r.request.amount && want.fee === r.request.fee;
         if (!row.argsBound) differs(want ? `payment differs from the model's arguments (${want.amount} + ${want.fee} ≠ ${r.request.amount} + ${r.request.fee})` : "the model's arguments name no catalog offer");
       }

@@ -103,6 +103,13 @@ describe('attest v1.1 review: binding', () => {
       [1, 'DIFFERS', ['generation id also on receipt #2']], [2, 'DIFFERS', ['generation id also on receipt #1']],
     ]);
   });
+  it('F1 arguments ({item, quantity}): the seller is code\'s pick, so the check verifies the paid seller sells that item at unit price × quantity', () => {
+    const f1 = (q: number) => usage('F1_intent', 'g1', { args: JSON.stringify({ item: 'gpu-hours', quantity: q }) });
+    const at = (q: number) => attest({ receipts: [receipt(1, 'h1', [f1(q)])], answers: [], events: [paid('h1', 1790600005, 'tx1')], generations: { g1: gen('g1') }, model: 'qwen3-32b', offers });
+    expect(at(1).rows[0]).toMatchObject({ status: 'MATCH', argsBound: true });
+    expect(at(2).rows[0]).toMatchObject({ status: 'DIFFERS', argsBound: false });
+  });
+
   it('live 2026-09-29 run 4: one Kiln reply with three tool calls backs three receipts — allowed when each carries its own arguments', () => {
     const a = (to: string) => usage('F4_mcp_host', 'g1', { args: JSON.stringify({ to }) });
     const r = attest({

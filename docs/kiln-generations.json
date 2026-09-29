@@ -1,6 +1,6 @@
 {
  "source": "GET https://api.bricksum.com/v1/generations/{id}",
- "fetchedAt": "2026-09-29T12:45:38.918Z",
+ "fetchedAt": "2026-09-29T13:30:53.268Z",
  "generations": {
   "d919cfd0-5e71-46fc-8ec0-6fad043902de": null,
   "a83ece71-1d04-48cf-8cbf-38d1789e184f": null,
@@ -113,6 +113,61 @@
    "status_code": 200,
    "created_at": "2026-09-29T12:44:00.76306Z"
   },
+  "cc296906-192f-42de-a5c3-9f10703c7cf9": {
+   "id": "cc296906-192f-42de-a5c3-9f10703c7cf9",
+   "model": "qwen3-32b",
+   "total_cost": 0.00012444,
+   "tokens_prompt": 973,
+   "tokens_completion": 171,
+   "cached_tokens": 32,
+   "latency_ms": 2558,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:23:22.910876Z"
+  },
+  "26fa95a0-3eef-4256-94cb-92ae98d31c1a": {
+   "id": "26fa95a0-3eef-4256-94cb-92ae98d31c1a",
+   "model": "qwen3-32b",
+   "total_cost": 0.00003668,
+   "tokens_prompt": 320,
+   "tokens_completion": 40,
+   "cached_tokens": 3,
+   "latency_ms": 676,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:25:25.629546Z"
+  },
+  "0e8c90e1-9435-4dcf-a1c5-014d90b30091": {
+   "id": "0e8c90e1-9435-4dcf-a1c5-014d90b30091",
+   "model": "qwen3-32b",
+   "total_cost": 0.00002192,
+   "tokens_prompt": 315,
+   "tokens_completion": 31,
+   "cached_tokens": 299,
+   "latency_ms": 534,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:25:50.428769Z"
+  },
+  "a6c915f3-25e5-4510-8436-705373bf082a": {
+   "id": "a6c915f3-25e5-4510-8436-705373bf082a",
+   "model": "qwen3-32b",
+   "total_cost": 0.00002236,
+   "tokens_prompt": 317,
+   "tokens_completion": 32,
+   "cached_tokens": 299,
+   "latency_ms": 542,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:26:12.18687Z"
+  },
+  "dd86d26e-6eea-4d85-91ee-f9fa79d794bc": {
+   "id": "dd86d26e-6eea-4d85-91ee-f9fa79d794bc",
+   "model": "qwen3-32b",
+   "total_cost": 0.00001776,
+   "tokens_prompt": 317,
+   "tokens_completion": 18,
+   "cached_tokens": 316,
+   "latency_ms": 347,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:28:55.562215Z"
+  },
   "e6ebd78a-1c0c-4863-97bc-0754f3ea8549": null,
   "04da11bb-35cc-4626-9ee5-a68e277ad32c": null,
   "d1bdd9c8-718d-4782-88d2-7c0ec57565c4": null,
@@ -152,6 +207,28 @@
    "latency_ms": 1373,
    "status_code": 200,
    "created_at": "2026-09-29T03:03:57.114332Z"
+  },
+  "2c5b6816-e1fd-426e-bc67-f6fa2297ccc5": {
+   "id": "2c5b6816-e1fd-426e-bc67-f6fa2297ccc5",
+   "model": "qwen3-32b",
+   "total_cost": 0.00005208,
+   "tokens_prompt": 377,
+   "tokens_completion": 79,
+   "cached_tokens": 5,
+   "latency_ms": 1215,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:29:17.231007Z"
+  },
+  "e569d038-647a-4d30-b22b-6697fdcfa186": {
+   "id": "e569d038-647a-4d30-b22b-6697fdcfa186",
+   "model": "qwen3-32b",
+   "total_cost": 0.00035296,
+   "tokens_prompt": 4071,
+   "tokens_completion": 98,
+   "cached_tokens": 4,
+   "latency_ms": 1943,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:29:21.630484Z"
   },
   "72f43818-9583-477d-8ca5-95d04226a1f1": {
    "id": "72f43818-9583-477d-8ca5-95d04226a1f1",
@@ -196,6 +273,50 @@
    "latency_ms": 1131,
    "status_code": 200,
    "created_at": "2026-09-29T12:44:05.886191Z"
+  },
+  "6538542f-fee0-4a67-9c2f-23230a1c5cc7": {
+   "id": "6538542f-fee0-4a67-9c2f-23230a1c5cc7",
+   "model": "qwen3-32b",
+   "total_cost": 0.0001086,
+   "tokens_prompt": 1626,
+   "tokens_completion": 61,
+   "cached_tokens": 964,
+   "latency_ms": 1054,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:23:36.848578Z"
+  },
+  "93d4be98-8966-4aef-adee-d8202df5ccdc": {
+   "id": "93d4be98-8966-4aef-adee-d8202df5ccdc",
+   "model": "qwen3-32b",
+   "total_cost": 0.0001198,
+   "tokens_prompt": 973,
+   "tokens_completion": 168,
+   "cached_tokens": 127,
+   "latency_ms": 2520,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:23:56.140322Z"
+  },
+  "bf625a4a-3d3c-4886-9d26-57e2d5026aaa": {
+   "id": "bf625a4a-3d3c-4886-9d26-57e2d5026aaa",
+   "model": "qwen3-32b",
+   "total_cost": 0.00012884,
+   "tokens_prompt": 1469,
+   "tokens_completion": 45,
+   "cached_tokens": 32,
+   "latency_ms": 873,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:24:06.247505Z"
+  },
+  "bb378748-d273-4602-adc0-35f028b09ae2": {
+   "id": "bb378748-d273-4602-adc0-35f028b09ae2",
+   "model": "qwen3-32b",
+   "total_cost": 0.00008732,
+   "tokens_prompt": 1636,
+   "tokens_completion": 53,
+   "cached_tokens": 1460,
+   "latency_ms": 857,
+   "status_code": 200,
+   "created_at": "2026-09-29T13:24:10.607686Z"
   }
  }
 }

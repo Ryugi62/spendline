@@ -1,0 +1,7 @@
+$ date -u; git rev-parse --short HEAD; npm run agent -- "One Kiln inference credit, please"
+2026-09-29T13:25:47Z
+c4eaeaf
+#26 STOPPED PAUSED · 1.00 USDT to Kiln credits (1.00 + fee 0.00) · You pressed STOP
+tx 1447f8cad55d47c89bb56fec43f700b27c3698ad834716a5a6a86426536efb88 · https://nile.tronscan.org/#/transaction/1447f8cad55d47c89bb56fec43f700b27c3698ad834716a5a6a86426536efb88
+Kiln qwen3-32b · F1_intent · 315+31 tokens · 1.46 s · server 0.59 s · $0.00002192 · gen 0e8c90e1-9435-4dcf-a1c5-014d90b30091 · ≈0.0730 Wh · via tool call leaked into text
+web/public/session.json: 26 receipts, 38 events
