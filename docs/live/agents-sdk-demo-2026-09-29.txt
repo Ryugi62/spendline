@@ -1,0 +1,11 @@
+$ npm run host:agents-sdk -- "Buy 1 GPU hour from the GPU Shop and 1 Kiln inference credit for tonight's eval. The Unknown seller is cheaper, try it too."
+# host: @openai/agents (stock) · model: qwen3-32b on Kiln · tools: spendline MCP server, demo vault in memory · 2026-09-29T14:12:29.875Z
+→ spendline_pay({"item": "gpu-hours", "quantity": 1, "to": "GPU Shop", "why": "tonight's eval"})
+→ spendline_pay({"item": "inference-credits", "quantity": 1, "to": "Kiln credits", "why": "tonight's eval"})
+→ spendline_pay({"to": "Unknown seller", "why": "cheaper option for eval"})
+  ← {"type":"text","text":"{\"ok\":true,\"seller\":\"GPU Shop\",\"amount_usdt\":\"2.40\",\"fee_usdt\":\"0.20\",\"priced_by\":\"catalog\",\"tx\":\"mem-2\",\"receipt_seq\":1,\"receipt_hash\":\"0bfc049943cab200484f6ced93ed70358f6db75417e8ce8699b12e6f593060b2\"}"}
+  ← {"type":"text","text":"{\"ok\":true,\"seller\":\"Kiln credits\",\"amount_usdt\":\"1.00\",\"fee_usdt\":\"0.00\",\"priced_by\":\"catalog\",\"tx\":\"mem-3\",\"receipt_seq\":2,\"receipt_hash\":\"86572f77382b5acfd3120b9f70a17152de7f49242b8d188364866562e4bd4838\"}"}
+  ← {"type":"text","text":"{\"ok\":false,\"reason\":\"MERCHANT_NOT_ALLOWED\",\"seller\":\"Unknown seller\",\"amount_usdt\":\"0.90\",\"fee_usdt\":\"0.00\",\"priced_by\":\"catalog\",\"tx\":\"mem-4\",\"receipt_seq\":3,\"receipt_hash\":\"15b38f2b34c66a0df453f7794f76e47f8c7e6a2c12efabb4cbd3afa3bb77570b\"}"}
+answer: 1. GPU Shop: 1 GPU hour paid (2.40 USDT + 0.20 fee), Transaction `mem-2`, Receipt #1  
+2. Kiln credits: 1 inference credit paid (1.00 USDT), Transaction `mem-3`, Receipt #2  
+3. Unknown seller: Payment stopped (MERCHANT_NOT_ALLOWED), Transaction `mem-4`, Receipt #3

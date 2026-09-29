@@ -41,10 +41,13 @@
     "mcp:smoke": "tsx scripts/mcp-smoke.ts",
     "fund": "tsx scripts/fund-nile.ts",
     "mcp:demo": "tsx src/infrastructure/mcp-demo.ts",
-    "commits": "tsx scripts/commits.ts"
+    "commits": "tsx scripts/commits.ts",
+    "host:agents-sdk": "tsx scripts/agents-sdk-host.ts"
   },
   "devDependencies": {
+    "@openai/agents": "^0.18.0",
     "@types/node": "^22.18.0",
+    "openai": "^7.23.0",
     "playwright": "^1.57.0",
     "solc": "^0.8.30",
     "tsx": "^4.20.6",

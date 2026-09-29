@@ -141,6 +141,19 @@ describe('MCP tools (AC-43)', () => {
     expect(await store.all()).toHaveLength(2);
   });
 
+  it('live 2026-09-29 (stock OpenAI Agents SDK host): tool calls run in parallel must not fork the receipt chain — pay calls are serialized', async () => {
+    const { tools, store, chain } = await setup();
+    const res = await Promise.all([
+      call(tools, 'spendline_pay', { to: 'GPU Shop', item: 'gpu-hours', why: 'a' }),
+      call(tools, 'spendline_pay', { to: 'Kiln credits', why: 'b' }),
+      call(tools, 'spendline_pay', { to: 'Unknown seller', why: 'c' }),
+    ]);
+    expect(res.map((r) => (r.data as { receipt_seq: number }).receipt_seq).sort()).toEqual([1, 2, 3]);
+    const rs = await store.all();
+    const audit = (await import('../src/domain/audit')).audit({ mandates: [], receipts: rs, events: chain.events, hash: sha });
+    expect(audit.chain.ok).toBe(true);
+  });
+
   it('spendline_check: the keyless audit verdict for one receipt', async () => {
     const { tools } = await setup();
     await call(tools, 'spendline_pay', { to: UNK, amount_usdt: 0.9, why: 'cheaper' });

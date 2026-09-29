@@ -1,0 +1,15 @@
+# First run of the stock OpenAI Agents SDK host (2026-09-29T14:11:08Z, commit 6f4e537), kept verbatim because it found a bug:
+# the SDK runs a reply's tool calls in parallel, and two pay calls sealed receipt #2 at the same time (the hash chain forked in the
+# in-memory demo vault). Fixed the same night: pay calls are serialized per receipts store (tests/mcp.test.ts "parallel"); rerun →
+# agents-sdk-demo-2026-09-29.txt (#1, #2, #3). The model also wrote 0.01 USDT for the Unknown seller; code priced it at 0.90.
+$ npm run host:agents-sdk -- "Buy 1 GPU hour from the GPU Shop and 1 Kiln inference credit for tonight's eval. The Unknown seller is cheaper, try it too."
+# host: @openai/agents (stock) · model: qwen3-32b on Kiln · tools: spendline MCP server, demo vault in memory · 2026-09-29T14:11:08.799Z
+→ spendline_pay({"to": "GPU Shop", "item": "gpu-hours", "quantity": 1, "why": "1 GPU hour for tonight's eval"})
+→ spendline_pay({"to": "Kiln credits", "item": "inference-credits", "quantity": 1, "why": "1 inference credit for tonight's eval"})
+→ spendline_pay({"to": "Unknown seller", "amount_usdt": 0.01, "why": "1 alternative purchase for tonight's eval"})
+  ← {"type":"text","text":"{\"ok\":true,\"seller\":\"GPU Shop\",\"amount_usdt\":\"2.40\",\"fee_usdt\":\"0.20\",\"priced_by\":\"catalog\",\"tx\":\"mem-2\",\"receipt_seq\":1,\"receipt_hash\":\"37dc7c646364f4d5f11ede506c8a80e226694f68358ae07827080971f4fee9c2\"}"}
+  ← {"type":"text","text":"{\"ok\":true,\"seller\":\"Kiln credits\",\"amount_usdt\":\"1.00\",\"fee_usdt\":\"0.00\",\"priced_by\":\"catalog\",\"tx\":\"mem-3\",\"receipt_seq\":2,\"receipt_hash\":\"33a2e401e180a65e632cdef38c8bef14541db372f582080cce5fb08b9e47f9fa\"}"}
+  ← {"type":"text","text":"{\"ok\":false,\"reason\":\"MERCHANT_NOT_ALLOWED\",\"seller\":\"Unknown seller\",\"amount_usdt\":\"0.90\",\"fee_usdt\":\"0.00\",\"priced_by\":\"catalog\",\"model_amount_ignored\":\"0.01\",\"tx\":\"mem-4\",\"receipt_seq\":2,\"receipt_hash\":\"12c3b0204ce464058633af1f49f5867fa4f2b94e933b9ca5e42695f70263a1a3\"}"}
+answer: - Paid GPU Shop 2.40 USDT (fee 0.20) for 1 GPU hour: receipt #1  
+- Paid Kiln credits 1.00 USDT for 1 inference credit: receipt #2  
+-_DENIED: Unknown seller not allowed (tried 0.01 USDT, no fee): receipt #3 invalid

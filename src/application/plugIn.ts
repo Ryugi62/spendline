@@ -9,8 +9,20 @@ import type { ChainPort, PayOutcome, ReceiptStore } from './ports';
 export type GuardedPayDeps = { chain: ChainPort; store: ReceiptStore; hash: Hasher };
 export type GuardedPayResult = { request: SpendRequest; preview: Decision; receipt: Receipt; outcome: PayOutcome };
 
+/** One attempt at a time per receipts store: a host that runs tool calls in parallel must not fork the hash chain (live 2026-09-29). */
+const queues = new WeakMap<object, Promise<unknown>>();
+export function serialized<T>(key: object, job: () => Promise<T>): Promise<T> {
+  const prev = queues.get(key) ?? Promise.resolve();
+  const next = prev.then(job, job);
+  queues.set(key, next.catch(() => undefined));
+  return next;
+}
+
 /** Seal a receipt for one spend attempt and send it through the vault. Used by UC-2 purchase and by the plug-in wallet. */
-export async function guardedPay(
+export function guardedPay(d: GuardedPayDeps, p: Parameters<typeof guardedPayNow>[1]): Promise<GuardedPayResult> {
+  return serialized(d.store, () => guardedPayNow(d, p));
+}
+async function guardedPayNow(
   d: GuardedPayDeps,
   p: { merchant: string; amount: number; fee: number; why: string; flows?: UsageRecord[]; asked?: string },
 ): Promise<GuardedPayResult> {

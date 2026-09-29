@@ -4,7 +4,7 @@ import { fmtUsdt } from '../domain/money';
 import type { UsageRecord } from '../domain/tokenLedger';
 import { auditRecords, problemCount } from './auditRecords';
 import type { EventSource, Offer } from './ports';
-import { guardedPay, type GuardedPayDeps } from './plugIn';
+import { guardedPay, serialized, type GuardedPayDeps } from './plugIn';
 
 export type McpResult = { text: string; data?: Record<string, unknown>; isError?: boolean };
 /** Host-code data rides in the MCP request's `_meta` (never in the tool schema a host's model reads): `spendline/request` = the person's
@@ -53,39 +53,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
     const t = to.trim();
     return TRON_ADDRESS.test(t) ? t : byName.get(t.toLowerCase());
   };
-  return [
-    {
-      name: 'spendline_line',
-      description: 'Read the spending line the person granted: budget, spent, left, per-payment cap, allowed sellers, deadline, STOP. Read-only.',
-      inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-      async run() {
-        const [m, spent] = await Promise.all([d.chain.mandate(), d.chain.spent()]);
-        return ok({
-          budget_usdt: fmtUsdt(m.budget), spent_usdt: fmtUsdt(spent), left_usdt: fmtUsdt(Math.max(0, m.budget - spent)), per_payment_cap_usdt: fmtUsdt(m.perTxCap),
-          sellers: m.merchants.map((a) => ({ address: a, ...(nameOf(a) ? { name: nameOf(a) } : {}) })), deadline_kst: kst(m.deadline), stop: m.paused,
-          offers: offers.map((o) => ({ seller: nameOf(o.merchant) ?? o.label, item: o.item, unit_price_usdt: fmtUsdt(o.unitPrice), fee_usdt: fmtUsdt(o.fee) })),
-          ...(d.demo ? { demo: true, note: 'in-memory sandbox: same rule as the vault, nothing is sent to TRON' } : {}),
-        });
-      },
-    },
-    {
-      name: 'spendline_pay',
-      description:
-        'Pay a seller in test USDT through the Spendline vault on TRON. For a seller in the catalog (spendline_line.offers) give the item and quantity: code prices it. The vault pays only inside the line; outside it the payment is stopped and the reason is recorded on-chain (ok: false). Every attempt that reaches the vault leaves a hash-chained receipt anyone can audit.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          to: { type: 'string', description: `seller: one of these names exactly: ${Object.values(d.labels).join(', ')} — or a TRON address` },
-          item: { type: 'string', description: `catalog item: ${[...new Set(offers.map((o) => o.item))].join(', ')} (optional when the seller sells one item)` },
-          quantity: { type: 'number', description: 'how many units, default 1' },
-          why: { type: 'string', description: "the reason in the words of the request — becomes the receipt's words" },
-          amount_usdt: { type: 'number', description: 'only for a seller that is not in the catalog: the amount in USDT (up to 6 decimals), fee not included' },
-          fee_usdt: { type: 'number', description: 'only for a seller that is not in the catalog: the fee in USDT, default 0' },
-        },
-        required: ['to', 'why'],
-        additionalProperties: false,
-      },
-      async run(a, meta = {}) {
+  async function pay(a: Record<string, unknown>, meta: Record<string, unknown>): Promise<McpResult> {
         const to = seller(a.to);
         if (!to) return refuse(`unknown seller "${String(a.to)}": give a TRON address or one of: ${Object.values(d.labels).join(', ')}`);
         if (typeof a.why !== 'string' || !a.why.trim()) return refuse('why is required: the reason in the words of the request');
@@ -128,6 +96,41 @@ export function mcpTools(d: McpDeps): McpTool[] {
         session.set(sameCall, { seq: r.receipt.seq, at: now });
         const rest = { ...base, tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash };
         return r.outcome.kind === 'paid' ? ok({ ok: true, ...rest }) : ok({ ok: false, reason: r.outcome.reason, ...rest });
+  }
+  return [
+    {
+      name: 'spendline_line',
+      description: 'Read the spending line the person granted: budget, spent, left, per-payment cap, allowed sellers, deadline, STOP. Read-only.',
+      inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+      async run() {
+        const [m, spent] = await Promise.all([d.chain.mandate(), d.chain.spent()]);
+        return ok({
+          budget_usdt: fmtUsdt(m.budget), spent_usdt: fmtUsdt(spent), left_usdt: fmtUsdt(Math.max(0, m.budget - spent)), per_payment_cap_usdt: fmtUsdt(m.perTxCap),
+          sellers: m.merchants.map((a) => ({ address: a, ...(nameOf(a) ? { name: nameOf(a) } : {}) })), deadline_kst: kst(m.deadline), stop: m.paused,
+          offers: offers.map((o) => ({ seller: nameOf(o.merchant) ?? o.label, item: o.item, unit_price_usdt: fmtUsdt(o.unitPrice), fee_usdt: fmtUsdt(o.fee) })),
+          ...(d.demo ? { demo: true, note: 'in-memory sandbox: same rule as the vault, nothing is sent to TRON' } : {}),
+        });
+      },
+    },
+    {
+      name: 'spendline_pay',
+      description:
+        'Pay a seller in test USDT through the Spendline vault on TRON. For a seller in the catalog (spendline_line.offers) give the item and quantity: code prices it. The vault pays only inside the line; outside it the payment is stopped and the reason is recorded on-chain (ok: false). Every attempt that reaches the vault leaves a hash-chained receipt anyone can audit.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          to: { type: 'string', description: `seller: one of these names exactly: ${Object.values(d.labels).join(', ')} — or a TRON address` },
+          item: { type: 'string', description: `catalog item: ${[...new Set(offers.map((o) => o.item))].join(', ')} (optional when the seller sells one item)` },
+          quantity: { type: 'number', description: 'how many units, default 1' },
+          why: { type: 'string', description: "the reason in the words of the request — becomes the receipt's words" },
+          amount_usdt: { type: 'number', description: 'only for a seller that is not in the catalog: the amount in USDT (up to 6 decimals), fee not included' },
+          fee_usdt: { type: 'number', description: 'only for a seller that is not in the catalog: the fee in USDT, default 0' },
+        },
+        required: ['to', 'why'],
+        additionalProperties: false,
+      },
+      run(a, meta = {}) {
+        return serialized(session, () => pay(a, meta)); // parallel tool calls from a host run one at a time (live 2026-09-29)
       },
     },
     {
