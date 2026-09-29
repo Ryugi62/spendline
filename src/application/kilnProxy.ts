@@ -3,11 +3,30 @@
 import { entryFromKilnResponse, type JournalEntry } from '../domain/kilnJournal';
 
 export type ProxyOut = { status: number; headers: Record<string, string>; body: string };
-export async function proxyChat(o: { body: string; kiln: { baseUrl: string; apiKey: string }; fetchImpl: typeof fetch; record: (e: JournalEntry) => Promise<void>; now: () => number }): Promise<ProxyOut> {
+type Msg = { role?: string; content?: unknown };
+const textOf = (c: unknown): string => (typeof c === 'string' ? c : Array.isArray(c) ? c.map((p) => (typeof p === 'object' && p && 'text' in p ? String((p as { text: unknown }).text) : '')).join('') : '');
+
+export async function proxyChat(o: { body: string; kiln: { baseUrl: string; apiKey: string }; fetchImpl: typeof fetch; record: (e: JournalEntry) => Promise<void>; now: () => number;
+  /** sha256 hex (the adapter passes node:crypto) — for the reply body and the conversation key */ hash?: (s: string) => string;
+  /** add Qwen3's /no_think soft switch to the last user turn (a stock host does not) */ noThink?: boolean }): Promise<ProxyOut> {
+  let body = o.body;
+  let msgs: Msg[] = [];
+  try {
+    const j = JSON.parse(body) as { messages?: Msg[] };
+    msgs = j.messages ?? [];
+    if (o.noThink) {
+      const last = [...msgs].reverse().find((m) => m.role === 'user' && typeof m.content === 'string');
+      if (last && !/\/(no_)?think\b/.test(String(last.content))) { last.content = `${String(last.content)} /no_think`; body = JSON.stringify(j); }
+    }
+  } catch { /* not JSON: Kiln answers it */ }
+  const firstUser = msgs.find((m) => m.role === 'user');
+  const asked = firstUser ? textOf(firstUser.content).replace(/ \/no_think$/, '') : undefined;
+  const opening = `${textOf(msgs.find((m) => m.role === 'system')?.content)}\n${asked ?? ''}`;
+  const convo = { ...(asked ? { asked } : {}), conversationKey: o.hash ? o.hash(opening) : opening, conversationStart: !msgs.some((m) => m.role === 'assistant' || m.role === 'tool'), ...(o.noThink ? { noThink: true } : {}) };
   let streamed = false;
-  try { streamed = (JSON.parse(o.body) as { stream?: unknown }).stream === true; } catch { /* Kiln answers a bad body itself */ }
+  try { streamed = (JSON.parse(body) as { stream?: unknown }).stream === true; } catch { /* Kiln answers a bad body itself */ }
   const t0 = o.now();
-  const res = await o.fetchImpl(`${o.kiln.baseUrl.replace(/\/$/, '')}/chat/completions`, { method: 'POST', headers: { Authorization: `Bearer ${o.kiln.apiKey}`, 'Content-Type': 'application/json' }, body: o.body });
+  const res = await o.fetchImpl(`${o.kiln.baseUrl.replace(/\/$/, '')}/chat/completions`, { method: 'POST', headers: { Authorization: `Bearer ${o.kiln.apiKey}`, 'Content-Type': 'application/json' }, body });
   const text = await res.text();
   const headers: Record<string, string> = { 'content-type': res.headers.get('content-type') ?? 'application/json' };
   const gen = res.headers.get('x-neocloud-generation-id');
@@ -16,7 +35,7 @@ export async function proxyChat(o: { body: string; kiln: { baseUrl: string; apiK
   if (res.ok && gen) {
     try {
       const server = Number(res.headers.get('x-envoy-upstream-service-time'));
-      await o.record(entryFromKilnResponse(JSON.parse(text), { generationId: gen, latencyMs: o.now() - t0, ...(Number.isFinite(server) && res.headers.has('x-envoy-upstream-service-time') ? { serverMs: server } : {}), at: o.now() }));
+      await o.record({ ...entryFromKilnResponse(JSON.parse(text), { generationId: gen, latencyMs: o.now() - t0, ...(Number.isFinite(server) && res.headers.has('x-envoy-upstream-service-time') ? { serverMs: server } : {}), at: o.now() }), ...convo, ...(o.hash ? { bodySha256: o.hash(text) } : {}) });
       headers['x-spendline-witness'] = 'recorded';
     } catch { headers['x-spendline-witness'] = 'not recorded: unreadable reply'; }
   }

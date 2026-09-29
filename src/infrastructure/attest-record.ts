@@ -9,6 +9,7 @@ import { attest, type AccountScope, type AttestAnswer, type AttestResult, type K
 import type { ChainEvent } from '../domain/audit';
 import type { Receipt } from '../domain/receipt';
 import type { UsageRecord } from '../domain/tokenLedger';
+import { journalCheck, type JournalEntry } from '../domain/kilnJournal';
 
 export const SAVED = 'docs/kiln-generations.json';
 /** The live record's split (README "Kiln account"): the organizer-issued account (team32, key made 2026-09-29 12:00 KST) made
@@ -35,4 +36,11 @@ export function savedAttest(o: { receipts: Receipt[]; answers: AnswerRecord[]; e
   if (!existsSync(file)) return undefined;
   const saved = JSON.parse(readFileSync(file, 'utf8')) as Saved;
   return attest({ receipts: withHostFlows(o.receipts), answers: [...o.answers, ...hostCallsOf(o.receipts)], events: o.events, generations: generationsOf(saved), model: 'qwen3-32b', scope: TEAM32, offers: JsonCatalog.fromFile(CATALOG).all() });
+}
+
+/** The published pass-through journals (docs/live/kiln-journal-*.jsonl) checked against the receipts. */
+export function publishedJournal(receipts: Receipt[], dir = 'docs/live') {
+  const files = existsSync(dir) ? readdirSync(dir).filter((n) => /^kiln-journal-.*\.jsonl$/.test(n)) : [];
+  const entries = files.flatMap((n) => readFileSync(`${dir}/${n}`, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as JournalEntry));
+  return { ...journalCheck(receipts, entries), files: files.length };
 }

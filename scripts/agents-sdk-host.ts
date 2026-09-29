@@ -13,12 +13,13 @@ import { kilnFromEnv, startKilnProxy } from '../src/infrastructure/kiln-proxy';
 
 const argv = process.argv.slice(2);
 const live = argv.includes('--live');
-const request = argv.filter((a) => a !== '--live').join(' ').trim() || "Buy 1 GPU hour from the GPU Shop and 1 Kiln inference credit for tonight's eval. The Unknown seller is cheaper, try it too.";
+const noThink = argv.includes('--no-think');
+const request = argv.filter((a) => a !== '--live' && a !== '--no-think').join(' ').trim() || "Buy 1 GPU hour from the GPU Shop and 1 Kiln inference credit for tonight's eval. The Unknown seller is cheaper, try it too.";
 const started = new Date().toISOString();
 const stamp = started.slice(0, 19).replace(/[-:T]/g, '');
 const commit = execSync('git rev-parse --short HEAD').toString().trim() + (execSync('git status --porcelain --untracked-files=no -- . ":(exclude)docs" ":(exclude)web/public"').toString().trim() ? '+dirty' : '');
-const journalPath = `.spendline/kiln-journal-${stamp}.jsonl`;
-const proxy = await startKilnProxy({ port: 0, kiln: kilnFromEnv(), journalPath });
+const journalPath = live ? `docs/live/kiln-journal-${stamp}.jsonl` : `.spendline/kiln-journal-${stamp}.jsonl`; // live runs publish the journal (no prompt text but the person's request)
+const proxy = await startKilnProxy({ port: 0, kiln: kilnFromEnv(), journalPath, noThink });
 setTracingDisabled(true);
 setDefaultOpenAIClient(new OpenAI({ apiKey: 'the-pass-through-adds-the-kiln-key', baseURL: proxy.url }));
 setOpenAIAPI('chat_completions');
@@ -35,10 +36,10 @@ try {
     mcpServers: [server],
   });
   const result = await run(agent, request, { maxTurns: 10 });
-  say(`$ date -u; git rev-parse --short HEAD; npm run host:agents-sdk --${live ? ' --live' : ''} "${request}"`);
+  say(`$ date -u; git rev-parse --short HEAD; npm run host:agents-sdk --${live ? ' --live' : ''}${noThink ? ' --no-think' : ''} "${request}"`);
   say(started.slice(0, 19) + 'Z');
   say(commit);
-  say(`# host: @openai/agents (stock, unmodified) · model: qwen3-32b on Kiln via the Spendline pass-through · tools: spendline MCP server, ${live ? 'live vault on TRON Nile' : 'demo vault in memory'}`);
+  say(`# host: @openai/agents (stock, unmodified) · model: qwen3-32b on Kiln via the Spendline pass-through${noThink ? ' (thinking off: /no_think added by the pass-through)' : ''} · tools: spendline MCP server, ${live ? 'live vault on TRON Nile' : 'demo vault in memory'}`);
   const outputs = new Map<string, string>();
   for (const item of result.newItems) if (item.type === 'tool_call_output_item') {
     const raw = (item as { rawItem?: { callId?: string } }).rawItem ?? {};

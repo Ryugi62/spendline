@@ -6,7 +6,7 @@ import type { UsageRecord } from '../domain/tokenLedger';
 
 export function journalWitness(path: string, store: ReceiptStore, now: () => number = () => Date.now()) {
   const used = new Set<string>();
-  return async (args: Record<string, unknown>): Promise<UsageRecord | undefined> => {
+  return async (args: Record<string, unknown>): Promise<(UsageRecord & { asked?: string; occurrence?: number }) | undefined> => {
     if (!existsSync(path)) return undefined;
     const entries = readFileSync(path, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as JournalEntry);
     // a (generation, arguments) already sealed into a receipt is used
@@ -17,7 +17,7 @@ export function journalWitness(path: string, store: ReceiptStore, now: () => num
     const w = findWitness(entries, { name: 'spendline_pay', args }, { now: now(), used });
     if (!w) return undefined;
     used.add(w.key);
-    const { key: _k, ...usage } = w;
+    const { key: _k, conversation: _c, ...usage } = w;
     return usage;
   };
 }

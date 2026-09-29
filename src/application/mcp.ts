@@ -19,7 +19,7 @@ export const SESSION_WINDOW_SEC = 600;
 export type McpTool = { name: string; description: string; inputSchema: Record<string, unknown>; run(args: Record<string, unknown>, meta?: Record<string, unknown>): Promise<McpResult> };
 export type McpDeps = GuardedPayDeps & { events: EventSource; labels: Record<string, string>; offers?: Offer[]; vault: string;
   /** AC-45: the Kiln call behind these arguments, from the pass-through journal (for hosts that send no _meta) */
-  witness?: (args: Record<string, unknown>) => Promise<UsageRecord | undefined>; /** in-memory sandbox (`npm run mcp -- --demo`): said in every line reply */ demo?: boolean };
+  witness?: (args: Record<string, unknown>) => Promise<(UsageRecord & { asked?: string; occurrence?: number }) | undefined>; /** in-memory sandbox (`npm run mcp -- --demo`): said in every line reply */ demo?: boolean };
 
 const TRON_ADDRESS = /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
 const kst = (unix: number) => new Date((unix + 9 * 3600) * 1000).toISOString().replace('T', ' ').slice(0, 19);
@@ -57,6 +57,11 @@ export function mcpTools(d: McpDeps): McpTool[] {
     const t = to.trim();
     return TRON_ADDRESS.test(t) ? t : byName.get(t.toLowerCase());
   };
+  /** what is left on the line after this attempt — so a host (and its model) never has to compute it (round-4: a stock agent misstated it) */
+  async function left() {
+    const [m, spent] = await Promise.all([d.chain.mandate(), d.chain.spent()]);
+    return { spent_usdt: fmtUsdt(spent), left_usdt: fmtUsdt(Math.max(0, m.budget - spent)) };
+  }
   async function pay(a: Record<string, unknown>, meta: Record<string, unknown>): Promise<McpResult> {
         const to = seller(a.to);
         if (!to) return refuse(`unknown seller "${String(a.to)}": give a TRON address or one of: ${Object.values(d.labels).join(', ')}`);
@@ -80,11 +85,16 @@ export function mcpTools(d: McpDeps): McpTool[] {
         }
         let flows: UsageRecord[] | string = meta[META_KILN_USAGE] === undefined ? [] : usageFrom(meta[META_KILN_USAGE]);
         if (typeof flows === 'string') return refuse(flows);
+        let fromJournal: { asked?: string; occurrence?: number } = {};
         if (!flows.length && d.witness) {
           const w = await d.witness(a);
-          if (w) { const { key: _k, ...u } = w as UsageRecord & { key?: string }; flows = [u]; }
+          if (w) {
+            const { key: _k, asked: wAsked, occurrence: wOcc, conversation: _c, ...u } = w as UsageRecord & { key?: string; asked?: string; occurrence?: number; conversation?: string };
+            flows = [u];
+            fromJournal = { ...(wAsked ? { asked: wAsked } : {}), ...(wOcc !== undefined ? { occurrence: wOcc } : {}) };
+          }
         }
-        const asked = typeof meta[META_REQUEST] === 'string' && (meta[META_REQUEST] as string).trim() ? (meta[META_REQUEST] as string).trim() : undefined;
+        const asked = typeof meta[META_REQUEST] === 'string' && (meta[META_REQUEST] as string).trim() ? (meta[META_REQUEST] as string).trim() : fromJournal.asked; // a stock host: the person's words from the Kiln pass-through journal
         const ignored = pricedBy === 'catalog' && modelAmount !== undefined && modelAmount !== amount ? { model_amount_ignored: fmtUsdt(modelAmount) } : {};
         const base = { seller: nameOf(to) ?? to, amount_usdt: fmtUsdt(amount), fee_usdt: fmtUsdt(fee), priced_by: pricedBy, ...ignored };
         const [mandate, now] = await Promise.all([d.chain.mandate(), d.chain.now()]);
@@ -95,7 +105,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
         let prior: (typeof all)[number] | undefined;
         if (asked) {
           const same = all.filter((r) => r.asked === asked && r.mandateId === mandate.id && r.request.merchant === to && r.request.amount === amount && r.request.fee === fee && now - r.request.at <= REPLAY_WINDOW_SEC);
-          if (same.length) { const paidSet = await paidHashes(); prior = same.filter((r) => paidSet.has(r.hash))[Number(meta[META_OCCURRENCE] ?? 0)]; }
+          if (same.length) { const paidSet = await paidHashes(); prior = same.filter((r) => paidSet.has(r.hash))[Number(meta[META_OCCURRENCE] ?? fromJournal.occurrence ?? 0)]; }
         } else {
           const hit = session.get(sameCall);
           const r = hit && now - hit.at <= SESSION_WINDOW_SEC ? all.find((x) => x.seq === hit.seq) : undefined;
@@ -105,12 +115,12 @@ export function mcpTools(d: McpDeps): McpTool[] {
           if (prior) {
             // the same request again: send the ORIGINAL receipt hash — the vault decides a receipt once, so the repeat is stopped on-chain (DUPLICATE_RECEIPT)
             const out = await d.chain.pay({ merchant: to, amount, fee, receiptHash: prior.hash });
-            return ok({ ok: out.kind === 'paid', ...(out.kind === 'blocked' ? { reason: out.reason } : {}), ...base, tx: out.txHash, replay_of: prior.seq });
+            return ok({ ok: out.kind === 'paid', ...(out.kind === 'blocked' ? { reason: out.reason } : {}), ...base, tx: out.txHash, replay_of: prior.seq, ...(await left()) });
           }
         }
         const r = await guardedPay(d, { merchant: to, amount, fee, why: a.why.trim(), flows, ...(asked ? { asked } : {}) });
         session.set(sameCall, { seq: r.receipt.seq, at: now });
-        const rest = { ...base, tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash, ...(flows[0] ? { kiln_witness: flows[0].generationId } : {}) };
+        const rest = { ...base, tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash, ...(flows[0] ? { kiln_witness: flows[0].generationId } : {}), ...(await left()) };
         return r.outcome.kind === 'paid' ? ok({ ok: true, ...rest }) : ok({ ok: false, reason: r.outcome.reason, ...rest });
   }
   return [

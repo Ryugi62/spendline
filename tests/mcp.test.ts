@@ -189,6 +189,21 @@ describe('MCP tools (AC-43)', () => {
     expect((await store.all())[0].flows).toEqual([expect.objectContaining({ flow: 'F4_mcp_host', generationId: 'gen-proxy', args: '{"to":"Kiln credits","why":"credit"}' })]);
   });
 
+  it('round-4 review: a stock host (no _meta) gets the person\'s words and the occurrence from the journal witness — the request sent again is a repeat, two identical items are not; every pay reply says what is left', async () => {
+    const line = { id: 'm1', budget: usdt(9.9), perTxCap: usdt(8), deadline: 1790780340, merchants: [GPU, CRED], paused: false };
+    const chain = new MemoryChain(line, 1790700000);
+    await chain.grant(line);
+    const store = new MemoryReceiptStore();
+    let n = 0;
+    const plan = [0, 1, 0]; // occurrences the journal reports: item one, the identical item two, then the whole request sent again
+    const witness = async () => ({ flow: 'F4_mcp_host' as const, promptTokens: 1, completionTokens: 1, costUsd: 0, latencyMs: 1, generationId: `g${n}`, args: '{}', asked: 'Two Kiln credits please', occurrence: plan[n++] });
+    const tools = mcpTools({ chain, store, hash: sha, events: { events: async () => chain.events }, labels, offers, vault: 'TVault', witness });
+    const pay = () => tools[1].run({ to: 'Kiln credits', why: 'credit' });
+    const a = await pay(); const b = await pay(); const c = await pay();
+    expect([a.data, b.data, c.data]).toMatchObject([{ ok: true, receipt_seq: 1, left_usdt: '8.90' }, { ok: true, receipt_seq: 2, left_usdt: '7.90' }, { ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1, left_usdt: '7.90' }]);
+    expect((await store.all()).map((r) => r.asked)).toEqual(['Two Kiln credits please', 'Two Kiln credits please']);
+  });
+
   it('spendline_check: the keyless audit verdict for one receipt', async () => {
     const { tools } = await setup();
     await call(tools, 'spendline_pay', { to: UNK, amount_usdt: 0.9, why: 'cheaper' });

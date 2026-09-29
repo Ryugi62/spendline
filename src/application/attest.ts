@@ -41,13 +41,14 @@ const line = (x: AttestRow) => {
   return `${x.status.padEnd(9)} ${who.padEnd(9)} ${x.generationId}${when}${bound}${x.diffs.length ? ` — ${x.diffs.join('; ')}` : ''}`;
 };
 
-export function formatAttest(r: AttestResult, o: { source: string; scopeNote?: string }): string {
+export function formatAttest(r: AttestResult, o: { source: string; scopeNote?: string; journal?: { inJournal: number; checked: number; mismatches: string[]; files: number } }): string {
   const s = summarizeAttest(r);
   const head = [
     `Two witnesses — Kiln's own record (${o.source}) vs the receipts whose hashes are on TRON`,
     `${new Set(r.rows.filter((x) => x.generationId).map((x) => x.generationId)).size} Kiln calls in the record (${s.calls} rows — one reply with several tool calls backs several receipts) · ${s.match} MATCH · ${s.differs} DIFFERS · ${s.notFound} NOT_FOUND · ${s.noKilnCall} NO_KILN_CALL` + (s.otherAccount ? ` · ${s.otherAccount} made on another Kiln account (${o.scopeNote ?? 'outside the scope'})` : ''),
     `pay() attempts decided on Kiln: ${s.payingBefore} / ${s.paying} dated after their Kiln call and within ${MAX_LEAD_SEC} s (${s.payingCalls} Kiln calls)` + (s.medianLeadSec !== undefined ? ` (${s.minLeadSec}–${s.maxLeadSec} s, median ${s.medianLeadSec} s)` : '') + (s.shared ? ` · ${s.shared} rows share a generation wrongly` : ' · no (generation, arguments) backs two receipts, no generation spans two requests'),
     ...(s.argsRows ? [`The model's own arguments re-derive the payment (seller, item × quantity + fee from the catalog): ${s.argsBound} / ${s.argsRows}`] : []),
+    ...(o.journal && o.journal.checked ? [`Published pass-through journal (${o.journal.files} file${o.journal.files === 1 ? '' : 's'}, docs/live/kiln-journal-*.jsonl): ${o.journal.inJournal} / ${o.journal.checked} bound receipts' arguments appear in it byte for byte${o.journal.mismatches.length ? ` — ${o.journal.mismatches.join('; ')}` : ''}`] : []),
     ...(s.medianKilnLatencyMs !== undefined ? [`On Kiln's own clock (per call): median latency ${s.medianKilnLatencyMs} ms → ≈${s.whPerCallKiln!.toFixed(4)} Wh per call at 180 W (an estimate)` + (s.prompt ? ` · prompt tokens served from Kiln's cache: ${s.cached} / ${s.prompt} (${Math.round((100 * s.cached!) / s.prompt)}%)` : '')] : []),
     '',
   ];

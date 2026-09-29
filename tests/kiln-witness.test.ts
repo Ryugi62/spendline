@@ -60,3 +60,51 @@ describe('proxyChat (the Kiln pass-through)', () => {
     expect(journal).toEqual([]);
   });
 });
+
+describe('round-4 review: the journal carries who asked, which conversation, and a hash of Kiln\'s reply', () => {
+  const body = (msgs: { role: string; content: string }[]) => JSON.stringify({ model: 'qwen3-32b', messages: msgs });
+  const sys = { role: 'system', content: 'You buy compute.' };
+  const ask = { role: 'user', content: 'Buy 1 GPU hour, as cheap as you can' };
+  it('proxyChat journals the person\'s request (the first user message), the conversation it belongs to, and sha256 of the reply body', async () => {
+    const journal: JournalEntry[] = [];
+    const upstream = async () => new Response(JSON.stringify(reply([{ name: 'spendline_pay', arguments: '{"to":"GPU Shop"}' }])), { status: 200, headers: { 'x-neocloud-generation-id': 'g1' } });
+    const deps = { kiln: { baseUrl: 'https://k/v1', apiKey: 'K' }, fetchImpl: upstream as unknown as typeof fetch, record: async (e: JournalEntry) => { journal.push(e); }, now: () => 1, hash: (s: string) => `h(${s.length})` };
+    await proxyChat({ ...deps, body: body([sys, ask]) });
+    await proxyChat({ ...deps, body: body([sys, ask, { role: 'assistant', content: '' }, { role: 'tool', content: '{}' }]) });
+    expect(journal.map((e) => [e.asked, e.conversationStart])).toEqual([[ask.content, true], [ask.content, false]]);
+    expect(journal[0].bodySha256).toMatch(/^h\(\d+\)$/);
+    expect(journal[0].conversationKey).toBe(journal[1].conversationKey);
+  });
+  it('--no-think: the pass-through adds Qwen3\'s /no_think to the last user turn and says so in the journal', async () => {
+    const sent: string[] = [];
+    const upstream = async (_u: string, init: RequestInit) => { sent.push(String(init.body)); return new Response(JSON.stringify(reply([])), { status: 200, headers: { 'x-neocloud-generation-id': 'g2' } }); };
+    const journal: JournalEntry[] = [];
+    await proxyChat({ body: body([sys, ask]), kiln: { baseUrl: 'https://k/v1', apiKey: 'K' }, fetchImpl: upstream as unknown as typeof fetch, record: async (e) => { journal.push(e); }, now: () => 1, hash: (s) => s, noThink: true });
+    expect(JSON.parse(sent[0]).messages[1].content).toBe('Buy 1 GPU hour, as cheap as you can /no_think');
+    expect(journal[0].noThink).toBe(true);
+    expect(journal[0].asked).toBe(ask.content);
+  });
+});
+
+describe('round-4 review: conversation instances and occurrence from the journal', () => {
+  const e = (gen: string, start: boolean, calls: string[], at: number): JournalEntry => ({ ...entryFromKilnResponse(reply(calls.map((a) => ({ name: 'spendline_pay', arguments: a }))), { generationId: gen, latencyMs: 1, at }), conversationKey: 'K', conversationStart: start, asked: 'Two credits' });
+  const one = '{"to":"Kiln credits","why":"eval"}';
+  it('the n-th identical call of one conversation has occurrence n; a new conversation (the request sent again) starts at 0 — so a retry is recognised and two identical items are not', () => {
+    const entries = [e('a', true, [one, one], 1000), e('b', false, [one], 2000), e('c', true, [one], 3000)];
+    const w = (key: string) => findWitness(entries, { name: 'spendline_pay', args: JSON.parse(one) }, { now: 4000, used: new Set(key ? key.split(',') : []) });
+    expect(w('')).toMatchObject({ generationId: 'c', occurrence: 0, asked: 'Two credits', conversation: 'c' });
+    expect(w('c#0')).toMatchObject({ generationId: 'b', occurrence: 2, conversation: 'a' });
+    expect(w('c#0,b#0')).toMatchObject({ generationId: 'a', occurrence: 0, conversation: 'a' });
+    expect(w('c#0,b#0,a#0')).toMatchObject({ generationId: 'a', occurrence: 1, conversation: 'a' });
+  });
+});
+
+describe('round-4 review: the published journal is checked against the receipts', () => {
+  it('each receipt bound by the pass-through has its (generation, arguments) in the journal byte for byte; a mismatch is named', async () => {
+    const { journalCheck } = await import('../src/domain/kilnJournal');
+    const j = [entryFromKilnResponse(reply([{ name: 'spendline_pay', arguments: '{"to":"GPU Shop"}' }]), { generationId: 'g1', latencyMs: 1, at: 1 })];
+    const r = (seq: number, gen: string, args: string) => ({ seq, flows: [{ flow: 'F4_mcp_host' as const, promptTokens: 1, completionTokens: 1, costUsd: 0, latencyMs: 1, generationId: gen, args }] });
+    expect(journalCheck([r(1, 'g1', '{"to":"GPU Shop"}'), r(2, 'g9', '{"to":"x"}')] as never, j)).toEqual({ inJournal: 1, checked: 1, mismatches: [] });
+    expect(journalCheck([r(1, 'g1', '{"to":"Kiln credits"}')] as never, j)).toEqual({ inJournal: 0, checked: 1, mismatches: ['#1: the journal has no such call for g1'] });
+  });
+});

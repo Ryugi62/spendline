@@ -1,8 +1,9 @@
 // AC-45 composition root — the Kiln pass-through for an unmodified agent host:
-//   npm run kiln:proxy [-- --port 8787]      then point the host's OpenAI base URL at http://127.0.0.1:8787/v1 (any API key)
+//   npm run kiln:proxy [-- --port 8787] [--no-think]   (--no-think adds Qwen3's /no_think to the last user turn: a stock host does not)      then point the host's OpenAI base URL at http://127.0.0.1:8787/v1 (any API key)
 // Forwards to Kiln with the Kiln key from .env, returns Kiln's reply unchanged, and appends one line per reply to the journal
 // (generation id, usage, the tool calls asked for — no prompt text). `npm run mcp` with SPENDLINE_KILN_JOURNAL set binds each
 // spendline_pay to the Kiln reply whose tool call carries exactly its arguments.
+import { createHash } from 'node:crypto';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import { dirname } from 'node:path';
@@ -11,7 +12,7 @@ import { flag, need, readEnv } from './runtime';
 
 export const DEFAULT_JOURNAL = '.spendline/kiln-journal.jsonl';
 
-export function startKilnProxy(o: { port: number; kiln: { baseUrl: string; apiKey: string }; journalPath: string }): Promise<{ url: string; close: () => Promise<void>; server: Server }> {
+export function startKilnProxy(o: { port: number; kiln: { baseUrl: string; apiKey: string }; journalPath: string; noThink?: boolean }): Promise<{ url: string; close: () => Promise<void>; server: Server }> {
   mkdirSync(dirname(o.journalPath), { recursive: true });
   const server = createServer(async (req, res) => {
     const chunks: Buffer[] = [];
@@ -19,7 +20,7 @@ export function startKilnProxy(o: { port: number; kiln: { baseUrl: string; apiKe
     const body = Buffer.concat(chunks).toString('utf8');
     try {
       if (req.method === 'POST' && req.url?.replace(/\/$/, '').endsWith('/chat/completions')) {
-        const out = await proxyChat({ body, kiln: o.kiln, fetchImpl: fetch, record: async (e) => appendFileSync(o.journalPath, JSON.stringify(e) + '\n'), now: () => Date.now() });
+        const out = await proxyChat({ body, kiln: o.kiln, fetchImpl: fetch, record: async (e) => appendFileSync(o.journalPath, JSON.stringify(e) + '\n'), now: () => Date.now(), hash: (x) => createHash('sha256').update(x).digest('hex'), ...(o.noThink ? { noThink: true } : {}) });
         res.writeHead(out.status, out.headers).end(out.body);
       } else if (req.method === 'GET' && req.url?.endsWith('/models')) {
         const r = await fetch(`${o.kiln.baseUrl}/models`, { headers: { Authorization: `Bearer ${o.kiln.apiKey}` } });
@@ -44,5 +45,5 @@ export function kilnFromEnv() {
 if (process.argv[1]?.endsWith('kiln-proxy.ts')) {
   const args = process.argv.slice(2);
   const journalPath = flag(args, '--journal') ?? process.env.SPENDLINE_KILN_JOURNAL ?? DEFAULT_JOURNAL;
-  startKilnProxy({ port: Number(flag(args, '--port') ?? 8787), kiln: kilnFromEnv(), journalPath }).then((p) => console.error(`Kiln pass-through on ${p.url} → journal ${journalPath}`));
+  startKilnProxy({ port: Number(flag(args, '--port') ?? 8787), kiln: kilnFromEnv(), journalPath, noThink: args.includes('--no-think') }).then((p) => console.error(`Kiln pass-through on ${p.url} → journal ${journalPath}`));
 }

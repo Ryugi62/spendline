@@ -199,6 +199,11 @@ M1 said: the demo only replays the 2026-09-26 record, no live receipt comes thro
   journals {generation id, usage, the tool calls asked for (proper or written into the text)}; the MCP server binds the pay call to the newest
   journaled reply (≤ 120 s) whose tool call has exactly these arguments (canonical JSON) and that no receipt used yet, and seals that usage
   (with the arguments) into the receipt. Streamed requests are passed through unjournaled. `npm run kiln:proxy` · `SPENDLINE_KILN_JOURNAL`.
+- Round-4 review: the pass-through also journals the person's request (the conversation's first user message), the conversation it
+  belongs to, sha256 of Kiln's reply body, and (opt-in `--no-think`) adds Qwen3's /no_think to the last user turn; for a host without `_meta`
+  the MCP server takes the request and the occurrence (identical calls earlier in the same conversation) from the journal, so a stock host's
+  request sent twice buys once and two identical items are two purchases; every pay reply carries `spent_usdt` / `left_usdt`; live journals are
+  published in docs/live and `attest` checks each bound receipt's arguments against them byte for byte.
 - Round-3 review (3 mock judges): a repeat must match an earlier PAID purchase, per identical item (`spendline/occurrence`); the host uses the
   native tool protocol (assistant `tool_calls` + `role: tool`); attest: NO_KILN_CALL for a receipt in scope that no Kiln call decided, a
   generation may not span two requests, an F1 seller hint (address or catalog name) must be the seller paid and within the model's price cap.
