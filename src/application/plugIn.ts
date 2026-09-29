@@ -12,14 +12,14 @@ export type GuardedPayResult = { request: SpendRequest; preview: Decision; recei
 /** Seal a receipt for one spend attempt and send it through the vault. Used by UC-2 purchase and by the plug-in wallet. */
 export async function guardedPay(
   d: GuardedPayDeps,
-  p: { merchant: string; amount: number; fee: number; why: string; flows?: UsageRecord[] },
+  p: { merchant: string; amount: number; fee: number; why: string; flows?: UsageRecord[]; asked?: string },
 ): Promise<GuardedPayResult> {
   const [mandate, spent, at] = await Promise.all([d.chain.mandate(), d.chain.spent(), d.chain.now()]);
   const request: SpendRequest = { merchant: p.merchant, amount: p.amount, fee: p.fee, at };
   const preview = evaluate(mandate, spent, request);
   const prior = await d.store.all();
   const prev = prior.length ? prior[prior.length - 1] : undefined;
-  const receipt = sealReceipt(prev?.hash ?? GENESIS, { seq: (prev?.seq ?? 0) + 1, mandateId: mandate.id, request, intentText: p.why, flows: p.flows ?? [] }, d.hash);
+  const receipt = sealReceipt(prev?.hash ?? GENESIS, { seq: (prev?.seq ?? 0) + 1, mandateId: mandate.id, request, intentText: p.why, flows: p.flows ?? [], ...(p.asked ? { asked: p.asked } : {}) }, d.hash);
   await d.store.append(receipt);
   const outcome = await d.chain.pay({ merchant: request.merchant, amount: request.amount, fee: request.fee, receiptHash: receipt.hash });
   return { request, preview, receipt, outcome };

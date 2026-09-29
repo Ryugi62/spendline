@@ -1,4 +1,5 @@
 import type { UsageRecord } from '../domain/tokenLedger';
+import { leakedToolCall } from '../domain/intent';
 import { toolCallDecision, type AbSummary, type FlowReport, type FlowRow } from '../domain/flowReport';
 
 /** Markdown for docs/tokens-by-flow.md (M0-11) and its /no_think section (M0-12). Numbers come from domain/flowReport only. */
@@ -6,8 +7,9 @@ const WHAT: Record<string, string> = {
   F1_intent: 'request words → `{item, quantity, maxUnitPrice?, merchantHint?}`; code picks the offer and does the money math',
   F2_explain: 'audit facts → two plain sentences about one receipt (shown only if it echoes the audit verdict)',
   F3_dispute: "a teammate's question → which receipt it is about (verdict always from the audit)",
+  F4_mcp_host: 'v1.1: a general MCP host planning on Kiln → `spendline_pay` tool calls (+ its closing answer); code prices catalog items',
 };
-const NAME: Record<string, string> = { F1_intent: 'F1 intent', F2_explain: 'F2 explain', F3_dispute: 'F3 dispute' };
+const NAME: Record<string, string> = { F1_intent: 'F1 intent', F2_explain: 'F2 explain', F3_dispute: 'F3 dispute', F4_mcp_host: 'F4 MCP host', total: '**Total**' };
 const s = (ms: number) => `${(ms / 1000).toFixed(2)} s`;
 const usd = (x: number) => `$${x.toFixed(7)}`;
 
@@ -110,19 +112,25 @@ export function formatServerEnergy(e: { calls: number; wallMs: number; serverMs:
 }
 
 // AC-44 — the Kiln calls of MCP host runs (docs/live/mcp-host-*.json): a general host plans with more calls and longer prompts than F1.
-export type HostRunLog = { calls: UsageRecord[]; steps: { tool: string; isError: boolean }[] };
-export type HostRunsSummary = { runs: number; calls: number; payments: number; noPayment: number; callsPerPayment: number; medianPromptTokens: number; tokens: number; costUsd: number };
+export type HostRunLog = { calls: UsageRecord[]; steps: { tool: string; isError: boolean }[]; answer?: string; commit?: string };
+export type HostRunsSummary = {
+  runs: number; calls: number; payments: number; noPayment: number; callsPerPayment: number; medianPromptTokens: number; tokens: number; costUsd: number;
+  /** runs that ended in a plain answer (the request handled) · a pay decision the host could not parse · pay calls refused before the chain */
+  completed: number; dropped: number; refused: number;
+};
 export function hostRunsSummary(runs: HostRunLog[]): HostRunsSummary {
   const calls = runs.flatMap((r) => r.calls);
   const payments = runs.reduce((n, r) => n + r.steps.filter((s) => s.tool === 'spendline_pay' && !s.isError).length, 0);
   const prompts = calls.map((c) => c.promptTokens).sort((a, b) => a - b);
   const mid = prompts.length % 2 ? prompts[(prompts.length - 1) / 2] : (prompts[prompts.length / 2 - 1] + prompts[prompts.length / 2]) / 2;
+  const dropped = runs.filter((r) => r.answer !== undefined && leakedToolCall(r.answer, 'spendline_pay') !== undefined).length;
   return {
     runs: runs.length, calls: calls.length, payments, noPayment: calls.length - payments,
     callsPerPayment: payments ? Math.round((calls.length / payments) * 100) / 100 : 0, medianPromptTokens: mid ?? 0,
     tokens: calls.reduce((n, c) => n + c.promptTokens + c.completionTokens, 0), costUsd: Math.round(calls.reduce((n, c) => n + c.costUsd, 0) * 1e8) / 1e8,
+    completed: runs.length - dropped, dropped, refused: runs.reduce((n, r) => n + r.steps.filter((s) => s.isError).length, 0),
   };
 }
 export function formatHostRuns(h: HostRunsSummary, o: { f1MedianPrompt: number }): string {
-  return `\n## MCP host on Kiln (AC-44) — the same payments through a general agent\n- ${h.runs} runs of \`npm run mcp:host\`: ${h.calls} Kiln calls for ${h.payments} pay attempts that reached the vault (${h.callsPerPayment.toFixed(2)} per attempt; ${h.noPayment} calls decided no payment — closing answers and a refused call) · ${h.tokens.toLocaleString('en-US')} tokens · $${h.costUsd.toFixed(7)}\n- Median prompt ${h.medianPromptTokens} tokens per call vs ${o.f1MedianPrompt} for Spendline's own F1 with the tool offered (1 call per purchase): the purpose-built F1 stays the efficient path; MCP is the path for an agent that already has a planner.\n- The pay calls are inside the F1 row above (each receipt carries its host call, AC-43); the other calls are only here.\n`;
+  return `\n## F4 MCP host on Kiln (AC-44) — the same payments through a general agent\n- ${h.runs} runs of \`npm run mcp:host\`: ${h.calls} Kiln calls for ${h.payments} pay attempts that reached the vault (${h.callsPerPayment.toFixed(2)} per attempt) · ${h.tokens.toLocaleString('en-US')} tokens · $${h.costUsd.toFixed(7)}\n- Runs that handled the whole request: ${h.completed} / ${h.runs}. Calls that reached no vault: ${h.noPayment} — ${h.refused} refused before the chain (a seller name not in the catalog), ${h.dropped} pay decision${h.dropped === 1 ? '' : 's'} the host could not parse (fixed with tests after those runs), ${h.noPayment - h.refused - h.dropped} closing answer${h.noPayment - h.refused - h.dropped === 1 ? '' : 's'}.\n- Median prompt ${h.medianPromptTokens} tokens per call vs ${o.f1MedianPrompt} for Spendline's own F1 with the tool offered (1 call per purchase): the purpose-built F1 stays the efficient path; MCP is the path for an agent that already has a planner.\n`;
 }

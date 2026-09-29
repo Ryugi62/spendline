@@ -8,6 +8,7 @@ import { formatAb, formatFlowReport, formatHostRuns, formatServerEnergy, formatT
 import { abSummary, flowReport, serverTimeEnergy, type AbPair } from '../src/domain/flowReport';
 import type { UsageRecord } from '../src/domain/tokenLedger';
 import { flag, LIVE_ANSWERS, LIVE_RECEIPTS } from '../src/infrastructure/runtime';
+import { hostCallsOutsideReceipts, withHostFlows } from '../src/infrastructure/host-runs';
 
 const args = process.argv.slice(2);
 const receiptsFile = flag(args, '--receipts') ?? LIVE_RECEIPTS;
@@ -15,12 +16,13 @@ const answersFile = flag(args, '--answers') ?? LIVE_ANSWERS;
 const abFile = flag(args, '--ab') ?? 'docs/ab-no-think-2026-09-26.json';
 const out = flag(args, '--out') ?? 'docs/tokens-by-flow.md';
 
-const receipts = parseReceiptsFile(readFileSync(receiptsFile, 'utf8')).receipts;
+const recorded = parseReceiptsFile(readFileSync(receiptsFile, 'utf8')).receipts;
+const receipts = withHostFlows(recorded); // MCP host planner calls reported as F4 (the file keeps its labels and hashes)
 const answers = readJsonl<AnswerRecord>(answersFile);
-const records = [...receipts.flatMap((r) => r.flows), ...answers.flatMap((a) => (a.usage ? [a.usage] : []))];
-const report = flowReport(records, { purchases: receipts.length });
+const records = [...receipts.flatMap((r) => r.flows), ...answers.flatMap((a) => (a.usage ? [a.usage] : [])), ...hostCallsOutsideReceipts(recorded)];
+const report = flowReport(records, { purchases: receipts.filter((r) => r.flows.some((u) => u.flow === 'F1_intent')).length });
 let md = formatFlowReport(report, {
-  title: 'Kiln tokens by flow — Spendline live run on TRON Nile (2026-09-26, qwen3-32b)',
+  title: 'Kiln tokens by flow — Spendline live record on TRON Nile (2026-09-26 → 2026-09-29, qwen3-32b)',
   sources: [receiptsFile, answersFile],
   wattsSource: 'FuriosaAI RNGD card TDP — "180W TDP", furiosa.ai/rngd, checked 2026-09-26',
   notes: [

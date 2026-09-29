@@ -44,6 +44,7 @@ export class JsonCatalog implements CatalogPort {
   static fromFile(path: string) { return new JsonCatalog(JSON.parse(readFileSync(path, 'utf8'))); }
   async offers(item: string) { return this.list.filter((o) => o.item === item); }
   labels(): Record<string, string> { return Object.fromEntries(this.list.map((o) => [o.merchant, o.label])); }
+  all(): Offer[] { return [...this.list]; }
 }
 
 /** receipts.jsonl as the agent's store: every run appends one line and continues the hash chain already in the file. */

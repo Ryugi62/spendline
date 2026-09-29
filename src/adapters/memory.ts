@@ -12,15 +12,18 @@ export class FakeLlm implements LlmPort {
   /** the tools offered with each call */
   readonly tools: ToolSpec[][] = [];
   /** a string = a text reply; `{tool, arguments}` = a tool call (AC-33) */
-  constructor(private replies: (string | { tool: string; arguments: string })[]) {}
+  constructor(private replies: (string | { tool: string; arguments: string } | { calls: { tool: string; arguments: string }[] })[]) {}
   async chat(flow: Flow, messages: ChatMessage[], opts: ChatOptions = {}) {
     this.seen.push(messages.map((m) => ({ ...m })));
     this.tools.push(opts.tools ?? []);
-    const r = this.replies[this.i++] ?? '{}';
+    const raw = this.replies[this.i++] ?? '{}';
+    const many = typeof raw === 'object' && 'calls' in raw ? raw.calls : undefined;
+    const r = many ? many[0] : (raw as string | { tool: string; arguments: string });
     const text = typeof r === 'string' ? r : '';
-    const out = typeof r === 'string' ? text : r.arguments;
+    const out = typeof r === 'string' ? text : many ? many.map((c) => c.arguments).join('') : r.arguments;
     const promptTokens = messages.reduce((n, m) => n + Math.ceil(m.content.length / 4), 0);
     const usage = { flow, promptTokens, completionTokens: Math.ceil(out.length / 4), costUsd: 0, latencyMs: 0, generationId: `${STAND_IN_PREFIX}${this.i}` };
+    if (many) return { text, usage, toolCall: { name: many[0].tool, arguments: many[0].arguments }, toolCalls: many.map((c) => ({ name: c.tool, arguments: c.arguments })) };
     return typeof r === 'string' ? { text, usage } : { text, usage, toolCall: { name: r.tool, arguments: r.arguments } };
   }
 }

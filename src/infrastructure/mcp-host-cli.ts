@@ -1,6 +1,7 @@
 // AC-44 composition root — an MCP host with Qwen3-32B on Kiln as its planner, talking to `npm run mcp` over stdio (the same way
 // Claude Desktop or any MCP host would):   npm run mcp:host -- "<request words>" [--out docs/live/mcp-host-….json]
 // Prints a transcript; saves the run (request, each tool call with its Kiln generation id and result, the answer, every Kiln call).
+import { execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
@@ -23,19 +24,20 @@ async function main(args: string[]): Promise<number> {
     },
   };
   const started = new Date().toISOString();
+  const commit = execSync('git rev-parse --short HEAD').toString().trim() + (execSync('git status --porcelain --untracked-files=no').toString().trim() ? '+dirty' : '');
   const run = await runHost({ llm, mcp }, request);
   await client.close();
-  const lines = [`$ date -u; npm run mcp:host -- "${request}"`, started.slice(0, 19) + 'Z'];
+  const lines = [`$ date -u; git rev-parse --short HEAD; npm run mcp:host -- "${request}"`, started.slice(0, 19) + 'Z', commit];
   for (const s of run.steps) {
     const u = run.calls.find((c) => c.generationId === s.generationId)!;
-    lines.push(`Kiln qwen3-32b → ${s.tool}(${JSON.stringify(s.args)}) · ${u.promptTokens}+${u.completionTokens} tokens · $${u.costUsd} · gen ${s.generationId} · via ${s.via.replace(/_/g, ' ')}`);
+    lines.push(`Kiln qwen3-32b → ${s.tool}(${JSON.stringify(s.args)}) · ${u.promptTokens}+${u.completionTokens} tokens · $${u.costUsd.toFixed(8)} · gen ${s.generationId} · via ${s.via.replace(/_/g, ' ')}`);
     lines.push(`  ← ${s.text}`);
   }
   const last = run.calls.at(-1)!;
   lines.push(`Kiln qwen3-32b → answer · ${last.promptTokens}+${last.completionTokens} tokens · gen ${last.generationId}`, `  "${run.answer}"`);
   console.log(lines.join('\n'));
   const out = flag(args, '--out') ?? `docs/live/mcp-host-${started.slice(0, 16).replace(/[-:T]/g, '')}.json`;
-  writeFileSync(out, JSON.stringify({ started, ...run }, null, 1) + '\n');
+  writeFileSync(out, JSON.stringify({ started, commit, ...run }, null, 1) + '\n');
   console.error(`→ ${out}`);
   return run.steps.some((s) => s.isError) ? 1 : 0;
 }

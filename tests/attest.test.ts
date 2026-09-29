@@ -5,7 +5,7 @@ import type { Receipt } from '../src/domain/receipt';
 import { parseKilnGeneration } from '../src/adapters/kiln';
 
 // AC-40: two witnesses per decision — TRON has the money, Kiln has the model call the receipt hash commits to.
-const usage = (flow: 'F1_intent' | 'F2_explain' | 'F3_dispute', id: string, extra = {}) =>
+const usage = (flow: 'F1_intent' | 'F2_explain' | 'F3_dispute' | 'F4_mcp_host', id: string, extra = {}) =>
   ({ flow, promptTokens: 320, completionTokens: 35, costUsd: 0.00002264, latencyMs: 1896, generationId: id, ...extra });
 const receipt = (seq: number, hash: string, flows: ReturnType<typeof usage>[]): Receipt =>
   ({ seq, mandateId: '0xm', request: { merchant: 'TM', amount: 1_000_000, fee: 0, at: 1790600000 }, intentText: 'Buy 1 credit', flows, prevHash: 'p', hash }) as unknown as Receipt;
@@ -91,12 +91,37 @@ describe('attest (AC-40)', () => {
   });
 });
 
+describe('attest v1.1 review: binding', () => {
+  const offers = [{ merchant: 'TM', item: 'gpu-hours', unitPrice: 1_000_000, fee: 0, label: 'GPU Shop' }];
+  it('one generation id backing two receipts is DIFFERS on both', () => {
+    const r = attest({
+      receipts: [receipt(1, 'h1', [usage('F1_intent', 'g1')]), receipt(2, 'h2', [usage('F1_intent', 'g1')])],
+      answers: [], events: [paid('h1', 1790600012, 'tx1'), paid('h2', 1790600013, 'tx2')],
+      generations: { g1: gen('g1', { createdAt: 1790600003 }) }, model: 'qwen3-32b',
+    });
+    expect(r.rows.map((x) => [x.seq, x.status, x.diffs])).toEqual([
+      [1, 'DIFFERS', ['generation id also on receipt #2']], [2, 'DIFFERS', ['generation id also on receipt #1']],
+    ]);
+  });
+  it('a model call more than 120 s before its payment is DIFFERS (an old call cannot back a new payment)', () => {
+    const r = attest({ receipts: [receipt(1, 'h1', [usage('F1_intent', 'g1')])], answers: [], events: [paid('h1', 1790600300, 'tx1')], generations: { g1: gen('g1', { createdAt: 1790600000 }) }, model: 'qwen3-32b' });
+    expect(r.rows[0]).toMatchObject({ status: 'DIFFERS', diffs: ['model call 300 s before the payment (limit 120 s)'] });
+  });
+  it('the model\'s own arguments in the receipt re-derive the payment (seller, item × quantity + fee from the catalog): bound, or DIFFERS', () => {
+    const args = (a: object) => usage('F4_mcp_host', 'g1', { args: JSON.stringify(a) });
+    const ok = attest({ receipts: [receipt(1, 'h1', [args({ to: 'GPU Shop', item: 'gpu-hours', quantity: 1 })])], answers: [], events: [paid('h1', 1790600005, 'tx1')], generations: { g1: gen('g1') }, model: 'qwen3-32b', offers });
+    expect(ok.rows[0]).toMatchObject({ status: 'MATCH', argsBound: true });
+    const bad = attest({ receipts: [receipt(1, 'h1', [args({ to: 'GPU Shop', item: 'gpu-hours', quantity: 3 })])], answers: [], events: [paid('h1', 1790600005, 'tx1')], generations: { g1: gen('g1') }, model: 'qwen3-32b', offers });
+    expect(bad.rows[0]).toMatchObject({ status: 'DIFFERS', argsBound: false, diffs: ["payment differs from the model's arguments (3000000 + 0 ≠ 1000000 + 0)"] });
+  });
+});
+
 describe('parseKilnGeneration (Kiln GET /v1/generations/{id}, shape measured 2026-09-29)', () => {
   it('maps the response fields and turns created_at into unix seconds', () => {
     const g = parseKilnGeneration({
       id: '14c26f4e-d054-4a97-8a1a-aad8b2d9c959', model: 'qwen3-32b', total_cost: 0.00002264, tokens_prompt: 320, tokens_completion: 35,
       cached_tokens: 319, latency_ms: 601, status_code: 200, created_at: '2026-09-29T03:03:22.799495Z',
     });
-    expect(g).toEqual({ id: '14c26f4e-d054-4a97-8a1a-aad8b2d9c959', model: 'qwen3-32b', totalCost: 0.00002264, promptTokens: 320, completionTokens: 35, createdAt: 1790651002.799, latencyMs: 601 });
+    expect(g).toEqual({ id: '14c26f4e-d054-4a97-8a1a-aad8b2d9c959', model: 'qwen3-32b', totalCost: 0.00002264, promptTokens: 320, completionTokens: 35, createdAt: 1790651002.799, latencyMs: 601, cachedTokens: 319 });
   });
 });

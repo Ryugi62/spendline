@@ -168,7 +168,10 @@ M1 said: the demo only replays the 2026-09-26 record, no live receipt comes thro
   For F1 the row also carries Kiln's `created_at` and the block time of the `pay()` event whose receipt hash commits to that generation id,
   and the lead in seconds; a generation created **after** the payment is DIFFERS ("model call after the payment"). Stand-in usage is never a row.
   `npm run attest` asks Kiln live and saves Kiln's answers to `docs/kiln-generations.json`; `npm run attest -- --saved`
-  re-runs the comparison keyless from that file. Exit 0 only when every row is MATCH.
+  re-runs the comparison keyless from that file. Exit 0 when no row in the asking account's scope is DIFFERS or NOT_FOUND (rows made on
+  another Kiln account are listed as OTHER_ACCOUNT, never counted as MATCH). v1.1 review (3 mock judges) tightened the binding: a generation
+  id backing two receipts is DIFFERS on both; a call more than 120 s before its pay() is DIFFERS; when a receipt carries the model's own
+  tool-call arguments (`args`, v1.1), code re-derives seller, item × quantity + fee from the catalog and a payment that differs is DIFFERS.
 - AC-41 (weekly statement) Given the receipts, the audit and the catalog When `statement` Then one line per receipt: time (KST), seller label,
   the request words, amount, fee, the audit's verdict and reason, the tx; totals: paid inside by seller, stops by reason, what the guarding
   cost (Kiln USD from the record); a receipt the audit did not rebuild (MISMATCH / NO_CHAIN_EVENT) is listed as a problem, never as paid.
@@ -181,10 +184,14 @@ M1 said: the demo only replays the 2026-09-26 record, no live receipt comes thro
   tools: `spendline_line` (the line: budget, spent, left, cap, sellers, deadline, STOP), `spendline_pay` (`to`, `amount_usdt`, `why`,
   optional `fee_usdt`) → `guardedPay` (AC-37) → `{ok, reason?, tx, receipt}`, and `spendline_check` (`seq`) → the audit's verdict for that
   receipt (keyless). No model call is added; the host keeps its own planner. Amounts are USDT with ≤6 decimals, converted to micro-USDT by code.
-  A seller may be named instead of an address (catalog names, matched by code). Optional `kiln_usage` (set by host code, never shown to the
-  model) = the Kiln call that decided the payment → the receipt's F1 usage, so the on-chain hash commits to it and AC-40 can attest it.
-- AC-44 (a Kiln-planned MCP host) Given a request and the MCP tools When `runHost` Then Qwen3-32B on Kiln is offered the tools (without
-  `kiln_usage`), each reply's tool call (proper, or leaked into the text) is sent to the MCP server one at a time — `spendline_pay` with the
+  A seller may be named instead of an address (catalog names, matched by code). v1.1 review: **code does the money** — for a catalog seller
+  the model gives `item` + `quantity` and code prices it (a model-written amount is ignored and said so); `amount_usdt` only for a seller not
+  in the catalog. `spendline_line` also lists the catalog offers. Host-code fields, never shown to the model: `kiln_usage` (the Kiln call that
+  decided the payment, with its raw arguments → the receipt's F4 usage, so the on-chain hash commits to it and AC-40 can attest it) and
+  `request` (the person's words → the receipt's `asked`). The same `request` to the same seller for the same amount on the same line sends
+  the ORIGINAL receipt hash to `pay()` → stopped on-chain DUPLICATE_RECEIPT, no second payment, no new receipt (a host that retries buys once).
+- AC-44 (a Kiln-planned MCP host) Given a request and the MCP tools When `runHost` Then the host code reads `spendline_line` once into the
+  system prompt (no model call), Qwen3-32B on Kiln (flow F4) is offered the tools (without `kiln_usage` / `request`), every tool call of a reply is run, each reply's tool call (proper, or leaked into the text) is sent to the MCP server one at a time — `spendline_pay` with the
   host's `kiln_usage` of that call, a model-written one replaced — and the result goes back to the model, until a plain answer or 8 tool
   calls. `npm run mcp:host -- "<words>"` runs it over stdio against `npm run mcp` and saves the run to `docs/live/mcp-host-*.json`.
 

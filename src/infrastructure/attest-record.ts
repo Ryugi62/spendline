@@ -1,6 +1,9 @@
 // AC-40 — shared by `npm run attest` and the record facts (deck / video): the saved Kiln answers, the account split, the MCP host calls.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { parseKilnGeneration } from '../adapters/kiln';
+import { JsonCatalog } from '../adapters/files';
+import { withHostFlows } from './host-runs';
+import { CATALOG } from './runtime';
 import type { AnswerRecord } from '../application/ports';
 import { attest, type AccountScope, type AttestAnswer, type AttestResult, type KilnGeneration } from '../domain/attest';
 import type { ChainEvent } from '../domain/audit';
@@ -20,7 +23,7 @@ export function hostCallsOf(receipts: Receipt[], dir = 'docs/live'): AttestAnswe
   return readdirSync(dir).filter((n) => /^mcp-host-.*\.json$/.test(n)).sort()
     .flatMap((n) => (JSON.parse(readFileSync(`${dir}/${n}`, 'utf8')) as { calls: UsageRecord[] }).calls)
     .filter((u) => !inReceipts.has(u.generationId))
-    .map((u) => ({ flow: 'F1_intent' as const, seq: null, question: 'MCP host call with no payment', usage: u }));
+    .map((u) => ({ flow: 'F4_mcp_host' as const, seq: null, question: 'MCP host call with no payment', usage: { ...u, flow: 'F4_mcp_host' as const } }));
 }
 
 export const generationsOf = (saved: Saved): Record<string, KilnGeneration | null> =>
@@ -31,5 +34,5 @@ export function savedAttest(o: { receipts: Receipt[]; answers: AnswerRecord[]; e
   const file = o.file ?? SAVED;
   if (!existsSync(file)) return undefined;
   const saved = JSON.parse(readFileSync(file, 'utf8')) as Saved;
-  return attest({ receipts: o.receipts, answers: [...o.answers, ...hostCallsOf(o.receipts)], events: o.events, generations: generationsOf(saved), model: 'qwen3-32b', scope: TEAM32 });
+  return attest({ receipts: withHostFlows(o.receipts), answers: [...o.answers, ...hostCallsOf(o.receipts)], events: o.events, generations: generationsOf(saved), model: 'qwen3-32b', scope: TEAM32, offers: JsonCatalog.fromFile(CATALOG).all() });
 }

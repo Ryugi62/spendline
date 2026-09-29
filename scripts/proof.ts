@@ -6,10 +6,11 @@ import type { AnswerRecord } from '../src/application/ports';
 import { formatProof, proofByFlow } from '../src/application/proof';
 import type { Session } from '../src/application/views';
 import { LIVE_ANSWERS } from '../src/infrastructure/runtime';
+import { hostCallsOutsideReceipts, withHostFlows } from '../src/infrastructure/host-runs';
 
 const s = JSON.parse(readFileSync('web/public/session.json', 'utf8')) as Session;
 const answers = readJsonl<AnswerRecord>(LIVE_ANSWERS);
-const p = proofByFlow({ receipts: s.receipts, events: s.events, answers });
+const p = proofByFlow({ receipts: withHostFlows(s.receipts), events: s.events, answers, hostCalls: hostCallsOutsideReceipts(s.receipts) });
 const body = formatProof(p, { network: s.network });
 const START = '<!-- proof:start -->';
 const END = '<!-- proof:end -->';
@@ -23,6 +24,6 @@ if (process.argv.includes('--check')) {
   console.log('README proof section up to date');
 } else {
   writeFileSync('README.md', next);
-  console.log(`README proof: F1 ${p.f1.length} · F2 ${p.f2.length} · F3 ${p.f3.length} Kiln calls · findings ${p.findings.length}`);
+  console.log(`README proof: F1 ${p.f1.length} · F2 ${p.f2.length} · F3 ${p.f3.length} · F4 ${p.f4.length} + ${p.f4Other.length} Kiln calls · findings ${p.findings.length}`);
 }
 if (p.findings.length) process.exit(1);

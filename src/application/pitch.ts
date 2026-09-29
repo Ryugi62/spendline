@@ -66,7 +66,7 @@ export function pitchFacts(res: AuditResult, report: FlowReport, ab: AbSummary, 
     wh: report.total.wh.toFixed(2),
     whPerPurchase: (f1.calls ? f1.whPerCall : 0).toFixed(2),
     callsPerPurchase: report.callsPerPurchase.toFixed(2),
-    flows: report.rows.filter((r) => r.calls > 0).length,
+    flows: report.rows.filter((r) => r.calls > 0 && r.flow !== 'F4_mcp_host').length,
     ab: {
       n: ab.n,
       offTokens: ab.off.medianCompletion,

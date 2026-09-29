@@ -10,7 +10,7 @@ export type ToolSpec = { name: string; description: string; parameters: Record<s
 export type ToolCall = { name: string; arguments: string };
 export type ChatOptions = { maxTokens?: number; thinking?: boolean; tools?: ToolSpec[] };
 export interface LlmPort {
-  chat(flow: Flow, messages: ChatMessage[], opts?: ChatOptions): Promise<{ text: string; usage: UsageRecord; toolCall?: ToolCall }>;
+  chat(flow: Flow, messages: ChatMessage[], opts?: ChatOptions): Promise<{ text: string; usage: UsageRecord; toolCall?: ToolCall; /** every tool call in the reply (Kiln documents no parallel calls for qwen3-32b; handled anyway) */ toolCalls?: ToolCall[] }>;
 }
 
 export type PayCall = { merchant: string; amount: number; fee: number; receiptHash: string };

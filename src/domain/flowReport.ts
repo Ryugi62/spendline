@@ -4,7 +4,7 @@ import { canonical } from './receipt';
 import { isKilnCall, type Flow, type UsageRecord } from './tokenLedger';
 
 /** Token / cost / latency / Wh per flow (AC-26) and the /no_think A/B summary (AC-27). Pure: numbers in, numbers out. */
-export const FLOWS: Flow[] = ['F1_intent', 'F2_explain', 'F3_dispute'];
+export const FLOWS: Flow[] = ['F1_intent', 'F2_explain', 'F3_dispute', 'F4_mcp_host'];
 
 export function median(xs: number[]): number {
   if (!xs.length) return 0;
@@ -47,7 +47,7 @@ function row(flow: FlowRow['flow'], rs: UsageRecord[], npuWatts: number): FlowRo
   };
 }
 
-/** Only usage with a real Kiln generation id is counted (AC-22); `purchases` = receipts (one F1 each by design). */
+/** Only usage with a real Kiln generation id is counted (AC-22); `purchases` = receipts on Spendline's own F1 path (one F1 each by design). */
 export function flowReport(records: UsageRecord[], o: { purchases: number; npuWatts?: number }): FlowReport {
   const npuWatts = o.npuWatts ?? 180;
   const kiln = records.filter(isKilnCall);

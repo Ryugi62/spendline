@@ -12,9 +12,9 @@ describe('MCP demo mode (keyless, in memory)', () => {
     await client.connect(new StdioClientTransport({ command: 'npx', args: ['tsx', 'src/infrastructure/mcp-server.ts', '--demo'], env: { PATH: process.env.PATH ?? '' }, stderr: 'ignore' }));
     const line = JSON.parse(text(await client.callTool({ name: 'spendline_line', arguments: {} })));
     expect(line).toMatchObject({ budget_usdt: '9.90', per_payment_cap_usdt: '8.00', stop: false, demo: true });
-    const paid = JSON.parse(text(await client.callTool({ name: 'spendline_pay', arguments: { to: 'GPU Shop', amount_usdt: 2.4, fee_usdt: 0.2, why: '1 GPU hour' } })));
-    expect(paid).toMatchObject({ ok: true, receipt_seq: 1 });
-    const stop = JSON.parse(text(await client.callTool({ name: 'spendline_pay', arguments: { to: 'Unknown seller', amount_usdt: 0.9, why: 'cheaper' } })));
+    const paid = JSON.parse(text(await client.callTool({ name: 'spendline_pay', arguments: { to: 'GPU Shop', item: 'gpu-hours', quantity: 1, why: '1 GPU hour' } })));
+    expect(paid).toMatchObject({ ok: true, receipt_seq: 1, amount_usdt: '2.40', fee_usdt: '0.20', priced_by: 'catalog' });
+    const stop = JSON.parse(text(await client.callTool({ name: 'spendline_pay', arguments: { to: 'Unknown seller', why: 'cheaper' } })));
     expect(stop).toMatchObject({ ok: false, reason: 'MERCHANT_NOT_ALLOWED', receipt_seq: 2 });
     expect(JSON.parse(text(await client.callTool({ name: 'spendline_check', arguments: { seq: 2 } })))).toMatchObject({ verdict: 'STOPPED', problems: 0 });
     await client.close();

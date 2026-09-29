@@ -29,16 +29,16 @@ describe('AC-26 per-flow Kiln report (M0-11)', () => {
     expect(f1.wh).toBeCloseTo((180 * 6) / 3600, 10);
     expect(f1.whPerCall).toBeCloseTo(f1.wh / 3, 10);
     expect(f1.costUsd).toBeCloseTo(0.00006, 12);
-    expect(r.rows.map((x) => x.flow)).toEqual(['F1_intent', 'F2_explain', 'F3_dispute']);
+    expect(r.rows.map((x) => x.flow)).toEqual(['F1_intent', 'F2_explain', 'F3_dispute', 'F4_mcp_host']);
     expect(r.total).toMatchObject({ calls: 5, totalTokens: 480 + 410 + 950 });
     expect(r.total.wh).toBeCloseTo((180 * (6 + 1.8 + 3.6)) / 3600, 10);
     expect(r.callsPerPurchase).toBe(1);
     expect(r.assumption).toMatch(/180 W/);
   });
 
-  it('a flow with no calls is still a row (0), so the table always shows F1 · F2 · F3', () => {
+  it('a flow with no calls is still a row (0), so the table always shows F1 · F2 · F3 · F4 (MCP host, v1.1)', () => {
     const r = flowReport([u('F1_intent', 1, 1, 1000, 'g')], { purchases: 1 });
-    expect(r.rows.map((x) => [x.flow, x.calls])).toEqual([['F1_intent', 1], ['F2_explain', 0], ['F3_dispute', 0]]);
+    expect(r.rows.map((x) => [x.flow, x.calls])).toEqual([['F1_intent', 1], ['F2_explain', 0], ['F3_dispute', 0], ['F4_mcp_host', 0]]);
   });
 
   it('markdown: one row per flow + total, the assumption sentence next to the Wh numbers, calls per purchase, generation ids', () => {

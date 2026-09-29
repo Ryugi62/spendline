@@ -4,7 +4,8 @@
 //   npm run attest -- --saved      the same comparison, keyless, from docs/kiln-generations.json
 // Chain times come from the vault's public events (TronGrid, keyless) or --events saved.json.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { JsonlAnswerLog } from '../adapters/files';
+import { JsonCatalog, JsonlAnswerLog } from '../adapters/files';
+import { withHostFlows } from './host-runs';
 import { KilnGenerations } from '../adapters/kiln';
 import { TronGridEvents } from '../adapters/trongrid';
 import { attestExitCode, formatAttest } from '../application/attest';
@@ -13,7 +14,7 @@ import { attest, type AttestAnswer } from '../domain/attest';
 import type { ChainEvent } from '../domain/audit';
 import { isKilnCall } from '../domain/tokenLedger';
 import { generationsOf, hostCallsOf, SAVED, TEAM32, TEAM32_NOTE, type Saved } from './attest-record';
-import { flag, LIVE_ANSWERS, LIVE_RECEIPTS, need, readEnv } from './runtime';
+import { CATALOG, flag, LIVE_ANSWERS, LIVE_RECEIPTS, need, readEnv } from './runtime';
 
 const LIVE_VAULT = 'TVP538YMfA3tzrTwUyBUpaqrJvc9bMEpCu';
 
@@ -43,7 +44,7 @@ async function main(args: string[]): Promise<number> {
   const generations = generationsOf(saved);
   const events: ChainEvent[] = flag(args, '--events') ? JSON.parse(readFileSync(flag(args, '--events')!, 'utf8')) : await new TronGridEvents().events(vault);
   const all = args.includes('--all') || flag(args, '--receipts') !== undefined;
-  const res = attest({ receipts: file.receipts, answers, events, generations, model: 'qwen3-32b', ...(all ? {} : { scope: TEAM32 }) });
+  const res = attest({ receipts: withHostFlows(file.receipts), answers, events, generations, model: 'qwen3-32b', offers: JsonCatalog.fromFile(CATALOG).all(), ...(all ? {} : { scope: TEAM32 }) });
   console.log(formatAttest(res, { source: args.includes('--saved') ? `saved ${flag(args, '--from') ?? SAVED}, fetched ${saved.fetchedAt}` : `Kiln live, ${saved.fetchedAt}`, ...(all ? {} : { scopeNote: TEAM32_NOTE }) }));
   return attestExitCode(res);
 }

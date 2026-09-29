@@ -11,13 +11,18 @@ const GPU = 'THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56';
 const CRED = 'TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj';
 const UNK = 'TSojjSHeQnBK46RVJCT2Cjd8QeXnoYkGvh';
 const labels = { [GPU]: 'GPU Shop', [CRED]: 'Kiln credits', [UNK]: 'Unknown seller' };
+const offers = [
+  { merchant: GPU, item: 'gpu-hours', unitPrice: 2_400_000, fee: 200_000, label: 'GPU Shop' },
+  { merchant: UNK, item: 'gpu-hours', unitPrice: 900_000, fee: 0, label: 'Unknown seller' },
+  { merchant: CRED, item: 'inference-credits', unitPrice: 1_000_000, fee: 0, label: 'Kiln credits' },
+];
 
 async function world() {
   const line = { id: 'm4', budget: usdt(9.9), perTxCap: usdt(8), deadline: 1790780340, merchants: [GPU, CRED], paused: false };
   const chain = new MemoryChain(line, 1790700000);
   await chain.grant(line);
   const store = new MemoryReceiptStore();
-  const tools = mcpTools({ chain, store, hash: sha, events: { events: async () => chain.events }, labels, vault: 'TVault' });
+  const tools = mcpTools({ chain, store, hash: sha, events: { events: async () => chain.events }, labels, offers, vault: 'TVault' });
   const mcp = {
     list: async () => tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })),
     call: async (name: string, args: Record<string, unknown>) => { const r = await tools.find((t) => t.name === name)!.run(args); return { text: r.text, isError: !!r.isError }; },
@@ -85,6 +90,37 @@ describe('runHost (AC-44)', () => {
     const { mcp } = await world();
     const pay = (await mcp.list()).find((t) => t.name === 'spendline_pay')!;
     expect(JSON.stringify(pay.inputSchema)).toContain('GPU Shop, Kiln credits, Unknown seller');
+  });
+
+  it('v1.1 review: the host reads the line (code, no model call) into the prompt, sends the person\'s words as `request`, the raw call arguments and flow F4 with each pay; several calls in one reply are all executed', async () => {
+    const { store, mcp } = await world();
+    const llm = new FakeLlm([
+      { calls: [
+        { tool: 'spendline_pay', arguments: '{"to":"GPU Shop","item":"gpu-hours","quantity":1,"why":"GPU hour"}' },
+        { tool: 'spendline_pay', arguments: '{"to":"Kiln credits","item":"inference-credits","why":"credit"}' },
+      ] },
+      'Paid both.',
+    ]);
+    const request = 'Buy 1 GPU hour and 1 Kiln credit for the eval';
+    const run = await runHost({ llm, mcp }, request);
+    expect(llm.seen[0][0].content).toContain('"offers"');
+    expect(run.steps.map((s) => s.tool)).toEqual(['spendline_pay', 'spendline_pay']);
+    const rs = await store.all();
+    expect(rs.map((r) => [r.asked, r.flows[0].flow, r.flows[0].args])).toEqual([
+      [request, 'F4_mcp_host', '{"to":"GPU Shop","item":"gpu-hours","quantity":1,"why":"GPU hour"}'],
+      [request, 'F4_mcp_host', '{"to":"Kiln credits","item":"inference-credits","why":"credit"}'],
+    ]);
+    expect(run.calls.map((c) => c.flow)).toEqual(['F4_mcp_host', 'F4_mcp_host']);
+  });
+
+  it('v1.1 review: running the same request twice buys once — the repeat is refused on-chain as a replay', async () => {
+    const { store, mcp } = await world();
+    const reply = () => ({ tool: 'spendline_pay', arguments: '{"to":"GPU Shop","item":"gpu-hours","why":"GPU hour"}' });
+    const request = 'Buy 1 GPU hour from the GPU Shop';
+    await runHost({ llm: new FakeLlm([reply(), 'done']), mcp }, request);
+    const again = await runHost({ llm: new FakeLlm([reply(), 'done']), mcp }, request);
+    expect(JSON.parse(again.steps[0].text)).toMatchObject({ ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1 });
+    expect(await store.all()).toHaveLength(1);
   });
 
   it('stops after maxSteps tool calls and says so', async () => {

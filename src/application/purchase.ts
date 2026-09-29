@@ -53,7 +53,7 @@ export async function purchase(d: PurchaseDeps, requestText: string): Promise<Pu
   ], viaTool ? { maxTokens: 200, thinking: false, tools: [PROPOSE_PURCHASE] } : { maxTokens: 200, thinking: false });
   const { args, via } = f1Arguments(r);
   const intent = parseIntent(args);
-  const usage = { ...r.usage, via };
+  const usage = { ...r.usage, via, args }; // v1.1: the receipt commits to the model's own arguments
 
   const [mandate, offers] = await Promise.all([d.chain.mandate(), d.catalog.offers(intent.item)]);
   const affordable = offers.filter((o) => intent.maxUnitPrice === undefined || o.unitPrice <= usdt(intent.maxUnitPrice));

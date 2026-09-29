@@ -11,6 +11,8 @@ export type ReceiptBody = {
   request: SpendRequest;
   intentText: string;
   flows: UsageRecord[];
+  /** v1.1 MCP: the person's request words as the host received them (intentText is then the model's reason) */
+  asked?: string;
 };
 export type Receipt = ReceiptBody & { prevHash: string; hash: string };
 

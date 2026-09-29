@@ -61,9 +61,11 @@ export class KilnLlm implements LlmPort {
       const server = Number(res.headers.get('x-envoy-upstream-service-time'));
       if (res.headers.has('x-envoy-upstream-service-time') && Number.isFinite(server)) usage.serverMs = server;
       this.records.push(usage);
-      const fn = j.choices?.[0]?.message?.tool_calls?.[0]?.function;
-      const toolCall: ToolCall | undefined = fn?.name ? { name: fn.name, arguments: fn.arguments ?? '{}' } : undefined;
-      return toolCall ? { text, usage, toolCall } : { text, usage };
+      const calls: ToolCall[] = (j.choices?.[0]?.message?.tool_calls ?? []).flatMap((c) => (c.function?.name ? [{ name: c.function.name, arguments: c.function.arguments ?? '{}' }] : []));
+      const out: { text: string; usage: UsageRecord; toolCall?: ToolCall; toolCalls?: ToolCall[] } = { text, usage };
+      if (calls.length) out.toolCall = calls[0];
+      if (calls.length > 1) out.toolCalls = calls;
+      return out;
     }
   }
 }
@@ -80,6 +82,7 @@ export function parseKilnGeneration(j: RawGeneration): KilnGeneration {
     id: j.id, model: j.model, totalCost: j.total_cost, promptTokens: j.tokens_prompt, completionTokens: j.tokens_completion,
     createdAt: Date.parse(j.created_at) / 1000,
     ...(j.latency_ms !== undefined ? { latencyMs: j.latency_ms } : {}),
+    ...(typeof j.cached_tokens === 'number' ? { cachedTokens: j.cached_tokens } : {}),
   };
 }
 

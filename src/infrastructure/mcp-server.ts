@@ -24,7 +24,7 @@ async function demoTools() {
   const line: Mandate = { ...m, id: 'demo', deadline: now + 7 * 86400, paused: false };
   const chain = new MemoryChain(line, now);
   await chain.grant(line);
-  return mcpTools({ chain, store: new MemoryReceiptStore(), hash: sha256, events: { events: async () => chain.events }, labels: JsonCatalog.fromFile(CATALOG).labels(), vault: 'demo (in memory)', demo: true });
+  return mcpTools({ chain, store: new MemoryReceiptStore(), hash: sha256, events: { events: async () => chain.events }, labels: JsonCatalog.fromFile(CATALOG).labels(), offers: JsonCatalog.fromFile(CATALOG).all(), vault: 'demo (in memory)', demo: true });
 }
 
 async function main(args: string[]) {
@@ -44,6 +44,7 @@ async function main(args: string[]) {
     hash: sha256,
     events: new TronGridEvents(),
     labels: JsonCatalog.fromFile(CATALOG).labels(),
+    offers: JsonCatalog.fromFile(CATALOG).all(),
     vault,
   });
   await createMcpServer(tools, { name: 'spendline', version: '1.1.0' }).connect(new StdioServerTransport());

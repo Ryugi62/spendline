@@ -3,12 +3,12 @@
 import { fmtUsdt } from '../domain/money';
 import type { UsageRecord } from '../domain/tokenLedger';
 import { auditRecords, problemCount } from './auditRecords';
-import type { EventSource } from './ports';
+import type { EventSource, Offer } from './ports';
 import { guardedPay, type GuardedPayDeps } from './plugIn';
 
 export type McpResult = { text: string; data?: Record<string, unknown>; isError?: boolean };
 export type McpTool = { name: string; description: string; inputSchema: Record<string, unknown>; run(args: Record<string, unknown>): Promise<McpResult> };
-export type McpDeps = GuardedPayDeps & { events: EventSource; labels: Record<string, string>; vault: string; /** in-memory sandbox (`npm run mcp -- --demo`): said in every line reply */ demo?: boolean };
+export type McpDeps = GuardedPayDeps & { events: EventSource; labels: Record<string, string>; offers?: Offer[]; vault: string; /** in-memory sandbox (`npm run mcp -- --demo`): said in every line reply */ demo?: boolean };
 
 const TRON_ADDRESS = /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
 const kst = (unix: number) => new Date((unix + 9 * 3600) * 1000).toISOString().replace('T', ' ').slice(0, 19);
@@ -33,10 +33,11 @@ export function usageFrom(v: unknown): UsageRecord[] | string {
   if (!int(u.prompt_tokens) || !int(u.completion_tokens)) return 'kiln_usage tokens must be whole numbers ≥ 0';
   if (typeof u.cost_usd !== 'number' || !(u.cost_usd >= 0)) return 'kiln_usage.cost_usd must be a number ≥ 0';
   const via: Pick<UsageRecord, 'via'> = u.via === 'tool_call' || u.via === 'tool_call_in_text' || u.via === 'text' ? { via: u.via } : {};
-  return [{ flow: 'F1_intent', promptTokens: u.prompt_tokens as number, completionTokens: u.completion_tokens as number, costUsd: u.cost_usd, latencyMs: int(u.latency_ms) ? (u.latency_ms as number) : 0, generationId: u.generation_id.trim(), ...via }];
+  return [{ flow: 'F4_mcp_host', promptTokens: u.prompt_tokens as number, completionTokens: u.completion_tokens as number, costUsd: u.cost_usd, latencyMs: int(u.latency_ms) ? (u.latency_ms as number) : 0, ...(int(u.server_ms) ? { serverMs: u.server_ms as number } : {}), generationId: u.generation_id.trim(), ...via, ...(typeof u.args === 'string' ? { args: u.args } : {}) }];
 }
 
 export function mcpTools(d: McpDeps): McpTool[] {
+  const offers = d.offers ?? [];
   const byName = new Map(Object.entries(d.labels).map(([addr, name]) => [name.toLowerCase(), addr]));
   const nameOf = (addr: string) => d.labels[addr];
   const seller = (to: unknown): string | undefined => {
@@ -54,6 +55,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
         return ok({
           budget_usdt: fmtUsdt(m.budget), spent_usdt: fmtUsdt(spent), left_usdt: fmtUsdt(Math.max(0, m.budget - spent)), per_payment_cap_usdt: fmtUsdt(m.perTxCap),
           sellers: m.merchants.map((a) => ({ address: a, ...(nameOf(a) ? { name: nameOf(a) } : {}) })), deadline_kst: kst(m.deadline), stop: m.paused,
+          offers: offers.map((o) => ({ seller: nameOf(o.merchant) ?? o.label, item: o.item, unit_price_usdt: fmtUsdt(o.unitPrice), fee_usdt: fmtUsdt(o.fee) })),
           ...(d.demo ? { demo: true, note: 'in-memory sandbox: same rule as the vault, nothing is sent to TRON' } : {}),
         });
       },
@@ -61,37 +63,65 @@ export function mcpTools(d: McpDeps): McpTool[] {
     {
       name: 'spendline_pay',
       description:
-        'Pay a seller in test USDT through the Spendline vault on TRON. The vault pays only inside the line; outside it the payment is stopped and the reason is recorded on-chain (ok: false). Every attempt leaves a hash-chained receipt anyone can audit.',
+        'Pay a seller in test USDT through the Spendline vault on TRON. For a seller in the catalog (spendline_line.offers) give the item and quantity: code prices it. The vault pays only inside the line; outside it the payment is stopped and the reason is recorded on-chain (ok: false). Every attempt that reaches the vault leaves a hash-chained receipt anyone can audit.',
       inputSchema: {
         type: 'object',
         properties: {
-          to: { type: 'string', description: `seller: a TRON address, or one of these names exactly: ${Object.values(d.labels).join(', ')}` },
-          amount_usdt: { type: 'number', description: 'amount in USDT (up to 6 decimals), fee not included' },
-          why: { type: 'string', description: 'the reason in the words of the request — becomes the receipt\'s words' },
-          fee_usdt: { type: 'number', description: 'seller fee in USDT, default 0' },
+          to: { type: 'string', description: `seller: one of these names exactly: ${Object.values(d.labels).join(', ')} — or a TRON address` },
+          item: { type: 'string', description: `catalog item: ${[...new Set(offers.map((o) => o.item))].join(', ')} (optional when the seller sells one item)` },
+          quantity: { type: 'number', description: 'how many units, default 1' },
+          why: { type: 'string', description: "the reason in the words of the request — becomes the receipt's words" },
+          amount_usdt: { type: 'number', description: 'only for a seller that is not in the catalog: the amount in USDT (up to 6 decimals), fee not included' },
+          fee_usdt: { type: 'number', description: 'only for a seller that is not in the catalog: the fee in USDT, default 0' },
           kiln_usage: {
             type: 'object',
-            description: 'set by the host code, not the model: the Kiln call that decided this payment (generation id, tokens, cost) — it goes into the receipt, so the on-chain hash commits to it and Kiln can attest it',
-            properties: { generation_id: { type: 'string' }, prompt_tokens: { type: 'integer' }, completion_tokens: { type: 'integer' }, cost_usd: { type: 'number' }, latency_ms: { type: 'integer' }, via: { type: 'string', enum: ['tool_call', 'tool_call_in_text', 'text'] } },
+            description: 'set by the host code, not the model: the Kiln call that decided this payment (generation id, tokens, cost, the call arguments) — it goes into the receipt, so the on-chain hash commits to it and Kiln can attest it',
+            properties: { generation_id: { type: 'string' }, prompt_tokens: { type: 'integer' }, completion_tokens: { type: 'integer' }, cost_usd: { type: 'number' }, latency_ms: { type: 'integer' }, server_ms: { type: 'integer' }, via: { type: 'string', enum: ['tool_call', 'tool_call_in_text', 'text'] }, args: { type: 'string' } },
             required: ['generation_id', 'prompt_tokens', 'completion_tokens', 'cost_usd'],
           },
+          request: { type: 'string', description: "set by the host code, not the model: the person's request words — kept in the receipt; the same request to the same seller for the same amount on the same line is refused as a replay" },
         },
-        required: ['to', 'amount_usdt', 'why'],
+        required: ['to', 'why'],
         additionalProperties: false,
       },
       async run(a) {
         const to = seller(a.to);
         if (!to) return refuse(`unknown seller "${String(a.to)}": give a TRON address or one of: ${Object.values(d.labels).join(', ')}`);
         if (typeof a.why !== 'string' || !a.why.trim()) return refuse('why is required: the reason in the words of the request');
-        const amount = microUsdt(a.amount_usdt, 'amount_usdt');
-        if (typeof amount === 'string') return refuse(amount);
-        const fee = a.fee_usdt === undefined ? 0 : microUsdt(a.fee_usdt, 'fee_usdt', true);
-        if (typeof fee === 'string') return refuse(fee);
+        const modelAmount = a.amount_usdt === undefined ? undefined : microUsdt(a.amount_usdt, 'amount_usdt');
+        if (typeof modelAmount === 'string') return refuse(modelAmount);
+        const modelFee = a.fee_usdt === undefined ? undefined : microUsdt(a.fee_usdt, 'fee_usdt', true);
+        if (typeof modelFee === 'string') return refuse(modelFee);
+        const sells = offers.filter((o) => o.merchant === to);
+        let amount: number, fee: number, pricedBy: 'catalog' | 'caller';
+        if (sells.length) {
+          const item = typeof a.item === 'string' && a.item.trim() ? a.item.trim() : sells.length === 1 ? sells[0].item : undefined;
+          const offer = sells.find((o) => o.item === item);
+          if (!offer) return refuse(`${nameOf(to) ?? to} sells ${sells.map((o) => o.item).join(', ')} — give one of them as item`);
+          const q = a.quantity === undefined ? 1 : Number(a.quantity);
+          if (!Number.isFinite(q) || q <= 0 || Math.abs(q * 1e6 - Math.round(q * 1e6)) > 1e-6) return refuse('quantity must be a number more than 0');
+          [amount, fee, pricedBy] = [Math.round(offer.unitPrice * q), offer.fee, 'catalog'];
+        } else {
+          if (modelAmount === undefined) return refuse('amount_usdt is required for a seller that is not in the catalog');
+          [amount, fee, pricedBy] = [modelAmount, modelFee ?? 0, 'caller'];
+        }
         const flows = a.kiln_usage === undefined ? [] : usageFrom(a.kiln_usage);
         if (typeof flows === 'string') return refuse(flows);
-        const r = await guardedPay(d, { merchant: to, amount, fee, why: a.why.trim(), flows });
-        const base = { seller: nameOf(to) ?? to, amount_usdt: fmtUsdt(amount), fee_usdt: fmtUsdt(fee), tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash };
-        return r.outcome.kind === 'paid' ? ok({ ok: true, ...base }) : ok({ ok: false, reason: r.outcome.reason, ...base });
+        const asked = typeof a.request === 'string' && a.request.trim() ? a.request.trim() : undefined;
+        const ignored = pricedBy === 'catalog' && modelAmount !== undefined && modelAmount !== amount ? { model_amount_ignored: fmtUsdt(modelAmount) } : {};
+        const base = { seller: nameOf(to) ?? to, amount_usdt: fmtUsdt(amount), fee_usdt: fmtUsdt(fee), priced_by: pricedBy, ...ignored };
+        if (asked) {
+          const mandate = await d.chain.mandate();
+          const prior = (await d.store.all()).find((r) => r.asked === asked && r.mandateId === mandate.id && r.request.merchant === to && r.request.amount === amount && r.request.fee === fee);
+          if (prior) {
+            // the same request again: send the ORIGINAL receipt hash — the vault decides a receipt once, so the repeat is stopped on-chain (DUPLICATE_RECEIPT)
+            const out = await d.chain.pay({ merchant: to, amount, fee, receiptHash: prior.hash });
+            return ok({ ok: out.kind === 'paid', ...(out.kind === 'blocked' ? { reason: out.reason } : {}), ...base, tx: out.txHash, replay_of: prior.seq });
+          }
+        }
+        const r = await guardedPay(d, { merchant: to, amount, fee, why: a.why.trim(), flows, ...(asked ? { asked } : {}) });
+        const rest = { ...base, tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash };
+        return r.outcome.kind === 'paid' ? ok({ ok: true, ...rest }) : ok({ ok: false, reason: r.outcome.reason, ...rest });
       },
     },
     {

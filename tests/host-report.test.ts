@@ -10,9 +10,16 @@ const runs = [
 
 describe('hostRunsSummary (AC-44)', () => {
   it('runs, Kiln calls, payments that reached the vault, calls per payment, median prompt tokens', () => {
-    expect(hostRunsSummary(runs)).toEqual({ runs: 2, calls: 7, payments: 4, noPayment: 3, callsPerPayment: 1.75, medianPromptTokens: 874, tokens: 7031, costUsd: 0.00050 });
+    expect(hostRunsSummary(runs)).toEqual({ runs: 2, calls: 7, payments: 4, noPayment: 3, callsPerPayment: 1.75, medianPromptTokens: 874, tokens: 7031, costUsd: 0.00050, completed: 2, dropped: 0, refused: 1 });
   });
   it('formats one line for docs/tokens-by-flow.md', () => {
     expect(formatHostRuns(hostRunsSummary(runs), { f1MedianPrompt: 320 })).toContain('7 Kiln calls for 4 pay attempts that reached the vault (1.75 per attempt');
+  });
+});
+
+describe('hostRunsSummary counts a run whose last reply was a pay call the host could not parse (live runs 1–2)', () => {
+  it('dropped, not completed', () => {
+    const h = hostRunsSummary([{ calls: [u('x', 1, 1, 0)], steps: [], answer: 'spendline_pay({"to":"Kiln credits"})' }, { calls: [u('y', 1, 1, 0)], steps: [], answer: 'Paid.' }]);
+    expect([h.completed, h.dropped]).toEqual([1, 1]);
   });
 });
