@@ -4,11 +4,12 @@
 import { balancedObjects, leakedToolCall } from './intent';
 import { canonical } from './receipt';
 import type { UsageRecord } from './tokenLedger';
+import type { KilnGeneration } from './attest';
 
 export type JournalCall = { name: string; arguments: string; via: 'tool_call' | 'tool_call_in_text' };
 export type JournalEntry = {
   generationId: string; at: number; usage: UsageRecord; toolCalls: JournalCall[];
-  /** round-4 review: the person's request (the conversation's first user message), the conversation it belongs to (hash of its opening),
+  /** round-4 review: the person's request (the last user turn), the conversation it belongs to (hash of its opening),
    *  whether this reply opened it, sha256 of Kiln's whole reply body, and whether the pass-through switched thinking off */
   asked?: string; conversationKey?: string; conversationStart?: boolean; bodySha256?: string; noThink?: boolean;
 };
@@ -56,10 +57,11 @@ export function findWitness(entries: JournalEntry[], call: { name: string; args:
     for (const [i, tc] of e.toolCalls.entries()) {
       const key = `${e.generationId}#${i}`;
       if (tc.name === call.name && !o.used.has(key) && same(tc.arguments, call.args)) {
-        // occurrence = identical calls earlier in the same conversation instance (the model's own sequence): two identical items → 0, 1
+        // occurrence = identical items earlier IN THIS Kiln reply: two identical items asked for together → 0, 1. Round-6 review: the same
+        // item asked for again in a later reply (a retry after a timeout or an error) starts at 0 again, so it maps to the earlier paid
+        // purchase and is refused as a repeat — a double charge is worse than a refusal; more of one item goes in `quantity`.
         const conversation = instanceOf(entries, e);
-        const earlier = entries.filter((x) => instanceOf(entries, x) === conversation).flatMap((x) => x.toolCalls.map((t, j) => ({ x, t, j })))
-          .filter(({ x, t, j }) => (x.at < e.at || (x === e && j < i)) && t.name === call.name && sameItem(t.arguments, call.args)).length;
+        const earlier = e.toolCalls.filter((t, j) => j < i && t.name === call.name && sameItem(t.arguments, call.args)).length;
         return { ...e.usage, args: tc.arguments, via: tc.via, key, occurrence: earlier, conversation, ...(e.asked ? { asked: e.asked } : {}) };
       }
     }
@@ -82,15 +84,28 @@ export function journalCheck(receipts: { seq: number; flows: UsageRecord[] }[], 
   return { inJournal, checked, mismatches };
 }
 
-/** Published reply bodies (docs/live/kiln-replies-*) hash to the journal's bodySha256 — the journal's tool calls are what Kiln returned. */
-export function bodyCheck(entries: JournalEntry[], bodies: Map<string, string>, hash: (s: string) => string): { checked: number; ok: number; bad: string[] } {
-  let checked = 0, ok = 0;
+/** Published reply bodies (docs/live/kiln-replies-*): each must hash to the journal's bodySha256, re-parse to exactly the journal's tool
+ *  calls, and (round-6 review) agree with Kiln's own GET /v1/generations record for that id — prompt and completion tokens, cost, and
+ *  its time within 10 s. The last check does not rest on our files: Kiln counted those tokens for that id. */
+export function bodyCheck(entries: JournalEntry[], bodies: Map<string, string>, hash: (s: string) => string, kiln?: Record<string, KilnGeneration | null>): { checked: number; ok: number; bad: string[]; hashMatch: number; callsMatch: number; kilnMatch: number } {
+  let checked = 0, ok = 0, hashMatch = 0, callsMatch = 0, kilnMatch = 0;
   const bad: string[] = [];
   for (const e of entries) {
     const b = bodies.get(e.generationId);
     if (b === undefined || !e.bodySha256) continue;
     checked++;
-    if (hash(b) === e.bodySha256) ok++; else bad.push(e.generationId);
+    const problems: string[] = [];
+    if (hash(b) === e.bodySha256) hashMatch++; else problems.push('sha256 differs from the journal');
+    let j: (KilnReply & { created?: number }) | undefined;
+    try { j = JSON.parse(b) as KilnReply & { created?: number }; } catch { /* not JSON: its calls cannot match */ }
+    const calls = j ? entryFromKilnResponse(j, { generationId: e.generationId, latencyMs: 0, at: 0 }).toolCalls : undefined;
+    if (calls && canonical(calls.map((c) => [c.name, c.arguments])) === canonical(e.toolCalls.map((c) => [c.name, c.arguments]))) callsMatch++; else problems.push('tool calls differ from the journal');
+    const k = kiln?.[e.generationId];
+    if (kiln) {
+      if (k && j?.usage && j.usage.prompt_tokens === k.promptTokens && j.usage.completion_tokens === k.completionTokens && Math.abs((j.usage.cost ?? 0) - k.totalCost) < 1e-9 && typeof j.created === 'number' && Math.abs(j.created - k.createdAt) <= 10) kilnMatch++;
+      else problems.push("usage or time differs from Kiln's record");
+    }
+    if (problems.length) bad.push(`${e.generationId}: ${problems.join(', ')}`); else ok++;
   }
-  return { checked, ok, bad };
+  return { checked, ok, bad, hashMatch, callsMatch, kilnMatch };
 }

@@ -2,7 +2,7 @@ Two witnesses — Kiln's own record (Kiln live, 2026-09-29T15:48:04.686Z) vs the
 70 Kiln calls in the record (77 rows — one reply with several tool calls backs several receipts) · 47 MATCH · 0 DIFFERS · 0 NOT_FOUND · 0 NO_KILN_CALL · 30 made on another Kiln account (the builder's personal key, before the organizer-issued team32 account: receipts #1-#12, answer lines 1-18 — Kiln shows a generation only to its own account)
 pay() attempts decided on Kiln: 26 / 26 dated after their Kiln call and within 120 s (19 Kiln calls) (2–10 s, median 4 s) · no (generation, arguments) backs two receipts, no generation spans two requests
 The model's own arguments re-derive the payment (seller, item × quantity + fee from the catalog): 17 / 17
-Published pass-through journal (4 files, docs/live/kiln-journal-*.jsonl): 7 / 7 bound receipts' arguments appear in it byte for byte · Kiln's reply bodies, published: 2 / 2 hash to the journal's sha256
+Published pass-through journal (4 files, docs/live/kiln-journal-*.jsonl): 7 / 7 bound receipts' arguments appear in it byte for byte · Kiln's reply bodies, published: 2 / 2 hash to the journal's sha256, re-parse to its tool calls and carry the tokens, cost and time Kiln's own record has for that id
 On Kiln's own clock (per call): median latency 926 ms → ≈0.0463 Wh per call at 180 W (an estimate) · prompt tokens served from Kiln's cache: 16529 / 37296 (44%)
 
 OTHER_ACCOUNT F1 #1     d919cfd0-5e71-46fc-8ec0-6fad043902de

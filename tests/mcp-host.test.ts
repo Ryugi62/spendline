@@ -142,6 +142,18 @@ describe('runHost (AC-44)', () => {
     expect(await store.all()).toHaveLength(2);
   });
 
+  it('round-6 review: the model re-issuing the same pay in a LATER reply (a retry) gets occurrence 0 again — refused on-chain as a repeat, paid once', async () => {
+    const { store, mcp } = await world();
+    const llm = new FakeLlm([
+      { calls: [{ tool: 'spendline_pay', arguments: '{"to":"Kiln credits","why":"eval"}', id: 'call_a' }] },
+      { calls: [{ tool: 'spendline_pay', arguments: '{"to":"Kiln credits","why":"the last call timed out, trying again"}', id: 'call_b' }] },
+      'Done.',
+    ]);
+    const run = await runHost({ llm, mcp }, 'One Kiln credit for the eval');
+    expect(JSON.parse(run.steps[1].text)).toMatchObject({ ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1 });
+    expect(await store.all()).toHaveLength(1);
+  });
+
   it('stops after maxSteps tool calls and says so', async () => {
     const { mcp } = await world();
     const llm = new FakeLlm(Array.from({ length: 10 }, () => ({ tool: 'spendline_line', arguments: '{}' })));

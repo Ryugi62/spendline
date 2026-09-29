@@ -40,10 +40,10 @@ export function savedAttest(o: { receipts: Receipt[]; answers: AnswerRecord[]; e
 }
 
 /** The published pass-through journals (docs/live/kiln-journal-*.jsonl) checked against the receipts. */
-export function publishedJournal(receipts: Receipt[], dir = 'docs/live') {
+export function publishedJournal(receipts: Receipt[], dir = 'docs/live', kiln?: Record<string, KilnGeneration | null>) {
   const files = existsSync(dir) ? readdirSync(dir).filter((n) => /^kiln-journal-.*\.jsonl$/.test(n)) : [];
   const entries = files.flatMap((n) => readFileSync(`${dir}/${n}`, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l) as JournalEntry));
   const bodies = new Map(existsSync(dir) ? readdirSync(dir).filter((n) => /^kiln-replies-/.test(n)).flatMap((d) => readdirSync(`${dir}/${d}`).map((f) => [f.replace(/\.json$/, ''), readFileSync(`${dir}/${d}/${f}`, 'utf8')] as [string, string])) : []);
-  const b = bodyCheck(entries, bodies, (x) => createHash('sha256').update(x).digest('hex'));
+  const b = bodyCheck(entries, bodies, (x) => createHash('sha256').update(x).digest('hex'), kiln);
   return { ...journalCheck(receipts, entries), files: files.length, bodies: b };
 }

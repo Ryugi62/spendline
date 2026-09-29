@@ -3,73 +3,73 @@
 An off-the-shelf AI agent, planning on Kiln, was asked to buy a GPU hour from a cheaper seller that is not on the list. The vault on TRON refused, and recorded the stop on-chain.
 
 2
-00:00:11,464 --> 00:00:16,064
+00:00:11,462 --> 00:00:16,062
 Kiln explains it in plain words, shown only because it repeats the audit's verdict.
 
 3
-00:00:16,965 --> 00:00:25,515
-That agent is the OpenAI Agents SDK, unchanged, planning on Kiln. Our pass-through tied each of its payments to the Kiln call that asked for it.
+00:00:16,964 --> 00:00:28,724
+That agent is the OpenAI Agents SDK, unchanged, planning on Kiln. Our pass-through, a relay in front of Kiln that keeps a copy of each answer, tied each payment to the Kiln call that asked for it.
 
 4
-00:00:26,417 --> 00:00:33,367
+00:00:29,627 --> 00:00:36,577
 This is the vault's public refusal record, SpendBlocked, with the receipt's fingerprint and the reason. Anyone can read it.
 
 5
-00:00:34,269 --> 00:00:43,179
+00:00:37,479 --> 00:00:46,389
 This is Spendline, a wallet and policy layer for an AI purchasing agent. A person draws the line. The agent only asks. The vault decides.
 
 6
-00:00:44,080 --> 00:00:50,500
+00:00:47,291 --> 00:00:53,711
 The person sets a budget, a per-payment cap, the sellers, and a deadline, one short step at a time.
 
 7
-00:00:51,400 --> 00:00:56,270
+00:00:54,612 --> 00:00:59,482
 Then signs it with the owner key, on their own machine. STOP is signed the same way.
 
 8
-00:00:57,172 --> 00:01:02,372
+00:01:00,383 --> 00:01:05,583
 The feed shows spending against the line, newest first: paid, or stopped with a reason.
 
 9
-00:01:03,273 --> 00:01:06,293
+00:01:06,487 --> 00:01:09,507
 Over budget once the fee is added: stopped on-chain.
 
 10
-00:01:07,195 --> 00:01:12,475
+00:01:10,409 --> 00:01:15,689
 The person can press STOP at any time. The next payment was stopped as PAUSED, on-chain.
 
 11
-00:01:13,378 --> 00:01:20,468
+00:01:16,591 --> 00:01:23,681
 A short time window: one payment inside it, then the same request after it closed. Stopped: deadline passed.
 
 12
-00:01:21,370 --> 00:01:29,540
+00:01:24,582 --> 00:01:32,752
 The audit, rebuilt from public records only: 38 receipts, 24 paid inside, 14 stopped, 0 problems.
 
 13
-00:01:30,441 --> 00:01:33,271
+00:01:33,654 --> 00:01:36,484
 The same check from the command line, with no key.
 
 14
-00:01:34,172 --> 00:01:46,452
-The same stock agent, with thinking switched off, bought a GPU hour and a Kiln credit. Sent the same request again, it was refused on-chain for both: it buys once, and the receipt keeps the person's words.
+00:01:37,385 --> 00:01:49,375
+The same stock agent, hidden reasoning off, bought a GPU hour and a Kiln credit. Sent the same request again, it was refused on-chain for both: it buys once, and the receipt keeps the person's words.
 
 15
-00:01:47,354 --> 00:01:58,564
+00:01:50,277 --> 00:02:01,487
 And a second witness. In plain words: Kiln's own logbook and the blockchain tell the same story for every AI call on the organizer's account, and each payment came 2 to 10 seconds after its call.
 
 16
-00:01:59,466 --> 00:02:07,356
+00:02:02,390 --> 00:02:10,280
 A teammate asks: was anything paid after I pressed STOP? Kiln picks the receipt. The verdict comes from the audit, never from the model.
 
 17
-00:02:08,254 --> 00:02:19,194
+00:02:11,181 --> 00:02:22,121
 On Friday, one command writes the statement: paid by seller, refused attempts, an intent flag, and a CSV for the accountant. Tune shows what next week's line would have done.
 
 18
-00:02:20,096 --> 00:02:31,596
-Efficiency: one LLM call per purchase attempt. No-think cut median output from 223 to 36 tokens. Energy is an estimate: 180 watts times measured time.
+00:02:23,023 --> 00:02:35,063
+Efficiency: one LLM call per purchase attempt. Hidden reasoning off cut median output from 223 to 36 tokens. Energy is an estimate: 180 watts times measured time.
 
 19
-00:02:32,499 --> 00:02:37,219
+00:02:35,963 --> 00:02:40,683
 Spendline. Not an agent that can pay, but a payment that can prove it was allowed.

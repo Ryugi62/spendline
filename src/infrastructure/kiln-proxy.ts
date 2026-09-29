@@ -1,7 +1,7 @@
 // AC-45 composition root — the Kiln pass-through for an unmodified agent host:
-//   npm run kiln:proxy [-- --port 8787] [--no-think]   (--no-think adds Qwen3's /no_think to the last user turn: a stock host does not)      then point the host's OpenAI base URL at http://127.0.0.1:8787/v1 (any API key)
+//   npm run kiln:proxy [-- --port 8787] [--no-think] [--bodies <dir>]   (--no-think adds Qwen3's /no_think to the last user turn: a stock host does not; --bodies keeps Kiln's whole reply per generation id)      then point the host's OpenAI base URL at http://127.0.0.1:8787/v1 (any API key)
 // Forwards to Kiln with the Kiln key from .env, returns Kiln's reply unchanged, and appends one line per reply to the journal
-// (generation id, usage, the tool calls asked for — no prompt text). `npm run mcp` with SPENDLINE_KILN_JOURNAL set binds each
+// (generation id, usage, the tool calls asked for, the person's last message — other prompt text is not kept). `npm run mcp` with SPENDLINE_KILN_JOURNAL set binds each
 // spendline_pay to the Kiln reply whose tool call carries exactly its arguments.
 import { createHash } from 'node:crypto';
 import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -45,5 +45,5 @@ export function kilnFromEnv() {
 if (process.argv[1]?.endsWith('kiln-proxy.ts')) {
   const args = process.argv.slice(2);
   const journalPath = flag(args, '--journal') ?? process.env.SPENDLINE_KILN_JOURNAL ?? DEFAULT_JOURNAL;
-  startKilnProxy({ port: Number(flag(args, '--port') ?? 8787), kiln: kilnFromEnv(), journalPath, noThink: args.includes('--no-think') }).then((p) => console.error(`Kiln pass-through on ${p.url} → journal ${journalPath}`));
+  startKilnProxy({ port: Number(flag(args, '--port') ?? 8787), kiln: kilnFromEnv(), journalPath, noThink: args.includes('--no-think'), ...(flag(args, '--bodies') ? { bodiesDir: flag(args, '--bodies')! } : {}) }).then((p) => console.error(`Kiln pass-through on ${p.url} → journal ${journalPath}${flag(args, '--bodies') ? ` · reply bodies → ${flag(args, '--bodies')}` : ''}`));
 }

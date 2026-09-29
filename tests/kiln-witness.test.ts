@@ -65,7 +65,7 @@ describe('round-4 review: the journal carries who asked, which conversation, and
   const body = (msgs: { role: string; content: string }[]) => JSON.stringify({ model: 'qwen3-32b', messages: msgs });
   const sys = { role: 'system', content: 'You buy compute.' };
   const ask = { role: 'user', content: 'Buy 1 GPU hour, as cheap as you can' };
-  it('proxyChat journals the person\'s request (the first user message), the conversation it belongs to, and sha256 of the reply body', async () => {
+  it('proxyChat journals the person\'s request (the last user turn), the conversation it belongs to, and sha256 of the reply body', async () => {
     const journal: JournalEntry[] = [];
     const upstream = async () => new Response(JSON.stringify(reply([{ name: 'spendline_pay', arguments: '{"to":"GPU Shop"}' }])), { status: 200, headers: { 'x-neocloud-generation-id': 'g1' } });
     const deps = { kiln: { baseUrl: 'https://k/v1', apiKey: 'K' }, fetchImpl: upstream as unknown as typeof fetch, record: async (e: JournalEntry) => { journal.push(e); }, now: () => 1, hash: (s: string) => `h(${s.length})` };
@@ -93,7 +93,7 @@ describe('round-4 review: conversation instances and occurrence from the journal
     const entries = [e('a', true, [one, one], 1000), e('b', false, [one], 2000), e('c', true, [one], 3000)];
     const w = (key: string) => findWitness(entries, { name: 'spendline_pay', args: JSON.parse(one) }, { now: 4000, used: new Set(key ? key.split(',') : []) });
     expect(w('')).toMatchObject({ generationId: 'c', occurrence: 0, asked: 'Two credits', conversation: 'c' });
-    expect(w('c#0')).toMatchObject({ generationId: 'b', occurrence: 2, conversation: 'a' });
+    expect(w('c#0')).toMatchObject({ generationId: 'b', occurrence: 0, conversation: 'a' }); // round-6: a later reply re-asking is a retry
     expect(w('c#0,b#0')).toMatchObject({ generationId: 'a', occurrence: 0, conversation: 'a' });
     expect(w('c#0,b#0,a#0')).toMatchObject({ generationId: 'a', occurrence: 1, conversation: 'a' });
   });
@@ -130,7 +130,37 @@ describe('round-5 review', () => {
   it('bodyCheck: a published reply body hashes to the journal\'s bodySha256', async () => {
     const { bodyCheck } = await import('../src/domain/kilnJournal');
     const e = { ...entryFromKilnResponse(r([]), { generationId: 'g', latencyMs: 1, at: 1 }), bodySha256: 'h(abc)' };
-    expect(bodyCheck([e], new Map([['g', 'abc']]), (s) => `h(${s})`)).toEqual({ checked: 1, ok: 1, bad: [] });
-    expect(bodyCheck([e], new Map([['g', 'abd']]), (s) => `h(${s})`)).toEqual({ checked: 1, ok: 0, bad: ['g'] });
+    expect(bodyCheck([e], new Map([['g', 'abc']]), (s) => `h(${s})`)).toMatchObject({ checked: 1, hashMatch: 1 });
+    expect(bodyCheck([e], new Map([['g', 'abd']]), (s) => `h(${s})`)).toMatchObject({ checked: 1, ok: 0, hashMatch: 0, bad: ['g: sha256 differs from the journal, tool calls differ from the journal'] });
+  });
+});
+
+describe('round-6 review: a retry in a later Kiln reply must not pay twice', () => {
+  const r = (calls: string[]) => reply(calls.map((a) => ({ name: 'spendline_pay', arguments: a })));
+  const gpu = (why: string) => `{"to":"GPU Shop","item":"gpu-hours","quantity":1,"why":"${why}"}`;
+  it('occurrence counts identical items only inside one Kiln reply; a later reply of the same turn asking for the same item again (a retry after a timeout or an error) restarts at 0 — so it maps to the earlier paid purchase and is refused as a repeat', () => {
+    const g1: JournalEntry = { ...entryFromKilnResponse(r([gpu('eval run')]), { generationId: 'g1', latencyMs: 1, at: 1000 }), conversationKey: 'K', conversationStart: true, asked: 'Buy 1 GPU hour' };
+    const g2: JournalEntry = { ...entryFromKilnResponse(r([gpu('retry: the tool timed out')]), { generationId: 'g2', latencyMs: 1, at: 5000 }), conversationKey: 'K', conversationStart: false, asked: 'Buy 1 GPU hour' };
+    const first = findWitness([g1, g2], { name: 'spendline_pay', args: JSON.parse(gpu('eval run')) }, { now: 2000, used: new Set() });
+    const retry = findWitness([g1, g2], { name: 'spendline_pay', args: JSON.parse(gpu('retry: the tool timed out')) }, { now: 6000, used: new Set([first!.key]) });
+    expect([first?.occurrence, retry?.occurrence]).toEqual([0, 0]);
+    expect(retry).toMatchObject({ generationId: 'g2', conversation: 'g1', asked: 'Buy 1 GPU hour' });
+  });
+});
+
+describe('round-6 review: a published reply body is checked against the journal AND against Kiln\'s own record', () => {
+  const pay = '{"to":"GPU Shop","item":"gpu-hours","quantity":1,"why":"eval"}';
+  const body = JSON.stringify({ created: 1000, choices: [{ message: { content: '', tool_calls: [{ id: 'c1', type: 'function', function: { name: 'spendline_pay', arguments: pay } }] } }], usage: { prompt_tokens: 692, completion_tokens: 101, cost: 0.00007568 } });
+  const e = { ...entryFromKilnResponse(JSON.parse(body), { generationId: 'g', latencyMs: 1, at: 1_000_000 }), bodySha256: `h(${body})` };
+  const kiln = { g: { id: 'g', model: 'qwen3-32b', totalCost: 0.00007568, promptTokens: 692, completionTokens: 101, createdAt: 1002 } };
+  it('the body\'s tool calls re-parse to the journal\'s, and its usage and time agree with Kiln\'s GET /v1/generations record for that id', async () => {
+    const { bodyCheck } = await import('../src/domain/kilnJournal');
+    expect(bodyCheck([e], new Map([['g', body]]), (s) => `h(${s})`, kiln)).toEqual({ checked: 1, ok: 1, bad: [], hashMatch: 1, callsMatch: 1, kilnMatch: 1 });
+  });
+  it('a journal whose tool calls differ from the body, or a body whose tokens differ from Kiln\'s record, is named', async () => {
+    const { bodyCheck } = await import('../src/domain/kilnJournal');
+    const edited = { ...e, toolCalls: [{ ...e.toolCalls[0], arguments: pay.replace('"quantity":1', '"quantity":2') }] };
+    expect(bodyCheck([edited], new Map([['g', body]]), (s) => `h(${s})`, kiln)).toMatchObject({ ok: 0, callsMatch: 0, bad: ['g: tool calls differ from the journal'] });
+    expect(bodyCheck([e], new Map([['g', body]]), (s) => `h(${s})`, { g: { ...kiln.g, completionTokens: 99 } })).toMatchObject({ ok: 0, kilnMatch: 0, bad: ['g: usage or time differs from Kiln\'s record'] });
   });
 });

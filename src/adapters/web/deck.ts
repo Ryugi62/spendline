@@ -23,7 +23,7 @@ const REASON: Record<string, string> = {
 export function deckSlides(f: PitchFacts, declared: string): Slide[] {
   const li = (s: (typeof f.stops)[number]) => `<li><b>#${s.seq}</b> ${esc(REASON[s.reason] ?? s.reason)} <span class="r">${esc(s.reason)}</span> ${tx(s.tx)}</li>`;
   // in-window stops first (from receipt #9, 2026-09-28 21:56 KST); the pre-window set after its own label
-  const stops = f.stops.filter((s) => s.seq >= 13).map(li).join('') + `<li class="before">earlier: ${f.stops.filter((s) => s.seq < 13).map((s) => `#${s.seq} ${esc(s.reason)}`).join(' · ')}</li>`;
+  const stops = f.stops.filter((s) => s.seq >= 13).map(li).join('') + `<li class="before">earlier, on the personal Kiln key: ${f.stops.filter((s) => s.seq < 13).map((s) => `#${s.seq} ${esc(s.reason)}`).join(' · ')}</li>`;
   return [
     {
       id: 'title',

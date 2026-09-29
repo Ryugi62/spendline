@@ -52,7 +52,6 @@ export async function runHost(d: { llm: LlmPort; mcp: McpClientPort; maxSteps?: 
   const messages: ChatMessage[] = [{ role: 'system', content: HOST_SYSTEM + (line ? `\nThe line and the offers (read by the host): ${line}` : '') }, { role: 'user', content: request }];
   const steps: HostStep[] = [];
   const calls: UsageRecord[] = [];
-  const seenItems = new Map<string, number>(); // identical pay calls within this request: occurrence 0, 1, …
   for (;;) {
     if (steps.length >= max) return { request, steps, answer: `(stopped after ${max} tool calls)`, calls };
     const r = await d.llm.chat('F4_mcp_host', messages, { tools, thinking: false, maxTokens: 300 });
@@ -60,6 +59,7 @@ export async function runHost(d: { llm: LlmPort; mcp: McpClientPort; maxSteps?: 
     const usage: UsageRecord = picked.length ? { ...r.usage, via: picked[0].via } : r.usage;
     calls.push(usage);
     if (!picked.length) return { request, steps, answer: r.text.trim(), calls };
+    const seenItems = new Map<string, number>(); // identical pay calls within THIS reply: occurrence 0, 1, … (round-6: a later reply re-asking is a retry → 0)
     const native = picked.every((p) => p.id);
     if (native) messages.push({ role: 'assistant', content: r.text ?? '', tool_calls: picked.map((p) => ({ id: p.id!, type: 'function' as const, function: { name: p.name, arguments: p.argsText } })) });
     for (const p of picked) {

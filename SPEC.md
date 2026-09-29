@@ -199,6 +199,11 @@ M1 said: the demo only replays the 2026-09-26 record, no live receipt comes thro
   journals {generation id, usage, the tool calls asked for (proper or written into the text)}; the MCP server binds the pay call to the newest
   journaled reply (≤ 120 s) whose tool call has exactly these arguments (canonical JSON) and that no receipt used yet, and seals that usage
   (with the arguments) into the receipt. Streamed requests are passed through unjournaled. `npm run kiln:proxy` · `SPENDLINE_KILN_JOURNAL`.
+  Round-6 review: identical items (seller, item, quantity) are counted inside ONE Kiln reply (occurrence 0, 1, …); the same item asked for
+  again in a later reply of the same request (a retry after a timeout or an error) restarts at 0, maps to the earlier PAID receipt and is
+  refused on-chain as a repeat — a double charge is worse than a false refusal; more of one item goes in `quantity` (the repeat reply says so).
+  A published reply body passes only if its sha256 = the journal's, its tool calls re-parse to the journal's, and its prompt / completion
+  tokens, cost and `created` (±10 s) equal Kiln's GET /v1/generations record for that id. `kiln:proxy --bodies <dir>` keeps the bodies.
 - Round-4 review: the pass-through also journals the person's request (the conversation's first user message), the conversation it
   belongs to, sha256 of Kiln's reply body, and (opt-in `--no-think`) adds Qwen3's /no_think to the last user turn; for a host without `_meta`
   the MCP server takes the request and the occurrence (identical calls earlier in the same conversation) from the journal, so a stock host's
