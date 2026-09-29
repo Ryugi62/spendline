@@ -36,6 +36,13 @@ describe('AC-26 per-flow Kiln report (M0-11)', () => {
     expect(r.assumption).toMatch(/180 W/);
   });
 
+  it('v1.1: one Kiln call that backs several receipts (parallel tool calls) is counted once', () => {
+    const u = { flow: 'F4_mcp_host' as const, promptTokens: 973, completionTokens: 171, costUsd: 0.00012444, latencyMs: 2500, generationId: 'g-par' };
+    const r = flowReport([u, { ...u }, { ...u }], { purchases: 0 });
+    expect(r.total.calls).toBe(1);
+    expect(r.total.totalTokens).toBe(1144);
+  });
+
   it('a flow with no calls is still a row (0), so the table always shows F1 · F2 · F3 · F4 (MCP host, v1.1)', () => {
     const r = flowReport([u('F1_intent', 1, 1, 1000, 'g')], { purchases: 1 });
     expect(r.rows.map((x) => [x.flow, x.calls])).toEqual([['F1_intent', 1], ['F2_explain', 0], ['F3_dispute', 0], ['F4_mcp_host', 0]]);

@@ -50,7 +50,8 @@ function row(flow: FlowRow['flow'], rs: UsageRecord[], npuWatts: number): FlowRo
 /** Only usage with a real Kiln generation id is counted (AC-22); `purchases` = receipts on Spendline's own F1 path (one F1 each by design). */
 export function flowReport(records: UsageRecord[], o: { purchases: number; npuWatts?: number }): FlowReport {
   const npuWatts = o.npuWatts ?? 180;
-  const kiln = records.filter(isKilnCall);
+  const seen = new Set<string>(); // one Kiln call can back several receipts (a reply with several tool calls): count it once
+  const kiln = records.filter(isKilnCall).filter((r) => !seen.has(r.generationId) && !!seen.add(r.generationId));
   const rows = FLOWS.map((f) => row(f, kiln.filter((r) => r.flow === f), npuWatts));
   const f1 = rows[0].calls;
   return {

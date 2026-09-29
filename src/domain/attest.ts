@@ -67,7 +67,9 @@ export function attest(o: { receipts: Receipt[]; answers: AttestAnswer[]; events
   for (const e of o.events) if ((e.kind === 'paid' || e.kind === 'blocked') && !firstEvent.has(e.receiptHash)) firstEvent.set(e.receiptHash, e);
   const rows: AttestRow[] = [];
   const usedOn = new Map<string, number[]>();
-  for (const r of o.receipts) for (const u of r.flows) if (isKilnCall(u)) usedOn.set(u.generationId, [...(usedOn.get(u.generationId) ?? []), r.seq]);
+  // one generation per receipt — or, for a reply with several tool calls (live 2026-09-29), one per (generation, the call's own arguments)
+  const key = (u: UsageRecord) => `${u.generationId}|${u.args ?? ''}`;
+  for (const r of o.receipts) for (const u of r.flows) if (isKilnCall(u)) usedOn.set(key(u), [...(usedOn.get(key(u)) ?? []), r.seq]);
   for (const r of o.receipts) {
     const ev = firstEvent.get(r.hash);
     for (const u of r.flows) {
@@ -76,7 +78,7 @@ export function attest(o: { receipts: Receipt[]; answers: AttestAnswer[]; events
       const row: AttestRow = { flow: u.flow, seq: r.seq, generationId: u.generationId, ...compare(u, g, o.model) };
       const differs = (why: string) => { row.diffs.push(why); if (row.status === 'MATCH') row.status = 'DIFFERS'; };
       if (ev) Object.assign(row, { payAt: ev.at, txHash: ev.txHash });
-      const others = usedOn.get(u.generationId)!.filter((q) => q !== r.seq);
+      const others = usedOn.get(key(u))!.filter((q) => q !== r.seq);
       if (others.length) { row.diffs.push(`generation id also on receipt #${others.join(', #')}`); if (row.status !== 'NOT_FOUND') row.status = 'DIFFERS'; }
       if (g) {
         row.kilnAt = g.createdAt;

@@ -103,6 +103,16 @@ describe('attest v1.1 review: binding', () => {
       [1, 'DIFFERS', ['generation id also on receipt #2']], [2, 'DIFFERS', ['generation id also on receipt #1']],
     ]);
   });
+  it('live 2026-09-29 run 4: one Kiln reply with three tool calls backs three receipts — allowed when each carries its own arguments', () => {
+    const a = (to: string) => usage('F4_mcp_host', 'g1', { args: JSON.stringify({ to }) });
+    const r = attest({
+      receipts: [receipt(1, 'h1', [a('GPU Shop')]), receipt(2, 'h2', [a('Kiln credits')])],
+      answers: [], events: [paid('h1', 1790600005, 'tx1'), paid('h2', 1790600009, 'tx2')],
+      generations: { g1: gen('g1', { createdAt: 1790600000 }) }, model: 'qwen3-32b',
+    });
+    expect(r.rows.map((x) => x.status)).toEqual(['MATCH', 'MATCH']);
+  });
+
   it('a model call more than 120 s before its payment is DIFFERS (an old call cannot back a new payment)', () => {
     const r = attest({ receipts: [receipt(1, 'h1', [usage('F1_intent', 'g1')])], answers: [], events: [paid('h1', 1790600300, 'tx1')], generations: { g1: gen('g1', { createdAt: 1790600000 }) }, model: 'qwen3-32b' });
     expect(r.rows[0]).toMatchObject({ status: 'DIFFERS', diffs: ['model call 300 s before the payment (limit 120 s)'] });

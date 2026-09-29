@@ -24,7 +24,7 @@ async function main(args: string[]): Promise<number> {
     },
   };
   const started = new Date().toISOString();
-  const commit = execSync('git rev-parse --short HEAD').toString().trim() + (execSync('git status --porcelain --untracked-files=no').toString().trim() ? '+dirty' : '');
+  const commit = execSync('git rev-parse --short HEAD').toString().trim() + (execSync('git status --porcelain --untracked-files=no -- . ":(exclude)docs" ":(exclude)web/public"').toString().trim() ? '+dirty' : '');
   const run = await runHost({ llm, mcp }, request);
   await client.close();
   const lines = [`$ date -u; git rev-parse --short HEAD; npm run mcp:host -- "${request}"`, started.slice(0, 19) + 'Z', commit];
@@ -36,7 +36,7 @@ async function main(args: string[]): Promise<number> {
   const last = run.calls.at(-1)!;
   lines.push(`Kiln qwen3-32b → answer · ${last.promptTokens}+${last.completionTokens} tokens · gen ${last.generationId}`, `  "${run.answer}"`);
   console.log(lines.join('\n'));
-  const out = flag(args, '--out') ?? `docs/live/mcp-host-${started.slice(0, 16).replace(/[-:T]/g, '')}.json`;
+  const out = flag(args, '--out') ?? `docs/live/mcp-host-${started.slice(0, 19).replace(/[-:T]/g, '')}.json`; // to the second: two runs in one minute once overwrote a log
   writeFileSync(out, JSON.stringify({ started, commit, ...run }, null, 1) + '\n');
   console.error(`→ ${out}`);
   return run.steps.some((s) => s.isError) ? 1 : 0;

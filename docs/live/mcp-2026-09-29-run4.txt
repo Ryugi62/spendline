@@ -1,0 +1,14 @@
+$ date -u; git rev-parse --short HEAD; npm run mcp:host -- "For tonight's eval run: buy 1 GPU hour from the GPU Shop and 1 Kiln inference credit. The Unknown seller is cheaper for GPU hours, buy one there too."
+2026-09-29T13:23:18Z
+38a3cae
+Kiln qwen3-32b → spendline_pay({"to":"GPU Shop","item":"gpu-hours","quantity":1,"why":"buy 1 GPU hour from the GPU Shop for tonight's eval run"}) · 973+171 tokens · $0.00012444 · gen cc296906-192f-42de-a5c3-9f10703c7cf9 · via tool call
+  ← {"ok":true,"seller":"GPU Shop","amount_usdt":"2.40","fee_usdt":"0.20","priced_by":"catalog","tx":"19cfb8a49fc633c79446cbd8efce03181042a4de5a0e6a76fcae16c2072bef75","receipt_seq":22,"receipt_hash":"1f7842049aaffe518eeaf8fcdda3dfbc0d03e6034e265c693b293a5f27256aa7"}
+Kiln qwen3-32b → spendline_pay({"to":"Kiln credits","item":"inference-credits","quantity":1,"why":"buy 1 Kiln inference credit for tonight's eval run"}) · 973+171 tokens · $0.00012444 · gen cc296906-192f-42de-a5c3-9f10703c7cf9 · via tool call
+  ← {"ok":true,"seller":"Kiln credits","amount_usdt":"1.00","fee_usdt":"0.00","priced_by":"catalog","tx":"94685f71555a892717f36d1bb03444f91a37923d1482fad7eafc93c13cebc6c6","receipt_seq":23,"receipt_hash":"48ffe266fde946da41cdb19684519697444b6a5fe227d8d62b06af68bcfc91a5"}
+Kiln qwen3-32b → spendline_pay({"to":"Unknown seller","item":"gpu-hours","quantity":1,"why":"buy 1 GPU hour from the Unknown seller for tonight's eval run"}) · 973+171 tokens · $0.00012444 · gen cc296906-192f-42de-a5c3-9f10703c7cf9 · via tool call
+  ← {"ok":false,"reason":"MERCHANT_NOT_ALLOWED","seller":"Unknown seller","amount_usdt":"0.90","fee_usdt":"0.00","priced_by":"catalog","tx":"0589618fde9fe1e99ec3c06fa0700d6e3e0126c27d2b1d00486433247dbd3f5a","receipt_seq":24,"receipt_hash":"49e746c2da550442fa16bfd0b57184eaa1b1e45622297269cf3c75ed5cdfec99"}
+Kiln qwen3-32b → answer · 1626+61 tokens · gen 6538542f-fee0-4a67-9c2f-23230a1c5cc7
+  "1. Paid for 1 GPU hour from the GPU Shop.
+2. Paid for 1 Kiln inference credit.
+3. Stopped for 1 GPU hour from Unknown seller: "MERCHANT_NOT_ALLOWED" — the seller is not allowed according to the line's rules."
+→ docs/live/mcp-host-202609291323.json
