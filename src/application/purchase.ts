@@ -1,5 +1,5 @@
 import type { Decision, SpendRequest } from '../domain/mandate';
-import { leakedToolCall, parseIntent } from '../domain/intent';
+import { leakedToolCall, parseIntent, sellerNamedIn } from '../domain/intent';
 import { usdt } from '../domain/money';
 import type { Hasher, Receipt } from '../domain/receipt';
 import { guardedPay } from './plugIn';
@@ -57,8 +57,9 @@ export async function purchase(d: PurchaseDeps, requestText: string): Promise<Pu
 
   const [mandate, offers] = await Promise.all([d.chain.mandate(), d.catalog.offers(intent.item)]);
   const affordable = offers.filter((o) => intent.maxUnitPrice === undefined || o.unitPrice <= usdt(intent.maxUnitPrice));
+  const hint = intent.merchantHint ?? sellerNamedIn(requestText, offers); // AC-39: an address from F1 first, else a seller named in the words
   const pick =
-    (intent.merchantHint && offers.find((o) => o.merchant === intent.merchantHint)) ||
+    (hint && offers.find((o) => o.merchant === hint)) ||
     [...affordable].filter((o) => mandate.merchants.includes(o.merchant)).sort((a, b) => a.unitPrice + a.fee - (b.unitPrice + b.fee))[0] ||
     affordable[0] ||
     offers[0];

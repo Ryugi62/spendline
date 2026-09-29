@@ -12,15 +12,18 @@ const f = recordFacts();
 const s = JSON.parse(readFileSync('web/public/session.json', 'utf8')) as Session;
 const stop = f.stops.find((x) => x.seq === f.merchantStopSeq)!;
 const event = s.events.find((e) => e.txHash === stop.tx)!;
-const auditOut = readFileSync('docs/audit-nile-live-2026-09-28.txt', 'utf8').trim();
+const latestAudit = readdirSync('docs').filter((n) => /^audit-nile-live-\d{4}-\d{2}-\d{2}\.txt$/.test(n)).sort().at(-1)!; // the newest saved keyless audit
+const auditOut = readFileSync(`docs/${latestAudit}`, 'utf8').trim();
 const table = readFileSync('docs/tokens-by-flow.md', 'utf8').split('\n').filter((l) => l.startsWith('| ') && !l.startsWith('| Flow') && !l.startsWith('|---'));
 const cells = (l: string) => l.split('|').slice(1, -1).map((c) => c.trim().replace(/\*\*/g, '').replace(/`/g, ''));
 const rows = table.slice(0, 4).map((l) => { const c = cells(l); return `<tr><td>${esc(c[0])}</td><td>${c[2]}</td><td>${c[5]}</td><td>${esc(c[6])}</td><td>${esc(c[7])}</td><td>${c[9]}</td></tr>`; }).join('');
 const abRows = table.slice(4).filter((l) => /^\| (`\/no_think`|thinking on)/.test(l)).map((l) => { const c = cells(l); return `<tr><td>${esc(c[0])}</td><td>${c[1]}</td><td>${c[2]}</td><td>${c[3]}</td><td>${esc(c[4])}</td><td>${c[5]}</td></tr>`; }).join('');
 
-const transcripts = readdirSync('docs/live').filter((n) => /^agent-.*\.txt$/.test(n)).sort().map((n) => readFileSync(`docs/live/${n}`, 'utf8').trim());
+// The panel fits three: the newest three live runs are shown (every transcript is still checked below). The d12b narration names what they show.
+const allTranscripts = readdirSync('docs/live').filter((n) => /^agent-.*\.txt$/.test(n)).sort().map((n) => readFileSync(`docs/live/${n}`, 'utf8').trim());
+const transcripts = allTranscripts.slice(-3);
 const txs = s.events.map((e) => e.txHash);
-const bad = transcripts.flatMap((t) => checkTranscript(t, s.receipts, txs));
+const bad = allTranscripts.flatMap((t) => checkTranscript(t, s.receipts, txs));
 if (bad.length) throw new Error(`#agent refused (AC-36): ${bad.join('; ')}`);
 const live = terminalScene(transcripts, s.receipts);
 const agentPre = live.map((r) => `<pre>${esc(r.transcript).replace(/(#\d+ PAID)/, '<span class="ok">$1</span>')}</pre>`).join('');

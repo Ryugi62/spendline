@@ -7,27 +7,27 @@ An AI agent was asked to buy 2 GPU hours from a cheaper seller that is not on th
 Kiln's Qwen3-32B explains it in plain words. It is shown only because it repeats the audit's verdict.
 
 3
-00:00:17,193 --> 00:00:24,103
+00:00:17,195 --> 00:00:24,105
 This is the vault's public event: SpendBlocked, with the receipt hash and the reason. Anyone can read it. No key needed.
 
 4
-00:00:25,006 --> 00:00:33,916
+00:00:25,007 --> 00:00:33,917
 This is Spendline, a wallet and policy layer for an AI purchasing agent. A person draws the line. The agent only asks. The vault decides.
 
 5
-00:00:34,816 --> 00:00:41,236
+00:00:34,817 --> 00:00:41,237
 The person sets a budget, a per-payment cap, the sellers, and a deadline, one short step at a time.
 
 6
-00:00:42,138 --> 00:00:48,778
+00:00:42,139 --> 00:00:48,779
 Then signs it with the owner key, on their own machine. The page never holds a key. STOP is signed the same way.
 
 7
-00:00:49,680 --> 00:00:54,880
+00:00:49,681 --> 00:00:54,881
 The feed shows spending against the line, newest first: paid, or stopped with a reason.
 
 8
-00:00:55,782 --> 00:00:58,802
+00:00:55,781 --> 00:00:58,801
 Over budget once the fee is added: stopped on-chain.
 
 9
@@ -39,29 +39,29 @@ The person can press STOP at any time. The next payment was stopped as PAUSED, o
 A new line with a short window: one payment inside it, then the same request after it closed. Stopped: deadline passed.
 
 11
-00:01:14,279 --> 00:01:22,139
-Now the audit, rebuilt from public records only: 11 receipts, 7 paid inside, 4 stopped, 0 problems.
+00:01:14,277 --> 00:01:22,157
+Now the audit, rebuilt from public records only: 12 receipts, 7 paid inside, 5 stopped, 0 problems.
 
 12
-00:01:23,039 --> 00:01:32,529
+00:01:23,059 --> 00:01:32,549
 The same check from the command line. No key, no dot env. It re-hashes every receipt and replays the line in force at that moment. A replayed receipt hash was stopped too.
 
 13
-00:01:33,432 --> 00:01:46,462
-And live, during the event window: three requests typed into npm run agent. Kiln read each one, once as a tool call and twice as plain JSON, which the code also parses. The vault paid all three inside the line.
+00:01:33,450 --> 00:01:51,270
+And live, during the event window: requests typed into npm run agent. Kiln read each one, as plain JSON, as a tool call, and as a call written into its text; the code parses all three. The vault paid two inside the line, and stopped the third on-chain: over budget once fees are added.
 
 14
-00:01:47,365 --> 00:01:54,935
+00:01:52,172 --> 00:01:59,742
 A teammate asks: did we pay that cheap unknown seller? Kiln picks the receipt. The verdict comes from the audit, never from the model.
 
 15
-00:01:55,838 --> 00:02:06,328
-Efficiency, in numbers: 1.00 LLM call per purchase. 29 live Kiln calls across 3 flows, 19,535 tokens in total.
+00:02:00,644 --> 00:02:10,744
+Efficiency, in numbers: 1.00 LLM call per purchase. 30 live Kiln calls across 3 flows, 19,885 tokens in total.
 
 16
-00:02:07,228 --> 00:02:18,698
+00:02:11,646 --> 00:02:23,116
 With no-think, median output drops from 223 to 36 tokens, with the same JSON in 12 of 12 pairs. Energy is an estimate: 180 watts times measured time.
 
 17
-00:02:19,600 --> 00:02:24,320
+00:02:24,016 --> 00:02:28,736
 Spendline. Not an agent that can pay, but a payment that can prove it was allowed.

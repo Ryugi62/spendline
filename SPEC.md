@@ -155,6 +155,10 @@ M1 said: the demo only replays the 2026-09-26 record, no live receipt comes thro
   (same call shape, `examples/plug-in.ts`) Then the unchanged loop gets paid inside the line and `ok: false` + the on-chain reason outside it; every attempt
   is a hash-chained receipt (memo = the receipt's words, no model call added) and the keyless audit rebuilds each verdict. UC-2 purchase uses the same `guardedPay`.
 - AC-32 tightened: deck ≤ 10 slides (the "not done" slide and "check it yourself" are one slide).
+- AC-39 Given a request that names a seller by its catalog name (the label before " — ", whole words, any case) and an F1 answer with no
+  `merchantHint` address When the purchase runs Then that seller is priced and sent to the vault (unlisted → stopped on-chain MERCHANT_NOT_ALLOWED);
+  an address from F1 still wins; two different names or none → the cheapest listed offer as before. Code, not prompt: F1 is unchanged (no new A/B).
+- README record numbers (the How-to-run audit line, the Kiln row) are pinned to the record's facts by `tests/readme-numbers.test.ts`.
 
 ## 7. Architecture (Clean)
 ```
@@ -177,3 +181,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 - v0.7 2026-09-28 §6e (M1 prep, before the 19:00 window — disclosed): Kiln F2 / F3 words on the Receipt and Audit screens, audit-checked (AC-30) · narration check for video and pitch (AC-31) · deck built from the record's facts, same number rule (AC-32) · demo video, pitch video, deck PDF, 10 Q&A.
 - v0.8 2026-09-28 §6f (during the window, from 19:00 KST): live agent receipts on the tool-call F1 with `via` · `serverMs` in the report line (AC-35) · terminal scene in the demo from the transcripts, checked against the record (AC-36).
 - v0.9 2026-09-29 §6g (during the window): README proof of API usage per flow, generated and checked (AC-38) · plug-in wallet + example, tested (AC-37) · deck ≤ 10 pages (AC-32 tightened to the organizer's limit).
+- v0.9.1 2026-09-29 (during the window, M1 check): live receipt #12 · a seller named in the words reaches the vault (AC-39) · README record numbers pinned by a test.

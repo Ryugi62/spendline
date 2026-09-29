@@ -260,6 +260,31 @@
    ],
    "prevHash": "6b8f65c8d16b5ad24c91c9d468743c97f38ee3d8195d8fc821244422c57ef337",
    "hash": "4b50a13b957cb6fd803ad213c192eb6bd35cf9ce6a0ceaa6301c4774cc3270e0"
+  },
+  {
+   "seq": 12,
+   "mandateId": "0x375013bf899f79439eba9663690f5069fd4cd748d889291d60140a6b161171da",
+   "request": {
+    "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+    "amount": 2400000,
+    "fee": 200000,
+    "at": 1790645310
+   },
+   "intentText": "Buy 1 GPU hour from the Unknown seller, it is cheaper",
+   "flows": [
+    {
+     "flow": "F1_intent",
+     "promptTokens": 321,
+     "completionTokens": 29,
+     "costUsd": 0.00002184,
+     "latencyMs": 1932,
+     "generationId": "f1e7aa9a-d4fc-49e7-bef7-959b8191108e",
+     "serverMs": 579,
+     "via": "tool_call_in_text"
+    }
+   ],
+   "prevHash": "4b50a13b957cb6fd803ad213c192eb6bd35cf9ce6a0ceaa6301c4774cc3270e0",
+   "hash": "d48b7fb1072d8d2cea64ccf03046f71f8b4d8762f5597698f935fb5f600cc360"
   }
  ],
  "events": [
@@ -428,9 +453,19 @@
    "fee": 0,
    "at": 1790600340,
    "txHash": "cc506012344ca6fe8a906c95dbe033de535a9e90f7811a7ddd4408f803f78b52"
+  },
+  {
+   "kind": "blocked",
+   "receiptHash": "d48b7fb1072d8d2cea64ccf03046f71f8b4d8762f5597698f935fb5f600cc360",
+   "merchant": "THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56",
+   "amount": 2400000,
+   "fee": 200000,
+   "at": 1790645313,
+   "txHash": "7e1e3cb75a44ab8b124a3697280c4477e93d76a71e11b51a56ada365caedc8ea",
+   "reason": "OVER_BUDGET_WITH_FEES"
   }
  ],
- "generatedAt": 1790600451,
+ "generatedAt": 1790645315,
  "answers": [
   {
    "key": "F2:ee436d487a09d745236b623cf26ae79bab17ce3e21769d3289066acc7a52b3c4",

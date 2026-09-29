@@ -39,3 +39,20 @@ export function parseIntent(text: string): Intent {
   if (typeof r.note === 'string') out.note = r.note;
   return out;
 }
+
+/**
+ * AC-39: the seller a request names by its catalog name (the label before " — "), whole words, any case.
+ * Exactly one distinct seller named → its address; none or several → undefined (code then picks as before).
+ */
+export function sellerNamedIn(text: string, sellers: { merchant: string; label: string }[]): string | undefined {
+  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const named = new Set(
+    sellers
+      .filter((s) => {
+        const name = s.label.split(' — ')[0].trim();
+        return name.length > 0 && new RegExp(`(^|[^\\p{L}\\p{N}])${esc(name)}($|[^\\p{L}\\p{N}])`, 'iu').test(text);
+      })
+      .map((s) => s.merchant),
+  );
+  return named.size === 1 ? [...named][0] : undefined;
+}
