@@ -8,7 +8,7 @@ import { guardedPay, type GuardedPayDeps } from './plugIn';
 
 export type McpResult = { text: string; data?: Record<string, unknown>; isError?: boolean };
 export type McpTool = { name: string; description: string; inputSchema: Record<string, unknown>; run(args: Record<string, unknown>): Promise<McpResult> };
-export type McpDeps = GuardedPayDeps & { events: EventSource; labels: Record<string, string>; vault: string };
+export type McpDeps = GuardedPayDeps & { events: EventSource; labels: Record<string, string>; vault: string; /** in-memory sandbox (`npm run mcp -- --demo`): said in every line reply */ demo?: boolean };
 
 const TRON_ADDRESS = /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
 const kst = (unix: number) => new Date((unix + 9 * 3600) * 1000).toISOString().replace('T', ' ').slice(0, 19);
@@ -54,6 +54,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
         return ok({
           budget_usdt: fmtUsdt(m.budget), spent_usdt: fmtUsdt(spent), left_usdt: fmtUsdt(Math.max(0, m.budget - spent)), per_payment_cap_usdt: fmtUsdt(m.perTxCap),
           sellers: m.merchants.map((a) => ({ address: a, ...(nameOf(a) ? { name: nameOf(a) } : {}) })), deadline_kst: kst(m.deadline), stop: m.paused,
+          ...(d.demo ? { demo: true, note: 'in-memory sandbox: same rule as the vault, nothing is sent to TRON' } : {}),
         });
       },
     },
