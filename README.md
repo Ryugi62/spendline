@@ -4,7 +4,7 @@
 
 GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum "Agent Finance" track · Challenge B (Controls and Records for an AI Agent That Spends).
 
-**Watch · read (2 minutes):** [demo video, 2:31](docs/video/spendline-demo.mp4) — opens on the seller-not-listed stop, live terminal at 1:33 · [pitch, 3:44](docs/video/spendline-pitch.mp4) · [deck PDF, 10 pages](docs/deck.pdf) · [ten judge questions](docs/qa.md). Captions burned in, synthetic voice; every number in them is checked against the record by `tests/pitch.test.ts`.
+**Watch · read (2 minutes):** [demo video, 2:45](docs/video/spendline-demo.mp4) — opens on the seller-not-listed stop; live MCP run on Kiln at 1:28, two witnesses at 1:47, the lead's Friday at 2:10 · [pitch, 4:09](docs/video/spendline-pitch.mp4) · [deck PDF, 10 pages](docs/deck.pdf) · [ten judge questions](docs/qa.md). Captions burned in, synthetic voice; every number in them is checked against the record by `tests/pitch.test.ts`.
 
 ## New in v1.1 — check each in under a minute
 | What | Why it matters | Check it |

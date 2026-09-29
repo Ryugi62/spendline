@@ -1,4 +1,4 @@
-# Spendline — SPEC (SDD, v0.8 2026-09-28)
+# Spendline — SPEC (SDD, v1.1 2026-09-29)
 
 > GWDC 2026 Korea Hackathon · FuriosaAI × Bricksum "Agent Finance" track · Challenge B (covers A's condition checks).
 > Brief (verbatim source): https://docs.google.com/document/d/13qh7oePGl7Flrl-Zh_A6hfr02L266PvS — model changed to **Qwen3-32B** (Bricksum, TG 2026-09-22).
@@ -211,3 +211,4 @@ Video ≤3:00 (`scripts/record-video.mjs`), captions burned in, no human voice.
 - v0.9 2026-09-29 §6g (during the window): README proof of API usage per flow, generated and checked (AC-38) · plug-in wallet + example, tested (AC-37) · deck ≤ 10 pages (AC-32 tightened to the organizer's limit).
 - v0.9.1 2026-09-29 (during the window, M1 check): live receipt #12 · a seller named in the words reaches the vault (AC-39) · README record numbers pinned by a test.
 - v1.0.0 2026-09-29 (during the window, v1 freeze): live receipts #13–#15 and F2 / F3 on the organizer-issued Kiln account (team32) · README's account sentence pinned to the record by a test.
+- v1.1.0 2026-09-29 night (during the window) §6h: two witnesses — Kiln's own generation record vs the receipts on TRON (AC-40) · statement + tune for the lead's week (AC-41/42) · MCP server + a Kiln-planned MCP host, 3 live runs → #16–#21, three host bugs from the live runs fixed with tests (AC-43/44).

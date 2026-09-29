@@ -3,37 +3,37 @@
 Hi, this is Spendline, for the FuriosaAI and Bricksum track, challenge B. Our claim is simple. Not an agent that can pay, but a payment that can prove it was allowed. A person grants a budget, a seller list and a deadline. The agent, on Kiln, proposes purchases. A vault on TRON pays only inside that line, and records every stop.
 
 2
-00:00:21,619 --> 00:00:39,719
+00:00:21,622 --> 00:00:39,722
 Picture a 3-person AI startup. The lead hands the weekly GPU and inference budget to a purchasing agent. Then a teammate asks: why did we buy this? Payment rails say who paid whom, not who allowed it. The lead needs one receipt that answers, and someone else must be able to check it without trusting anyone.
 
 3
-00:00:40,622 --> 00:00:54,262
+00:00:40,627 --> 00:00:54,267
 Here is the split. Kiln reads the request words and returns a small JSON. Code picks the offer and does the money math. The vault enforces the line. And anyone can audit the result with no key. The model phrases, the audit decides.
 
 4
-00:00:55,164 --> 00:01:17,274
-Boundaries are enforced on-chain, in the vault's pay function. We recorded 7 stops on TRON Nile: a seller not on the list (twice), over budget once fees are added (three times), a payment after the person pressed STOP, and one after the time window closed. A replayed receipt hash was stopped too. Each stop is an event with its reason, never a silent revert.
+00:00:55,172 --> 00:01:17,372
+Boundaries are enforced on-chain, in the vault's pay function. We recorded 8 stops on TRON Nile: a seller not on the list, three times, over budget once fees are added, three times, a payment after the person pressed STOP, and one after the time window closed. A replayed receipt hash was stopped too. Each stop is an event with its reason, never a silent revert.
 
 5
-00:01:18,176 --> 00:01:57,446
-Kiln does real work, and we count it. The request goes to Kiln as a tool call, chosen by a rule we fixed before a live test. The model sometimes answers in plain JSON instead; the code parses both, and each receipt says which. 1.00 LLM call per purchase, against a design limit of 2. 35 live Kiln calls across 3 flows, 23,648 tokens in total. From receipt 13 on, every call runs on the organizer-issued team account. No-think cut median output from 223 to 36 tokens, with the same JSON. Energy is an estimate we state: 180 watts times measured time.
+00:01:18,274 --> 00:01:57,274
+Kiln does real work, and we count it. The request goes to Kiln as a tool call, chosen by a rule we fixed before a live test. The model sometimes answers in plain JSON instead; the code parses both, and each receipt says which. 1.00 LLM call per purchase, against a design limit of 2. 41 live Kiln calls across 3 flows, 29,113 tokens in total. From receipt 13 on, every call runs on the organizer-issued team account. No-think cut median output from 223 to 36 tokens, with the same JSON. Energy is an estimate we state: 180 watts times measured time.
 
 6
-00:01:58,349 --> 00:02:13,679
+00:01:58,177 --> 00:02:13,507
 On the chain, the agent reads the line, writes pay with the receipt hash, and the vault settles test USDT to the seller. Every receipt hash appears in exactly one Paid or SpendBlocked event. The person signs grant and STOP with the owner key, on their own machine.
 
 7
-00:02:14,581 --> 00:02:34,431
-Approval and evidence. One command, no key, rebuilds every verdict from the receipts file and the vault's public events: 15 receipts, 8 paid inside, 7 stopped, 0 problems, 20.20 USDT paid. Edit a receipt and the hash chain breaks. Drop one and the vault event with no receipt is flagged.
+00:02:14,411 --> 00:02:34,571
+Approval and evidence. One command, no key, rebuilds every verdict from the receipts file and the vault's public events: 21 receipts, 13 paid inside, 8 stopped, 0 problems, 30.00 USDT paid. Edit a receipt and the hash chain breaks. Drop one and the vault event with no receipt is flagged.
 
 8
-00:02:35,334 --> 00:02:48,124
-What is new: a stop is an event, so the history shows what the agent was not allowed to do. Receipts are hash-chained and anchored in the vault. And the model's explanations are shown only when they repeat the audit and use numbers from the record.
+00:02:35,473 --> 00:03:01,243
+What is new. Two witnesses per payment: the receipt hash on TRON commits to the Kiln generation behind it, and Kiln's own record is the second witness. On the organizer's account, 15 of 15 calls match on model, tokens and cost, and every model call came 2 to 5 seconds before its payment. A stop is an event, so the history shows what the agent was not allowed to do. And the model's explanations are shown only when they repeat the audit.
 
 9
-00:02:49,026 --> 00:03:19,546
-Where it plugs in: wherever an agent calls a wallet, swap in the Spendline wallet. Same transfer call, the agent's loop does not change, and the example is tested. We measured what one guarded decision costs on Nile: 7.01 TRX when paid, 2.80 when stopped, plus a fraction of a cent of Kiln. Who needs it: teams that let agents buy compute and credits. Our business hypothesis, not yet validated: open vault and audit, with a hosted audit and alerts as the paid layer.
+00:03:02,146 --> 00:03:44,586
+Where it plugs in. Spendline is an MCP server with three tools, so any agent host can use it as its wallet; we ran it live with Qwen3-32B on Kiln as the host, 3 runs, 6 pay attempts. Or swap in the Spendline wallet, same transfer call. The lead's week closes with one command: a statement with a CSV for the accountant, 18.20 USDT kept in the vault by 8 stops, and tune, which replays this week's requests under next week's line. One guarded decision costs 7.01 TRX when paid, 2.80 when stopped. Business hypothesis, not yet validated: open vault and audit, a hosted audit with alerts as the paid layer.
 
 10
-00:03:20,448 --> 00:03:43,278
+00:03:45,488 --> 00:04:08,318
 Please check it yourself: install, run the audit, and open the UI. What is not done, stated: testnet only, as the brief asks. One line per vault. Signing is on the person's machine, not in the browser. Energy is an estimate. And parts were built before the event window; the README lists every commit. Spendline. A payment that can prove it was allowed. Thank you.
