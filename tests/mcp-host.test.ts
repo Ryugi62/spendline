@@ -25,7 +25,7 @@ async function world() {
   const tools = mcpTools({ chain, store, hash: sha, events: { events: async () => chain.events }, labels, offers, vault: 'TVault' });
   const mcp = {
     list: async () => tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })),
-    call: async (name: string, args: Record<string, unknown>) => { const r = await tools.find((t) => t.name === name)!.run(args); return { text: r.text, isError: !!r.isError }; },
+    call: async (name: string, args: Record<string, unknown>, meta?: Record<string, unknown>) => { const r = await tools.find((t) => t.name === name)!.run(args, meta); return { text: r.text, isError: !!r.isError }; },
   };
   return { store, mcp };
 }

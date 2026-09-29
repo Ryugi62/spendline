@@ -7,7 +7,14 @@ import type { EventSource, Offer } from './ports';
 import { guardedPay, type GuardedPayDeps } from './plugIn';
 
 export type McpResult = { text: string; data?: Record<string, unknown>; isError?: boolean };
-export type McpTool = { name: string; description: string; inputSchema: Record<string, unknown>; run(args: Record<string, unknown>): Promise<McpResult> };
+/** Host-code data rides in the MCP request's `_meta` (never in the tool schema a host's model reads): `spendline/request` = the person's
+ *  words, `spendline/kiln_usage` = the Kiln call that decided the payment. */
+export const META_REQUEST = 'spendline/request';
+export const META_KILN_USAGE = 'spendline/kiln_usage';
+/** The same request again within this window on the same line is a replay; a host retrying the same call in one session: 10 minutes. */
+export const REPLAY_WINDOW_SEC = 3600;
+export const SESSION_WINDOW_SEC = 600;
+export type McpTool = { name: string; description: string; inputSchema: Record<string, unknown>; run(args: Record<string, unknown>, meta?: Record<string, unknown>): Promise<McpResult> };
 export type McpDeps = GuardedPayDeps & { events: EventSource; labels: Record<string, string>; offers?: Offer[]; vault: string; /** in-memory sandbox (`npm run mcp -- --demo`): said in every line reply */ demo?: boolean };
 
 const TRON_ADDRESS = /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
@@ -38,6 +45,7 @@ export function usageFrom(v: unknown): UsageRecord[] | string {
 
 export function mcpTools(d: McpDeps): McpTool[] {
   const offers = d.offers ?? [];
+  const session = new Map<string, { seq: number; at: number }>(); // this server session's pay calls, for a host that retries without a request
   const byName = new Map(Object.entries(d.labels).map(([addr, name]) => [name.toLowerCase(), addr]));
   const nameOf = (addr: string) => d.labels[addr];
   const seller = (to: unknown): string | undefined => {
@@ -73,18 +81,11 @@ export function mcpTools(d: McpDeps): McpTool[] {
           why: { type: 'string', description: "the reason in the words of the request — becomes the receipt's words" },
           amount_usdt: { type: 'number', description: 'only for a seller that is not in the catalog: the amount in USDT (up to 6 decimals), fee not included' },
           fee_usdt: { type: 'number', description: 'only for a seller that is not in the catalog: the fee in USDT, default 0' },
-          kiln_usage: {
-            type: 'object',
-            description: 'set by the host code, not the model: the Kiln call that decided this payment (generation id, tokens, cost, the call arguments) — it goes into the receipt, so the on-chain hash commits to it and Kiln can attest it',
-            properties: { generation_id: { type: 'string' }, prompt_tokens: { type: 'integer' }, completion_tokens: { type: 'integer' }, cost_usd: { type: 'number' }, latency_ms: { type: 'integer' }, server_ms: { type: 'integer' }, via: { type: 'string', enum: ['tool_call', 'tool_call_in_text', 'text'] }, args: { type: 'string' } },
-            required: ['generation_id', 'prompt_tokens', 'completion_tokens', 'cost_usd'],
-          },
-          request: { type: 'string', description: "set by the host code, not the model: the person's request words — kept in the receipt; the same request to the same seller for the same amount on the same line is refused as a replay" },
         },
         required: ['to', 'why'],
         additionalProperties: false,
       },
-      async run(a) {
+      async run(a, meta = {}) {
         const to = seller(a.to);
         if (!to) return refuse(`unknown seller "${String(a.to)}": give a TRON address or one of: ${Object.values(d.labels).join(', ')}`);
         if (typeof a.why !== 'string' || !a.why.trim()) return refuse('why is required: the reason in the words of the request');
@@ -105,14 +106,18 @@ export function mcpTools(d: McpDeps): McpTool[] {
           if (modelAmount === undefined) return refuse('amount_usdt is required for a seller that is not in the catalog');
           [amount, fee, pricedBy] = [modelAmount, modelFee ?? 0, 'caller'];
         }
-        const flows = a.kiln_usage === undefined ? [] : usageFrom(a.kiln_usage);
+        const flows = meta[META_KILN_USAGE] === undefined ? [] : usageFrom(meta[META_KILN_USAGE]);
         if (typeof flows === 'string') return refuse(flows);
-        const asked = typeof a.request === 'string' && a.request.trim() ? a.request.trim() : undefined;
+        const asked = typeof meta[META_REQUEST] === 'string' && (meta[META_REQUEST] as string).trim() ? (meta[META_REQUEST] as string).trim() : undefined;
         const ignored = pricedBy === 'catalog' && modelAmount !== undefined && modelAmount !== amount ? { model_amount_ignored: fmtUsdt(modelAmount) } : {};
         const base = { seller: nameOf(to) ?? to, amount_usdt: fmtUsdt(amount), fee_usdt: fmtUsdt(fee), priced_by: pricedBy, ...ignored };
-        if (asked) {
-          const mandate = await d.chain.mandate();
-          const prior = (await d.store.all()).find((r) => r.asked === asked && r.mandateId === mandate.id && r.request.merchant === to && r.request.amount === amount && r.request.fee === fee);
+        const [mandate, now] = await Promise.all([d.chain.mandate(), d.chain.now()]);
+        const sameCall = `${to}|${amount}|${fee}|${a.why.trim().toLowerCase()}`;
+        const all = await d.store.all();
+        const prior = asked
+          ? all.find((r) => r.asked === asked && r.mandateId === mandate.id && r.request.merchant === to && r.request.amount === amount && r.request.fee === fee && now - r.request.at <= REPLAY_WINDOW_SEC)
+          : all.find((r) => r.seq === session.get(sameCall)?.seq && now - session.get(sameCall)!.at <= SESSION_WINDOW_SEC);
+        {
           if (prior) {
             // the same request again: send the ORIGINAL receipt hash — the vault decides a receipt once, so the repeat is stopped on-chain (DUPLICATE_RECEIPT)
             const out = await d.chain.pay({ merchant: to, amount, fee, receiptHash: prior.hash });
@@ -120,6 +125,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
           }
         }
         const r = await guardedPay(d, { merchant: to, amount, fee, why: a.why.trim(), flows, ...(asked ? { asked } : {}) });
+        session.set(sameCall, { seq: r.receipt.seq, at: now });
         const rest = { ...base, tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash };
         return r.outcome.kind === 'paid' ? ok({ ok: true, ...rest }) : ok({ ok: false, reason: r.outcome.reason, ...rest });
       },

@@ -26,7 +26,7 @@ const setup = async () => {
   const tools = mcpTools({ chain, store, hash: sha, events: { events: async () => chain.events }, labels, offers, vault: 'TVault' });
   return { chain, store, tools };
 };
-const call = async (tools: Awaited<ReturnType<typeof setup>>['tools'], name: string, args: Record<string, unknown>) => tools.find((t) => t.name === name)!.run(args);
+const call = async (tools: Awaited<ReturnType<typeof setup>>['tools'], name: string, args: Record<string, unknown>, meta?: Record<string, unknown>) => tools.find((t) => t.name === name)!.run(args, meta);
 
 describe('MCP tools (AC-43)', () => {
   it('lists exactly three tools with JSON-schema inputs', async () => {
@@ -79,10 +79,10 @@ describe('MCP tools (AC-43)', () => {
   it('kiln_usage (set by host code): the receipt carries the Kiln call that decided the payment, so the on-chain hash commits to it (AC-40 can attest it)', async () => {
     const { tools, store } = await setup();
     const u = { generation_id: 'gen-host-1', prompt_tokens: 612, completion_tokens: 41, cost_usd: 0.0000604, latency_ms: 1700, server_ms: 880, via: 'tool_call', args: '{"to":"GPU Shop"}' };
-    const r = await call(tools, 'spendline_pay', { to: GPU, amount_usdt: 2.4, fee_usdt: 0.2, why: '1 GPU hour', kiln_usage: u });
+    const r = await call(tools, 'spendline_pay', { to: GPU, amount_usdt: 2.4, fee_usdt: 0.2, why: '1 GPU hour' }, { 'spendline/kiln_usage': u });
     expect(r.data).toMatchObject({ ok: true });
     expect((await store.all())[0].flows).toEqual([{ flow: 'F4_mcp_host', promptTokens: 612, completionTokens: 41, costUsd: 0.0000604, latencyMs: 1700, serverMs: 880, generationId: 'gen-host-1', via: 'tool_call', args: '{"to":"GPU Shop"}' }]);
-    const bad = await call(tools, 'spendline_pay', { to: GPU, amount_usdt: 1, why: 'x', kiln_usage: { generation_id: '', prompt_tokens: -1 } });
+    const bad = await call(tools, 'spendline_pay', { to: GPU, amount_usdt: 1, why: 'x' }, { 'spendline/kiln_usage': { generation_id: '', prompt_tokens: -1 } });
     expect(bad.isError).toBe(true);
     expect(await store.all()).toHaveLength(1);
   });
@@ -101,16 +101,44 @@ describe('MCP tools (AC-43)', () => {
   it('v1.1 review: the person\'s request (host code) is in the receipt, and the same request to the same seller for the same amount is refused on-chain as a replay — no second payment, no new receipt', async () => {
     const { tools, store, chain } = await setup();
     const asked = 'Buy 1 GPU hour from the GPU Shop for tonight';
-    const a = await call(tools, 'spendline_pay', { to: 'GPU Shop', item: 'gpu-hours', why: '1 GPU hour', request: asked });
+    const a = await call(tools, 'spendline_pay', { to: 'GPU Shop', item: 'gpu-hours', why: '1 GPU hour' }, { 'spendline/request': asked });
     expect(a.data).toMatchObject({ ok: true, receipt_seq: 1 });
     expect((await store.all())[0].asked).toBe(asked);
-    const again = await call(tools, 'spendline_pay', { to: 'GPU Shop', item: 'gpu-hours', why: 'retry', request: asked });
+    const again = await call(tools, 'spendline_pay', { to: 'GPU Shop', item: 'gpu-hours', why: 'retry' }, { 'spendline/request': asked });
     expect(again.data).toMatchObject({ ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1 });
     expect(await store.all()).toHaveLength(1);
     expect(await chain.spent()).toBe(2_600_000);
     expect(chain.events.at(-1)).toMatchObject({ kind: 'blocked', reason: 'DUPLICATE_RECEIPT', receiptHash: (await store.all())[0].hash });
-    const other = await call(tools, 'spendline_pay', { to: 'Kiln credits', why: '1 credit', request: asked }); // same words, another seller: not a duplicate
+    const other = await call(tools, 'spendline_pay', { to: 'Kiln credits', why: '1 credit' }, { 'spendline/request': asked }); // same words, another seller: not a duplicate
     expect(other.data).toMatchObject({ ok: true, receipt_seq: 2 });
+  });
+
+  it('round-2 review: host-only data rides in MCP _meta — the tool schema a host\'s model sees has no kiln_usage / request', async () => {
+    const { tools } = await setup();
+    const props = Object.keys((tools[1].inputSchema as { properties: object }).properties);
+    expect(props).not.toContain('kiln_usage');
+    expect(props).not.toContain('request');
+  });
+
+  it('round-2 review: the replay rule has a window — the same request an hour later is a new purchase', async () => {
+    const { tools, chain, store } = await setup();
+    const asked = 'Need 1 Kiln credit for eval';
+    await call(tools, 'spendline_pay', { to: 'Kiln credits', why: 'eval' }, { 'spendline/request': asked });
+    chain.advance(3601);
+    const later = await call(tools, 'spendline_pay', { to: 'Kiln credits', why: 'eval' }, { 'spendline/request': asked });
+    expect(later.data).toMatchObject({ ok: true, receipt_seq: 2 });
+    expect(await store.all()).toHaveLength(2);
+  });
+
+  it('round-2 review: a host that sends no request still cannot double-buy by retrying the same call in one session (10 minutes)', async () => {
+    const { tools, store } = await setup();
+    const same = { to: 'Kiln credits', item: 'inference-credits', quantity: 1, why: 'credit for the eval' };
+    await call(tools, 'spendline_pay', same);
+    const retry = await call(tools, 'spendline_pay', same);
+    expect(retry.data).toMatchObject({ ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1 });
+    const different = await call(tools, 'spendline_pay', { ...same, why: 'a second credit for the replay' });
+    expect(different.data).toMatchObject({ ok: true, receipt_seq: 2 });
+    expect(await store.all()).toHaveLength(2);
   });
 
   it('spendline_check: the keyless audit verdict for one receipt', async () => {

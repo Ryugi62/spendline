@@ -1,8 +1,8 @@
-Two witnesses — Kiln's own record (Kiln live, 2026-09-29T13:40:19.777Z) vs the receipts whose hashes are on TRON
-57 Kiln calls in the record (59 rows — one reply with several tool calls backs several receipts) · 29 MATCH · 0 DIFFERS · 0 NOT_FOUND · 30 made on another Kiln account (the builder's personal key, before the organizer-issued team32 account: receipts #1-#12, answer lines 1-18 — Kiln shows a generation only to its own account)
-Calls that led to a payment: 16 / 16 dated before their pay() and within 120 s (2–10 s, median 4 s) · no (generation, arguments) backs two receipts
+Two witnesses — Kiln's own record (saved docs/kiln-generations.json, fetched 2026-09-29T13:40:19.777Z) vs the receipts whose hashes are on TRON
+57 Kiln calls in the record (59 rows — one reply with several tool calls backs several receipts) · 29 MATCH · 0 DIFFERS · 0 NOT_FOUND · 0 NO_KILN_CALL · 30 made on another Kiln account (the builder's personal key, before the organizer-issued team32 account: receipts #1-#12, answer lines 1-18 — Kiln shows a generation only to its own account)
+pay() attempts decided on Kiln: 16 / 16 dated after their Kiln call and within 120 s (14 Kiln calls) (2–10 s, median 4 s) · no (generation, arguments) backs two receipts, no generation spans two requests
 The model's own arguments re-derive the payment (seller, item × quantity + fee from the catalog): 7 / 7
-On Kiln's own clock: median latency 879 ms → ≈0.0440 Wh per call at 180 W (an estimate) · prompt tokens served from Kiln's cache: 9428 / 27249 (35%)
+On Kiln's own clock (per call): median latency 873 ms → ≈0.0437 Wh per call at 180 W (an estimate) · prompt tokens served from Kiln's cache: 9364 / 25303 (37%)
 
 OTHER_ACCOUNT F1 #1     d919cfd0-5e71-46fc-8ec0-6fad043902de
 OTHER_ACCOUNT F1 #2     a83ece71-1d04-48cf-8cbf-38d1789e184f

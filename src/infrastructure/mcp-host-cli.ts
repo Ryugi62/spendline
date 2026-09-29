@@ -18,8 +18,8 @@ async function main(args: string[]): Promise<number> {
   await client.connect(transport);
   const mcp: McpClientPort = {
     list: async () => (await client.listTools()).tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema as Record<string, unknown> })),
-    call: async (name, a) => {
-      const r = (await client.callTool({ name, arguments: a })) as { content: { type: string; text?: string }[]; isError?: boolean };
+    call: async (name, a, meta) => {
+      const r = (await client.callTool({ name, arguments: a, ...(meta ? { _meta: meta } : {}) })) as { content: { type: string; text?: string }[]; isError?: boolean };
       return { text: r.content.map((c) => c.text ?? '').join(''), isError: !!r.isError };
     },
   };

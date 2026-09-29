@@ -72,7 +72,7 @@ Kiln returns `x-envoy-upstream-service-time` on every response: the time spent b
 - Server time is 66% of wall time on these calls; F1 paths: tool_calls 8 · call leaked into text 3 · plain JSON 1 — parsed 12 / 12. Raw: `docs/energy-server-time-2026-09-28.json`. New receipts carry `serverMs` from v0.7 on.
 
 ## F4 MCP host on Kiln (AC-44) — the same payments through a general agent
-- 5 runs of `npm run mcp:host`: 15 Kiln calls for 13 pay attempts that reached the vault (1.15 per attempt) · 17,061 tokens · $0.0013437
+- 5 runs (requests) of `npm run mcp:host`: 15 Kiln calls · 17,061 tokens · $0.0013437 → 9 new receipts (**1.67 calls per receipt**), 7 paid (2.14 per paid purchase), 3.00 per request; 13 pay attempts reached the vault, 4 of them repeats refused on-chain; 2 Kiln calls were spent only on a repeat.
 - Runs that handled the whole request: 3 / 5. Calls that reached no vault: 6 — 1 refused before the chain (a seller name not in the catalog), 2 pay decisions the host could not parse (fixed with tests after those runs), 3 closing answers.
 - Median prompt 973 tokens per call vs 320 for Spendline's own F1 with the tool offered (1 call per purchase): the purpose-built F1 stays the efficient path; MCP is the path for an agent that already has a planner.
 

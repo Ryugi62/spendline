@@ -15,7 +15,7 @@ const call = (u: UsageRecord): Call => ({
   ...(u.via ? { via: u.via } : {}), ...(u.serverMs !== undefined ? { serverMs: u.serverMs } : {}),
 });
 
-export function proofByFlow(o: { receipts: Receipt[]; events: ChainEvent[]; answers: AnswerRecord[]; hostCalls?: UsageRecord[] }): Proof {
+export function proofByFlow(o: { receipts: Receipt[]; events: ChainEvent[]; answers: AnswerRecord[]; hostCalls?: UsageRecord[]; /** generation id → the person's request, from the MCP host logs (receipts before v1.1 did not keep it) */ requestOf?: Map<string, string> }): Proof {
   const firstEvent = new Map<string, Extract<ChainEvent, { receiptHash: string }>>();
   for (const e of o.events) if ((e.kind === 'paid' || e.kind === 'blocked') && !firstEvent.has(e.receiptHash)) firstEvent.set(e.receiptHash, e);
   const txOfSeq = new Map<number, string>();
@@ -29,7 +29,7 @@ export function proofByFlow(o: { receipts: Receipt[]; events: ChainEvent[]; answ
     for (const u of r.flows) {
       if (!isKilnCall(u)) { excludedStandIns++; continue; }
       if (!ev) findings.push(`receipt #${r.seq} (${u.generationId}) has no on-chain event`);
-      (u.flow === 'F4_mcp_host' ? f4 : f1).push({ ...call(u), seq: r.seq, at: r.request.at, words: r.asked ?? r.intentText, outcome: !ev ? 'no event' : ev.kind === 'paid' ? 'paid' : `stopped ${ev.reason}`, ...(ev ? { txHash: ev.txHash } : {}) });
+      (u.flow === 'F4_mcp_host' ? f4 : f1).push({ ...call(u), seq: r.seq, at: r.request.at, words: r.asked ?? (o.requestOf?.has(u.generationId) ? `${o.requestOf.get(u.generationId)} (host log)` : r.intentText), outcome: !ev ? 'no event' : ev.kind === 'paid' ? 'paid' : `stopped ${ev.reason}`, ...(ev ? { txHash: ev.txHash } : {}) });
     }
   }
   const rows = (flow: AnswerRecord['flow']): AnswerRow[] =>
@@ -51,11 +51,12 @@ const usd = (n: number) => `$${n.toFixed(7)}`;
 const cell = (s: string) => s.replace(/\|/g, '\\|');
 
 export function formatProof(p: Proof, o: { network: string }): string {
-  const calls = p.f1.length + p.f2.length + p.f3.length + p.f4.length + p.f4Other.length;
-  const all = [...p.f1, ...p.f2, ...p.f3, ...p.f4, ...p.f4Other];
+  const rows = [...p.f1, ...p.f2, ...p.f3, ...p.f4, ...p.f4Other];
+  const all = [...new Map(rows.map((r) => [r.generationId, r])).values()]; // one Kiln reply can back several receipts: count the call once
+  const calls = all.length;
   const tokens = all.reduce((n, r) => n + r.promptTokens + r.completionTokens, 0);
   const cost = all.reduce((n, r) => n + r.costUsd, 0);
-  let md = `${calls} Kiln calls · ${tokens} tokens · ${usd(cost)} (Kiln \`usage.cost\`) · every row = one Kiln response with its \`X-Neocloud-Generation-Id\`, joined to the on-chain event of the receipt it belongs to. Stand-in usage excluded: ${p.excludedStandIns}.${p.findings.length ? ` **Findings: ${p.findings.join('; ')}.**` : ' Findings: 0 (every receipt has its on-chain event).'}\n\n`;
+  let md = `${calls} Kiln calls${rows.length !== calls ? ` (${rows.length} rows)` : ''} · ${tokens} tokens · ${usd(cost)} (Kiln \`usage.cost\`) · every row = one Kiln response with its \`X-Neocloud-Generation-Id\`, joined to the on-chain event of the receipt it belongs to. Stand-in usage excluded: ${p.excludedStandIns}.${p.findings.length ? ` **Findings: ${p.findings.join('; ')}.**` : ' Findings: 0 (every receipt has its on-chain event).'}\n\n`;
   md += `### F1 intent — one Kiln call per purchase → \`pay()\` on-chain\n| # | Time (request) | Request words | Kiln generation id | Tokens in / out | USD | F1 via · Kiln server time | Vault outcome | On-chain tx |\n|---:|---|---|---|---:|---:|---|---|---|\n`;
   for (const r of p.f1) md += `| ${r.seq} | ${kst(r.at)} | ${cell(r.words)} | \`${r.generationId}\` | ${r.promptTokens} / ${r.completionTokens} | ${usd(r.costUsd)} | ${r.via ?? '—'}${r.serverMs !== undefined ? ` · ${(r.serverMs / 1000).toFixed(2)} s` : ''} | ${r.outcome} | ${txLink(r.txHash, o.network)} |\n`;
   const answerTable = (title: string, rows: AnswerRow[]) => {

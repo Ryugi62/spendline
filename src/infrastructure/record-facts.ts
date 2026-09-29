@@ -64,7 +64,7 @@ export function recordFacts(o: { session?: string; answers?: string; ab?: string
     ...base,
     ...(at ? { attest: { match: at.counts.match, shown: at.counts.match + at.counts.differs, otherAccount: at.counts.otherAccount, f1Before: leads.filter((x) => x >= 0).length, f1: leads.length, leadMin: Math.min(...leads), leadMax: Math.max(...leads),
       ...(sa?.medianKilnLatencyMs !== undefined ? { kilnMedianMs: sa.medianKilnLatencyMs, whPerCallKiln: sa.whPerCallKiln!.toFixed(4) } : {}), ...(sa?.prompt ? { cachedPct: Math.round((100 * sa.cached!) / sa.prompt) } : {}) } } : {}),
-    ...(h ? { mcp: { tools: 3, runs: h.runs, calls: h.calls, attempts: h.payments, perAttempt: h.callsPerPayment.toFixed(2) } } : {}),
+    ...(h ? { mcp: { tools: 3, runs: h.runs, calls: h.calls, attempts: h.payments, receipts: h.newReceipts, paid: h.paid, perReceipt: (h.calls / h.newReceipts).toFixed(2) } } : {}),
     kept: { usdt: fmtUsdt(st.totalKept), stops: st.stopsByReason.reduce((n, x) => n + x.count, 0), distinct: st.refusedDistinct, replays: st.replays },
   };
 }

@@ -43,7 +43,7 @@ export type PitchFacts = {
   /** v1.1 AC-40: Kiln's own record vs the receipts (team32 account) — MATCH count, calls Kiln shows, F1 calls dated before pay(), lead range in s */
   attest?: { match: number; shown: number; otherAccount: number; f1Before: number; f1: number; leadMin: number; leadMax: number; kilnMedianMs?: number; whPerCallKiln?: string; cachedPct?: number };
   /** v1.1 AC-43/44: MCP tools, host runs on Kiln, their Kiln calls, pay attempts that reached the vault, calls per attempt */
-  mcp?: { tools: number; runs: number; calls: number; attempts: number; perAttempt: string };
+  mcp?: { tools: number; runs: number; calls: number; attempts: number; receipts: number; paid: number; perReceipt: string };
   /** v1.1 AC-41: what the statement adds up — USDT kept in the vault by stops */
   kept?: { usdt: string; stops: number; distinct?: number; replays?: number };
 };

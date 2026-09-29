@@ -6,11 +6,12 @@ import type { AnswerRecord } from '../src/application/ports';
 import { formatProof, proofByFlow } from '../src/application/proof';
 import type { Session } from '../src/application/views';
 import { LIVE_ANSWERS } from '../src/infrastructure/runtime';
-import { hostCallsOutsideReceipts, withHostFlows } from '../src/infrastructure/host-runs';
+import { hostCallsOutsideReceipts, hostLogs, withHostFlows } from '../src/infrastructure/host-runs';
 
 const s = JSON.parse(readFileSync('web/public/session.json', 'utf8')) as Session;
 const answers = readJsonl<AnswerRecord>(LIVE_ANSWERS);
-const p = proofByFlow({ receipts: withHostFlows(s.receipts), events: s.events, answers, hostCalls: hostCallsOutsideReceipts(s.receipts) });
+const requestOf = new Map(hostLogs().flatMap((l) => (l.request ? l.calls.map((c) => [c.generationId, l.request!] as [string, string]) : [])));
+const p = proofByFlow({ receipts: withHostFlows(s.receipts), events: s.events, answers, hostCalls: hostCallsOutsideReceipts(s.receipts), requestOf });
 const body = formatProof(p, { network: s.network });
 const START = '<!-- proof:start -->';
 const END = '<!-- proof:end -->';

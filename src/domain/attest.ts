@@ -8,7 +8,8 @@ import { isKilnCall, type Flow, type UsageRecord } from './tokenLedger';
 /** Kiln's record of one generation (GET /v1/generations/{id}), in our units: createdAt = unix seconds. */
 export type KilnGeneration = { id: string; model: string; totalCost: number; promptTokens: number; completionTokens: number; createdAt: number; latencyMs?: number; cachedTokens?: number };
 /** OTHER_ACCOUNT: Kiln shows a generation only to the account that made it — a call outside the asking account's scope that Kiln does not show. */
-export type AttestStatus = 'MATCH' | 'DIFFERS' | 'NOT_FOUND' | 'OTHER_ACCOUNT';
+/** NO_KILN_CALL: a receipt in scope whose payment no Kiln call decided (a planner not on Kiln) — the track rule says every decision goes through Kiln. */
+export type AttestStatus = 'MATCH' | 'DIFFERS' | 'NOT_FOUND' | 'OTHER_ACCOUNT' | 'NO_KILN_CALL';
 export type AttestRow = {
   flow: Flow;
   seq: number | null;
@@ -29,7 +30,7 @@ export type AttestRow = {
   argsBound?: boolean;
 };
 export type AttestAnswer = { flow: Flow; seq: number | null; question?: string; usage?: UsageRecord };
-export type AttestResult = { rows: AttestRow[]; counts: { match: number; differs: number; notFound: number; otherAccount: number } };
+export type AttestResult = { rows: AttestRow[]; counts: { match: number; differs: number; notFound: number; otherAccount: number; noKilnCall: number } };
 /** Which calls the asking Kiln account made: receipts from `fromSeq`, answers from log line `fromAnswer` (1-based). Absent = all. */
 export type AccountScope = { fromSeq: number; fromAnswer: number };
 
@@ -51,7 +52,11 @@ export function paymentFromArgs(args: string, offers: CatalogOffer[], paidMercha
     const sells = offers.filter((o) => o.merchant === to || o.label.toLowerCase() === to.toLowerCase());
     const item = typeof a.item === 'string' && a.item ? a.item : sells.length === 1 ? sells[0].item : undefined;
     offer = sells.find((o) => o.item === item);
-  } else if (typeof a.item === 'string') offer = offers.find((o) => o.item === a.item && o.merchant === paidMerchant);
+  } else if (typeof a.item === 'string') {
+    // F1: code picks the seller; a seller address the model named must be the one paid
+    if (typeof a.merchantHint === 'string' && /^T[1-9A-HJ-NP-Za-km-z]{33}$|^T[A-Z]+$/.test(a.merchantHint) && a.merchantHint !== paidMerchant) return undefined;
+    offer = offers.find((o) => o.item === a.item && o.merchant === paidMerchant);
+  }
   return offer ? { merchant: offer.merchant, amount: Math.round(offer.unitPrice * q), fee: offer.fee } : undefined;
 }
 
@@ -74,16 +79,24 @@ export function attest(o: { receipts: Receipt[]; answers: AttestAnswer[]; events
   // one generation per receipt — or, for a reply with several tool calls (live 2026-09-29), one per (generation, the call's own arguments)
   const key = (u: UsageRecord) => `${u.generationId}|${u.args ?? ''}`;
   for (const r of o.receipts) for (const u of r.flows) if (isKilnCall(u)) usedOn.set(key(u), [...(usedOn.get(key(u)) ?? []), r.seq]);
+  const askedOf = new Map<string, Map<number, string | undefined>>();
+  for (const r of o.receipts) for (const u of r.flows) if (isKilnCall(u)) askedOf.set(u.generationId, (askedOf.get(u.generationId) ?? new Map()).set(r.seq, r.asked));
   for (const r of o.receipts) {
     const ev = firstEvent.get(r.hash);
+    if (r.flows.length === 0 && (!o.scope || r.seq >= o.scope.fromSeq)) { // (a scripted stand-in is labelled elsewhere, never a row)
+      rows.push({ flow: 'F1_intent', seq: r.seq, generationId: '', status: 'NO_KILN_CALL', diffs: ['no Kiln call decided this payment'], ...(ev ? { payAt: ev.at, txHash: ev.txHash } : {}) });
+      continue;
+    }
     for (const u of r.flows) {
       if (!isKilnCall(u)) continue;
       const g = o.generations[u.generationId];
       const row: AttestRow = { flow: u.flow, seq: r.seq, generationId: u.generationId, ...compare(u, g, o.model) };
       const differs = (why: string) => { row.diffs.push(why); if (row.status === 'MATCH') row.status = 'DIFFERS'; };
       if (ev) Object.assign(row, { payAt: ev.at, txHash: ev.txHash });
+      const otherAsks = [...(askedOf.get(u.generationId) ?? new Map()).entries()].filter(([q, a]) => q !== r.seq && a !== r.asked).map(([q]) => q);
       const others = usedOn.get(key(u))!.filter((q) => q !== r.seq);
       if (others.length) { row.diffs.push(`generation id also on receipt #${others.join(', #')}`); if (row.status !== 'NOT_FOUND') row.status = 'DIFFERS'; }
+      if (otherAsks.length) { row.diffs.push(`generation shared with a different request (#${otherAsks.join(', #')})`); if (row.status !== 'NOT_FOUND') row.status = 'DIFFERS'; }
       if (g) {
         row.kilnAt = g.createdAt;
         if (ev) {
@@ -106,5 +119,5 @@ export function attest(o: { receipts: Receipt[]; answers: AttestAnswer[]; events
     rows.push(outside(row, !o.scope || i + 1 >= o.scope.fromAnswer));
   });
   const n = (s: AttestStatus) => rows.filter((x) => x.status === s).length;
-  return { rows, counts: { match: n('MATCH'), differs: n('DIFFERS'), notFound: n('NOT_FOUND'), otherAccount: n('OTHER_ACCOUNT') } };
+  return { rows, counts: { match: n('MATCH'), differs: n('DIFFERS'), notFound: n('NOT_FOUND'), otherAccount: n('OTHER_ACCOUNT'), noKilnCall: n('NO_KILN_CALL') } };
 }

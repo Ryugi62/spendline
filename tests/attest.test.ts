@@ -25,7 +25,7 @@ describe('attest (AC-40)', () => {
     expect(r.rows).toEqual([
       expect.objectContaining({ flow: 'F1_intent', seq: 1, generationId: 'g1', status: 'MATCH', diffs: [], kilnAt: 1790600003, payAt: 1790600012, leadSec: 9, txHash: 'tx1', kilnLatencyMs: 601 }),
     ]);
-    expect(r.counts).toEqual({ match: 1, differs: 0, notFound: 0, otherAccount: 0 });
+    expect(r.counts).toEqual({ match: 1, differs: 0, notFound: 0, otherAccount: 0, noKilnCall: 0 });
   });
 
   it('DIFFERS names every differing field; cost within 1e-9 is the same cost', () => {
@@ -69,7 +69,7 @@ describe('attest (AC-40)', () => {
       ['F3_dispute', 'g-f3', 'MATCH'],
     ]);
     expect(r.rows[2].question).toBe('Did we pay?');
-    expect(r.counts).toEqual({ match: 2, differs: 0, notFound: 1, otherAccount: 0 });
+    expect(r.counts).toEqual({ match: 2, differs: 0, notFound: 1, otherAccount: 0, noKilnCall: 0 });
   });
 
   it('scope: a call Kiln does not show, made before the asking account (receipt < fromSeq, answer line < fromAnswer), is OTHER_ACCOUNT; inside the scope it stays NOT_FOUND', () => {
@@ -82,7 +82,7 @@ describe('attest (AC-40)', () => {
       scope: { fromSeq: 13, fromAnswer: 2 },
     });
     expect(r.rows.map((x) => [x.generationId, x.status])).toEqual([['old', 'OTHER_ACCOUNT'], ['new', 'MATCH'], ['lost', 'NOT_FOUND'], ['old-f2', 'OTHER_ACCOUNT'], ['new-f2', 'MATCH']]);
-    expect(r.counts).toEqual({ match: 2, differs: 0, notFound: 1, otherAccount: 2 });
+    expect(r.counts).toEqual({ match: 2, differs: 0, notFound: 1, otherAccount: 2, noKilnCall: 0 });
   });
 
   it('a generation id missing from the generations map is NOT_FOUND (never assumed)', () => {
@@ -130,6 +130,25 @@ describe('attest v1.1 review: binding', () => {
     expect(ok.rows[0]).toMatchObject({ status: 'MATCH', argsBound: true });
     const bad = attest({ receipts: [receipt(1, 'h1', [args({ to: 'GPU Shop', item: 'gpu-hours', quantity: 3 })])], answers: [], events: [paid('h1', 1790600005, 'tx1')], generations: { g1: gen('g1') }, model: 'qwen3-32b', offers });
     expect(bad.rows[0]).toMatchObject({ status: 'DIFFERS', argsBound: false, diffs: ["payment differs from the model's arguments (3000000 + 0 ≠ 1000000 + 0)"] });
+  });
+});
+
+describe('attest round-2 review', () => {
+  const offers = [{ merchant: 'TM', item: 'gpu-hours', unitPrice: 1_000_000, fee: 0, label: 'GPU Shop' }];
+  it('a receipt in scope with no Kiln call is NO_KILN_CALL and fails the check (a planner that is not on Kiln)', () => {
+    const r = attest({ receipts: [receipt(13, 'h13', [])], answers: [], events: [paid('h13', 1790600005, 'tx13')], generations: {}, model: 'qwen3-32b', scope: { fromSeq: 13, fromAnswer: 1 } });
+    expect(r.rows).toEqual([expect.objectContaining({ seq: 13, status: 'NO_KILN_CALL', generationId: '' })]);
+    expect(r.counts.noKilnCall).toBe(1);
+  });
+  it('one generation shared by receipts of different requests is DIFFERS', () => {
+    const a = (to: string, asked: string, seq: number) => ({ ...receipt(seq, `h${seq}`, [usage('F4_mcp_host', 'g1', { args: JSON.stringify({ to }) })]), asked }) as Receipt;
+    const r = attest({ receipts: [a('GPU Shop', 'request A', 1), a('Kiln credits', 'request B', 2)], answers: [], events: [paid('h1', 1790600005, 'tx1'), paid('h2', 1790600006, 'tx2')], generations: { g1: gen('g1') }, model: 'qwen3-32b' });
+    expect(r.rows.map((x) => x.diffs)).toEqual([['generation shared with a different request (#2)'], ['generation shared with a different request (#1)']]);
+  });
+  it('F1 arguments that name a seller address must name the seller that was paid', () => {
+    const f1 = usage('F1_intent', 'g1', { args: JSON.stringify({ item: 'gpu-hours', quantity: 1, merchantHint: 'TOTHER' }) });
+    const r = attest({ receipts: [receipt(1, 'h1', [f1])], answers: [], events: [paid('h1', 1790600005, 'tx1')], generations: { g1: gen('g1') }, model: 'qwen3-32b', offers });
+    expect(r.rows[0]).toMatchObject({ status: 'DIFFERS', argsBound: false });
   });
 });
 

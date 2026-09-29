@@ -62,3 +62,17 @@ describe('proofByFlow (AC-38)', () => {
     expect(md).not.toContain('fake-3');
   });
 });
+
+describe('proof v1.1 review (J-A/J-B/J-C round 2)', () => {
+  it('one Kiln call behind several receipts is one call in the header (rows are still one per receipt); the person\'s words come from the host log when the receipt has none', () => {
+    const f4 = (seq: number, hash: string) => receipt(seq, hash, [usage('F4_mcp_host' as never, 'gen-par')]);
+    const rs = [f4(7, 'h7'), f4(8, 'h8')];
+    const ev: ChainEvent[] = [
+      { kind: 'paid', receiptHash: 'h7', merchant: 'TM', amount: 1, fee: 0, at: 1, txHash: 'ddd444' },
+      { kind: 'paid', receiptHash: 'h8', merchant: 'TM', amount: 1, fee: 0, at: 2, txHash: 'eee555' },
+    ];
+    const p = proofByFlow({ receipts: rs, events: ev, answers: [], requestOf: new Map([['gen-par', 'Buy 2 things, please']]) });
+    expect(p.f4.map((r) => r.words)).toEqual(['Buy 2 things, please (host log)', 'Buy 2 things, please (host log)']);
+    expect(formatProof(p, { network: 'nile' })).toMatch(/^1 Kiln calls \(2 rows\) · 120 tokens/);
+  });
+});
