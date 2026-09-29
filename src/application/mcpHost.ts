@@ -52,6 +52,7 @@ export async function runHost(d: { llm: LlmPort; mcp: McpClientPort; maxSteps?: 
   const messages: ChatMessage[] = [{ role: 'system', content: HOST_SYSTEM + (line ? `\nThe line and the offers (read by the host): ${line}` : '') }, { role: 'user', content: request }];
   const steps: HostStep[] = [];
   const calls: UsageRecord[] = [];
+  const paidItems = new Map<string, number>(); // round-7 review: identical items the model has SEEN paid in this request (a later reply asking again = one more)
   for (;;) {
     if (steps.length >= max) return { request, steps, answer: `(stopped after ${max} tool calls)`, calls };
     const r = await d.llm.chat('F4_mcp_host', messages, { tools, thinking: false, maxTokens: 300 });
@@ -59,6 +60,7 @@ export async function runHost(d: { llm: LlmPort; mcp: McpClientPort; maxSteps?: 
     const usage: UsageRecord = picked.length ? { ...r.usage, via: picked[0].via } : r.usage;
     calls.push(usage);
     if (!picked.length) return { request, steps, answer: r.text.trim(), calls };
+    const pending: string[] = [];
     const seenItems = new Map<string, number>(); // identical pay calls within THIS reply: occurrence 0, 1, … (round-6: a later reply re-asking is a retry → 0)
     const native = picked.every((p) => p.id);
     if (native) messages.push({ role: 'assistant', content: r.text ?? '', tool_calls: picked.map((p) => ({ id: p.id!, type: 'function' as const, function: { name: p.name, arguments: p.argsText } })) });
@@ -67,15 +69,17 @@ export async function runHost(d: { llm: LlmPort; mcp: McpClientPort; maxSteps?: 
       try { args = JSON.parse(p.argsText) as Record<string, unknown>; } catch { /* the tool refuses empty input in plain words */ }
       for (const k of HOST_ONLY) delete args[k];
       const item = `${String(args.to ?? '').toLowerCase()}|${String(args.item ?? '')}|${String(args.quantity ?? 1)}`;
-      const occurrence = seenItems.get(item) ?? 0;
-      if (p.name === 'spendline_pay') seenItems.set(item, occurrence + 1);
+      const occurrence = (seenItems.get(item) ?? 0) + (paidItems.get(item) ?? 0);
+      if (p.name === 'spendline_pay') seenItems.set(item, (seenItems.get(item) ?? 0) + 1);
       const meta = p.name === 'spendline_pay'
         ? { 'spendline/request': request, 'spendline/occurrence': occurrence, 'spendline/kiln_usage': { generation_id: usage.generationId, prompt_tokens: usage.promptTokens, completion_tokens: usage.completionTokens, cost_usd: usage.costUsd, latency_ms: usage.latencyMs, ...(usage.serverMs !== undefined ? { server_ms: usage.serverMs } : {}), via: p.via, args: p.argsText } }
         : undefined;
       const res = await d.mcp.call(p.name, args, meta);
       steps.push({ tool: p.name, args, via: p.via, generationId: usage.generationId, text: res.text, isError: res.isError });
+      if (p.name === 'spendline_pay') { try { const o = JSON.parse(res.text) as { ok?: unknown; receipt_seq?: unknown }; if (o.ok === true && typeof o.receipt_seq === 'number') pending.push(item); } catch { /* not paid */ } }
       if (native) messages.push({ role: 'tool', tool_call_id: p.id!, content: res.text });
       else messages.push({ role: 'assistant', content: JSON.stringify({ name: p.name, arguments: args }) }, { role: 'user', content: `Result of ${p.name}: ${res.text}` });
     }
+    for (const it of pending) paidItems.set(it, (paidItems.get(it) ?? 0) + 1);
   }
 }

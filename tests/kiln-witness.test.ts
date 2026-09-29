@@ -89,7 +89,7 @@ describe('round-4 review: the journal carries who asked, which conversation, and
 describe('round-4 review: conversation instances and occurrence from the journal', () => {
   const e = (gen: string, start: boolean, calls: string[], at: number): JournalEntry => ({ ...entryFromKilnResponse(reply(calls.map((a) => ({ name: 'spendline_pay', arguments: a }))), { generationId: gen, latencyMs: 1, at }), conversationKey: 'K', conversationStart: start, asked: 'Two credits' });
   const one = '{"to":"Kiln credits","why":"eval"}';
-  it('the n-th identical call of one conversation has occurrence n; a new conversation (the request sent again) starts at 0 — so a retry is recognised and two identical items are not', () => {
+  it('occurrence counts identical calls inside one Kiln reply; a later reply re-asking starts at 0 (a retry), and a new conversation (the request sent again) starts at 0', () => {
     const entries = [e('a', true, [one, one], 1000), e('b', false, [one], 2000), e('c', true, [one], 3000)];
     const w = (key: string) => findWitness(entries, { name: 'spendline_pay', args: JSON.parse(one) }, { now: 4000, used: new Set(key ? key.split(',') : []) });
     expect(w('')).toMatchObject({ generationId: 'c', occurrence: 0, asked: 'Two credits', conversation: 'c' });
@@ -162,5 +162,33 @@ describe('round-6 review: a published reply body is checked against the journal 
     const edited = { ...e, toolCalls: [{ ...e.toolCalls[0], arguments: pay.replace('"quantity":1', '"quantity":2') }] };
     expect(bodyCheck([edited], new Map([['g', body]]), (s) => `h(${s})`, kiln)).toMatchObject({ ok: 0, callsMatch: 0, bad: ['g: tool calls differ from the journal'] });
     expect(bodyCheck([e], new Map([['g', body]]), (s) => `h(${s})`, { g: { ...kiln.g, completionTokens: 99 } })).toMatchObject({ ok: 0, kilnMatch: 0, bad: ['g: usage or time differs from Kiln\'s record'] });
+  });
+});
+
+describe('round-7 review: a second identical item after a PAID result the model saw is a new purchase; after an error or no result it is a retry', () => {
+  const gpu = (why: string) => `{"to":"GPU Shop","item":"gpu-hours","quantity":1,"why":"${why}"}`;
+  const history = (result: string | undefined) => [
+    { role: 'system', content: 'S' }, { role: 'user', content: 'Two GPU hours, one per job' },
+    { role: 'assistant', content: '', tool_calls: [{ id: 'c1', type: 'function', function: { name: 'spendline_pay', arguments: gpu('job 1') } }] },
+    ...(result === undefined ? [] : [{ role: 'tool', tool_call_id: 'c1', content: result }]),
+  ];
+  it('paidSeen lists the items of pay calls since the last user turn whose tool result said ok with a receipt', async () => {
+    const { paidSeen } = await import('../src/domain/kilnJournal');
+    expect(paidSeen(history('{"ok":true,"receipt_seq":37,"summary":"Paid"}'))).toEqual(['gpu shop|gpu-hours|1']);
+    expect(paidSeen(history('{"ok":false,"reason":"DUPLICATE_RECEIPT","replay_of":37}'))).toEqual([]);
+    expect(paidSeen(history('Error: timed out'))).toEqual([]);
+    expect(paidSeen(history(undefined))).toEqual([]);
+  });
+  it('findWitness: occurrence = identical items earlier in this reply + identical items the model already saw paid', () => {
+    const g2 = (seen: string[]): JournalEntry => ({ ...entryFromKilnResponse(reply([{ name: 'spendline_pay', arguments: gpu('job 2') }]), { generationId: 'g2', latencyMs: 1, at: 5000 }), conversationKey: 'K', conversationStart: false, paidSeen: seen });
+    const w = (seen: string[]) => findWitness([g2(seen)], { name: 'spendline_pay', args: JSON.parse(gpu('job 2')) }, { now: 6000, used: new Set() });
+    expect(w(['gpu shop|gpu-hours|1'])?.occurrence).toBe(1); // saw #37 paid → the second hour is a new purchase
+    expect(w([])?.occurrence).toBe(0); // no paid result seen (error / timeout) → a retry → maps to the paid one, refused
+  });
+  it('proxyChat journals paidSeen from the request it forwards', async () => {
+    const journal: JournalEntry[] = [];
+    const upstream = async () => new Response(JSON.stringify(reply([])), { status: 200, headers: { 'x-neocloud-generation-id': 'g' } });
+    await proxyChat({ kiln: { baseUrl: 'https://k/v1', apiKey: 'K' }, fetchImpl: upstream as unknown as typeof fetch, record: async (e) => { journal.push(e); }, now: () => 1, hash: (s) => s, body: JSON.stringify({ messages: history('{"ok":true,"receipt_seq":37}') }) });
+    expect(journal[0].paidSeen).toEqual(['gpu shop|gpu-hours|1']);
   });
 });

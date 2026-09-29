@@ -204,6 +204,9 @@ M1 said: the demo only replays the 2026-09-26 record, no live receipt comes thro
   refused on-chain as a repeat — a double charge is worse than a false refusal; more of one item goes in `quantity` (the repeat reply says so).
   A published reply body passes only if its sha256 = the journal's, its tool calls re-parse to the journal's, and its prompt / completion
   tokens, cost and `created` (±10 s) equal Kiln's GET /v1/generations record for that id. `kiln:proxy --bodies <dir>` keeps the bodies.
+  Round-7 review: the pass-through journals `paidSeen` — the items of pay calls since the last user turn whose role:tool result the model
+  saw as {"ok":true,"receipt_seq":n}; occurrence = identical items earlier in the reply + identical items in paidSeen (the own MCP host
+  counts the same from its results). "Was it paid?" = the server's own pay() results ∪ the chain's Paid events (the index can lag).
 - Round-4 review: the pass-through also journals the person's request (the conversation's first user message), the conversation it
   belongs to, sha256 of Kiln's reply body, and (opt-in `--no-think`) adds Qwen3's /no_think to the last user turn; for a host without `_meta`
   the MCP server takes the request and the occurrence (identical calls earlier in the same conversation) from the journal, so a stock host's

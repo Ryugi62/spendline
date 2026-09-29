@@ -12,6 +12,8 @@ export type JournalEntry = {
   /** round-4 review: the person's request (the last user turn), the conversation it belongs to (hash of its opening),
    *  whether this reply opened it, sha256 of Kiln's whole reply body, and whether the pass-through switched thinking off */
   asked?: string; conversationKey?: string; conversationStart?: boolean; bodySha256?: string; noThink?: boolean;
+  /** round-7 review: the items (seller|item|quantity) of pay calls since the last user turn whose result the model saw as paid */
+  paidSeen?: string[];
 };
 export const WITNESS_WINDOW_MS = 120_000;
 
@@ -39,7 +41,7 @@ export function entryFromKilnResponse(j: KilnReply, o: { generationId: string; l
 
 const same = (raw: string, args: unknown) => { try { return canonical(JSON.parse(raw)) === canonical(args); } catch { return false; } };
 /** the same item = seller, item and quantity (what the vault is asked to pay for), whatever free text (`why`) the model wrote */
-const itemOf = (a: unknown) => { const o = (a ?? {}) as Record<string, unknown>; return `${String(o.to ?? '').trim().toLowerCase()}|${String(o.item ?? '')}|${String(o.quantity ?? 1)}`; };
+export const itemOf = (a: unknown) => { const o = (a ?? {}) as Record<string, unknown>; return `${String(o.to ?? '').trim().toLowerCase()}|${String(o.item ?? '')}|${String(o.quantity ?? 1)}`; };
 const sameItem = (raw: string, args: unknown) => { try { return itemOf(JSON.parse(raw)) === itemOf(args); } catch { return false; } };
 
 /** The Kiln call behind this tool call, as the receipt's usage (with the model's arguments verbatim), or undefined. `key` marks it used. */
@@ -61,12 +63,30 @@ export function findWitness(entries: JournalEntry[], call: { name: string; args:
         // item asked for again in a later reply (a retry after a timeout or an error) starts at 0 again, so it maps to the earlier paid
         // purchase and is refused as a repeat — a double charge is worse than a refusal; more of one item goes in `quantity`.
         const conversation = instanceOf(entries, e);
-        const earlier = e.toolCalls.filter((t, j) => j < i && t.name === call.name && sameItem(t.arguments, call.args)).length;
+        // round-7 review: plus identical items the model already SAW PAID in this turn (a result {"ok":true,"receipt_seq":…} in the request) —
+        // a second hour after a paid first is a new purchase; after an error, a timeout or no result it is a retry.
+        const earlier = e.toolCalls.filter((t, j) => j < i && t.name === call.name && sameItem(t.arguments, call.args)).length
+          + (e.paidSeen ?? []).filter((x) => x === itemOf(call.args)).length;
         return { ...e.usage, args: tc.arguments, via: tc.via, key, occurrence: earlier, conversation, ...(e.asked ? { asked: e.asked } : {}) };
       }
     }
   }
   return undefined;
+}
+
+type ChatMsg = { role?: string; content?: unknown; tool_call_id?: string; tool_calls?: { id?: string; function?: { name?: string; arguments?: string } }[] };
+/** The pay calls since the last user turn whose tool result the model saw say paid (`ok: true` with a receipt) — as items. */
+export function paidSeen(msgs: ChatMsg[], tool = 'spendline_pay'): string[] {
+  const from = msgs.map((m) => m.role).lastIndexOf('user');
+  const turn = msgs.slice(from + 1);
+  const results = new Map(turn.filter((m) => m.role === 'tool' && m.tool_call_id).map((m) => [m.tool_call_id!, typeof m.content === 'string' ? m.content : '']));
+  return turn.flatMap((m) => (m.role === 'assistant' ? m.tool_calls ?? [] : [])).flatMap((c) => {
+    if (c.function?.name !== tool || !c.id) return [];
+    try {
+      const r = JSON.parse(results.get(c.id) ?? '') as { ok?: unknown; receipt_seq?: unknown };
+      return r.ok === true && typeof r.receipt_seq === 'number' ? [itemOf(JSON.parse(c.function.arguments ?? '{}'))] : [];
+    } catch { return []; }
+  });
 }
 
 /** Receipts whose Kiln call is in the published journal: its arguments must be one of that reply's tool calls, byte for byte. */

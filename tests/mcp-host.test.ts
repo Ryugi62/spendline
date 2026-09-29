@@ -142,15 +142,32 @@ describe('runHost (AC-44)', () => {
     expect(await store.all()).toHaveLength(2);
   });
 
-  it('round-6 review: the model re-issuing the same pay in a LATER reply (a retry) gets occurrence 0 again — refused on-chain as a repeat, paid once', async () => {
+  it('round-7 review: a later reply asking for the same item AFTER the model saw it paid is one more purchase (occurrence 1); the request sent again repeats both — refused', async () => {
     const { store, mcp } = await world();
-    const llm = new FakeLlm([
-      { calls: [{ tool: 'spendline_pay', arguments: '{"to":"Kiln credits","why":"eval"}', id: 'call_a' }] },
-      { calls: [{ tool: 'spendline_pay', arguments: '{"to":"Kiln credits","why":"the last call timed out, trying again"}', id: 'call_b' }] },
+    const sent: Record<string, unknown>[] = [];
+    const spy = { ...mcp, call: async (n: string, a: Record<string, unknown>, m?: Record<string, unknown>) => { if (m) sent.push(m); return mcp.call(n, a, m); } };
+    const plan = () => new FakeLlm([
+      { calls: [{ tool: 'spendline_pay', arguments: '{"to":"Kiln credits","why":"job 1"}', id: 'call_a' }] },
+      { calls: [{ tool: 'spendline_pay', arguments: '{"to":"Kiln credits","why":"job 2"}', id: 'call_b' }] },
       'Done.',
     ]);
-    const run = await runHost({ llm, mcp }, 'One Kiln credit for the eval');
-    expect(JSON.parse(run.steps[1].text)).toMatchObject({ ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1 });
+    await runHost({ llm: plan(), mcp: spy }, 'One Kiln credit per job, two jobs');
+    expect(sent.map((m) => m['spendline/occurrence'])).toEqual([0, 1]);
+    expect(await store.all()).toHaveLength(2);
+    const again = await runHost({ llm: plan(), mcp: spy }, 'One Kiln credit per job, two jobs');
+    expect(again.steps.map((x) => JSON.parse(x.text).reason)).toEqual(['DUPLICATE_RECEIPT', 'DUPLICATE_RECEIPT']);
+    expect(await store.all()).toHaveLength(2);
+  });
+
+  it('round-7 review: "was it paid?" does not wait for the public event index — a retry right after a payment the index has not shown yet is still refused', async () => {
+    const line = { id: 'm4', budget: usdt(9.9), perTxCap: usdt(8), deadline: 1790780340, merchants: [GPU, CRED], paused: false };
+    const chain = new MemoryChain(line, 1790700000);
+    await chain.grant(line);
+    const store = new MemoryReceiptStore();
+    const tools = mcpTools({ chain, store, hash: sha, events: { events: async () => [] }, labels, offers, vault: 'TVault' }); // an index that lags: shows nothing yet
+    const pay = (why: string) => tools.find((t) => t.name === 'spendline_pay')!.run({ to: 'Kiln credits', why }, { 'spendline/request': 'One Kiln credit', 'spendline/occurrence': 0 });
+    expect(JSON.parse((await pay('eval')).text)).toMatchObject({ ok: true, receipt_seq: 1 });
+    expect(JSON.parse((await pay('eval, retry after a timeout')).text)).toMatchObject({ ok: false, reason: 'DUPLICATE_RECEIPT', replay_of: 1 });
     expect(await store.all()).toHaveLength(1);
   });
 

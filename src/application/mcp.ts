@@ -49,6 +49,7 @@ export function usageFrom(v: unknown): UsageRecord[] | string {
 
 export function mcpTools(d: McpDeps): McpTool[] {
   const offers = d.offers ?? [];
+  const paidHere = new Set<string>(); // round-7 review: receipt hashes this server saw paid from pay()'s own result — the public event index can lag behind
   const session = new Map<string, { seq: number; at: number }>(); // this server session's pay calls, for a host that retries without a request
   const byName = new Map(Object.entries(d.labels).map(([addr, name]) => [name.toLowerCase(), addr]));
   const nameOf = (addr: string) => d.labels[addr];
@@ -101,7 +102,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
         const sameCall = `${to}|${amount}|${fee}|${a.why.trim().toLowerCase()}`;
         const all = await d.store.all();
         // a repeat = an earlier PAID purchase of the same request (the n-th identical item matches the n-th earlier one) within the window
-        const paidHashes = async () => new Set((await d.events.events(d.vault)).flatMap((e) => (e.kind === 'paid' ? [e.receiptHash] : [])));
+        const paidHashes = async () => new Set([...paidHere, ...(await d.events.events(d.vault)).flatMap((e) => (e.kind === 'paid' ? [e.receiptHash] : []))]);
         let prior: (typeof all)[number] | undefined;
         if (asked) {
           const same = all.filter((r) => r.asked === asked && r.mandateId === mandate.id && r.request.merchant === to && r.request.amount === amount && r.request.fee === fee && now - r.request.at <= REPLAY_WINDOW_SEC);
@@ -121,6 +122,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
         }
         const r = await guardedPay(d, { merchant: to, amount, fee, why: a.why.trim(), flows, ...(asked ? { asked } : {}) });
         session.set(sameCall, { seq: r.receipt.seq, at: now });
+        if (r.outcome.kind === 'paid') paidHere.add(r.receipt.hash);
         const l = await left();
         const who = nameOf(to) ?? to;
         const summary = r.outcome.kind === 'paid'

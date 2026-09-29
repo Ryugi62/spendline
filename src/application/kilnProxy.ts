@@ -1,6 +1,6 @@
 // AC-45 — the pass-through an unmodified agent host points its OpenAI-compatible base URL at. It forwards to Kiln with the Kiln key
 // (the host may send any key), returns Kiln's reply unchanged, and journals what the witness needs. Streamed requests pass through unjournaled.
-import { entryFromKilnResponse, type JournalEntry } from '../domain/kilnJournal';
+import { entryFromKilnResponse, paidSeen, type JournalEntry } from '../domain/kilnJournal';
 
 export type ProxyOut = { status: number; headers: Record<string, string>; body: string };
 type Msg = { role?: string; content?: unknown };
@@ -25,7 +25,7 @@ export async function proxyChat(o: { body: string; kiln: { baseUrl: string; apiK
   const asked = users.at(-1);
   const opening = [textOf(msgs.find((m) => m.role === 'system')?.content), ...users].join('\n');
   const lastUser = msgs.map((m) => m.role).lastIndexOf('user');
-  const convo = { ...(asked ? { asked } : {}), conversationKey: o.hash ? o.hash(opening) : opening, conversationStart: lastUser >= 0 && !msgs.slice(lastUser + 1).some((m) => m.role === 'assistant' || m.role === 'tool'), ...(o.noThink ? { noThink: true } : {}) };
+  const convo = { ...(asked ? { asked } : {}), conversationKey: o.hash ? o.hash(opening) : opening, conversationStart: lastUser >= 0 && !msgs.slice(lastUser + 1).some((m) => m.role === 'assistant' || m.role === 'tool'), ...(o.noThink ? { noThink: true } : {}), paidSeen: paidSeen(msgs as Parameters<typeof paidSeen>[0]) };
   let streamed = false;
   try { streamed = (JSON.parse(body) as { stream?: unknown }).stream === true; } catch { /* Kiln answers a bad body itself */ }
   const t0 = o.now();
