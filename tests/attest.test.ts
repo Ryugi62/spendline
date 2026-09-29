@@ -145,10 +145,17 @@ describe('attest round-2 review', () => {
     const r = attest({ receipts: [a('GPU Shop', 'request A', 1), a('Kiln credits', 'request B', 2)], answers: [], events: [paid('h1', 1790600005, 'tx1'), paid('h2', 1790600006, 'tx2')], generations: { g1: gen('g1') }, model: 'qwen3-32b' });
     expect(r.rows.map((x) => x.diffs)).toEqual([['generation shared with a different request (#2)'], ['generation shared with a different request (#1)']]);
   });
-  it('F1 arguments that name a seller address must name the seller that was paid', () => {
-    const f1 = usage('F1_intent', 'g1', { args: JSON.stringify({ item: 'gpu-hours', quantity: 1, merchantHint: 'TOTHER' }) });
-    const r = attest({ receipts: [receipt(1, 'h1', [f1])], answers: [], events: [paid('h1', 1790600005, 'tx1')], generations: { g1: gen('g1') }, model: 'qwen3-32b', offers });
-    expect(r.rows[0]).toMatchObject({ status: 'DIFFERS', argsBound: false });
+  it('F1 arguments that name a seller (address or catalog name) must name the seller that was paid, within the price cap the model read', () => {
+    const offers2 = [...offers, { merchant: 'TO', item: 'gpu-hours', unitPrice: 900_000, fee: 0, label: 'Other shop' }];
+    const at = (args: object) => attest({ receipts: [receipt(1, 'h1', [usage('F1_intent', 'g1', { args: JSON.stringify(args) })])], answers: [], events: [paid('h1', 1790600005, 'tx1')], generations: { g1: gen('g1') }, model: 'qwen3-32b', offers: offers2 }).rows[0];
+    expect(at({ item: 'gpu-hours', quantity: 1, merchantHint: 'Other shop' })).toMatchObject({ status: 'DIFFERS', argsBound: false });
+    expect(at({ item: 'gpu-hours', quantity: 1, merchantHint: 'GPU Shop' })).toMatchObject({ status: 'MATCH', argsBound: true });
+    expect(at({ item: 'gpu-hours', quantity: 1, maxUnitPrice: 0.5 })).toMatchObject({ status: 'DIFFERS', argsBound: false });
+  });
+
+  it('in scope, a receipt whose only usage is a scripted stand-in is NO_KILN_CALL too', () => {
+    const r = attest({ receipts: [receipt(13, 'h13', [usage('F1_intent', 'fake-1')])], answers: [], events: [paid('h13', 1790600005, 'tx13')], generations: {}, model: 'qwen3-32b', scope: { fromSeq: 13, fromAnswer: 1 } });
+    expect(r.counts.noKilnCall).toBe(1);
   });
 });
 

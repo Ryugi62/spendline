@@ -123,6 +123,25 @@ describe('runHost (AC-44)', () => {
     expect(await store.all()).toHaveLength(1);
   });
 
+  it('round-3 review: proper tool calls go back in the native protocol (assistant tool_calls + role:tool with the call id), and identical items carry their occurrence', async () => {
+    const { store, mcp } = await world();
+    const sent: Record<string, unknown>[] = [];
+    const spy = { ...mcp, call: async (n: string, a: Record<string, unknown>, m?: Record<string, unknown>) => { if (m) sent.push(m); return mcp.call(n, a, m); } };
+    const llm = new FakeLlm([
+      { calls: [
+        { tool: 'spendline_pay', arguments: '{"to":"Kiln credits","why":"eval"}', id: 'call_a' },
+        { tool: 'spendline_pay', arguments: '{"to":"Kiln credits","why":"eval"}', id: 'call_b' },
+      ] },
+      'Paid twice.',
+    ]);
+    await runHost({ llm, mcp: spy }, 'One credit for the eval and another one for the replay');
+    const second = llm.seen[1];
+    expect(second.find((m) => m.role === 'assistant')).toMatchObject({ tool_calls: [{ id: 'call_a', type: 'function' }, { id: 'call_b', type: 'function' }] });
+    expect(second.filter((m) => m.role === 'tool').map((m) => m.tool_call_id)).toEqual(['call_a', 'call_b']);
+    expect(sent.map((m) => m['spendline/occurrence'])).toEqual([0, 1]);
+    expect(await store.all()).toHaveLength(2);
+  });
+
   it('stops after maxSteps tool calls and says so', async () => {
     const { mcp } = await world();
     const llm = new FakeLlm(Array.from({ length: 10 }, () => ({ tool: 'spendline_line', arguments: '{}' })));

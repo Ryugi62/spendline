@@ -4,10 +4,11 @@ import type { BlockReason, Mandate } from '../domain/mandate';
 import type { Receipt } from '../domain/receipt';
 import type { Flow, UsageRecord } from '../domain/tokenLedger';
 
-export type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+/** `tool_calls` / `role: 'tool'` + `tool_call_id` = the native tool protocol (OpenAI-compatible, Kiln qwen3-32b). */
+export type ChatMessage = { role: 'system' | 'user' | 'assistant' | 'tool'; content: string; tool_calls?: { id: string; type: 'function'; function: { name: string; arguments: string } }[]; tool_call_id?: string };
 /** A function the model may call (OpenAI-compatible `tools`; qwen3-32b on Kiln: tool_choice auto only). */
 export type ToolSpec = { name: string; description: string; parameters: Record<string, unknown> };
-export type ToolCall = { name: string; arguments: string };
+export type ToolCall = { name: string; arguments: string; id?: string };
 export type ChatOptions = { maxTokens?: number; thinking?: boolean; tools?: ToolSpec[] };
 export interface LlmPort {
   chat(flow: Flow, messages: ChatMessage[], opts?: ChatOptions): Promise<{ text: string; usage: UsageRecord; toolCall?: ToolCall; /** every tool call in the reply (Kiln documents no parallel calls for qwen3-32b; handled anyway) */ toolCalls?: ToolCall[] }>;

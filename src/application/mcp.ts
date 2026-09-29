@@ -11,11 +11,15 @@ export type McpResult = { text: string; data?: Record<string, unknown>; isError?
  *  words, `spendline/kiln_usage` = the Kiln call that decided the payment. */
 export const META_REQUEST = 'spendline/request';
 export const META_KILN_USAGE = 'spendline/kiln_usage';
+/** the n-th identical pay call (same seller, item, quantity) within one request — so two identical items are two purchases */
+export const META_OCCURRENCE = 'spendline/occurrence';
 /** The same request again within this window on the same line is a replay; a host retrying the same call in one session: 10 minutes. */
 export const REPLAY_WINDOW_SEC = 3600;
 export const SESSION_WINDOW_SEC = 600;
 export type McpTool = { name: string; description: string; inputSchema: Record<string, unknown>; run(args: Record<string, unknown>, meta?: Record<string, unknown>): Promise<McpResult> };
-export type McpDeps = GuardedPayDeps & { events: EventSource; labels: Record<string, string>; offers?: Offer[]; vault: string; /** in-memory sandbox (`npm run mcp -- --demo`): said in every line reply */ demo?: boolean };
+export type McpDeps = GuardedPayDeps & { events: EventSource; labels: Record<string, string>; offers?: Offer[]; vault: string;
+  /** AC-45: the Kiln call behind these arguments, from the pass-through journal (for hosts that send no _meta) */
+  witness?: (args: Record<string, unknown>) => Promise<UsageRecord | undefined>; /** in-memory sandbox (`npm run mcp -- --demo`): said in every line reply */ demo?: boolean };
 
 const TRON_ADDRESS = /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
 const kst = (unix: number) => new Date((unix + 9 * 3600) * 1000).toISOString().replace('T', ' ').slice(0, 19);
@@ -74,17 +78,29 @@ export function mcpTools(d: McpDeps): McpTool[] {
           if (modelAmount === undefined) return refuse('amount_usdt is required for a seller that is not in the catalog');
           [amount, fee, pricedBy] = [modelAmount, modelFee ?? 0, 'caller'];
         }
-        const flows = meta[META_KILN_USAGE] === undefined ? [] : usageFrom(meta[META_KILN_USAGE]);
+        let flows: UsageRecord[] | string = meta[META_KILN_USAGE] === undefined ? [] : usageFrom(meta[META_KILN_USAGE]);
         if (typeof flows === 'string') return refuse(flows);
+        if (!flows.length && d.witness) {
+          const w = await d.witness(a);
+          if (w) { const { key: _k, ...u } = w as UsageRecord & { key?: string }; flows = [u]; }
+        }
         const asked = typeof meta[META_REQUEST] === 'string' && (meta[META_REQUEST] as string).trim() ? (meta[META_REQUEST] as string).trim() : undefined;
         const ignored = pricedBy === 'catalog' && modelAmount !== undefined && modelAmount !== amount ? { model_amount_ignored: fmtUsdt(modelAmount) } : {};
         const base = { seller: nameOf(to) ?? to, amount_usdt: fmtUsdt(amount), fee_usdt: fmtUsdt(fee), priced_by: pricedBy, ...ignored };
         const [mandate, now] = await Promise.all([d.chain.mandate(), d.chain.now()]);
         const sameCall = `${to}|${amount}|${fee}|${a.why.trim().toLowerCase()}`;
         const all = await d.store.all();
-        const prior = asked
-          ? all.find((r) => r.asked === asked && r.mandateId === mandate.id && r.request.merchant === to && r.request.amount === amount && r.request.fee === fee && now - r.request.at <= REPLAY_WINDOW_SEC)
-          : all.find((r) => r.seq === session.get(sameCall)?.seq && now - session.get(sameCall)!.at <= SESSION_WINDOW_SEC);
+        // a repeat = an earlier PAID purchase of the same request (the n-th identical item matches the n-th earlier one) within the window
+        const paidHashes = async () => new Set((await d.events.events(d.vault)).flatMap((e) => (e.kind === 'paid' ? [e.receiptHash] : [])));
+        let prior: (typeof all)[number] | undefined;
+        if (asked) {
+          const same = all.filter((r) => r.asked === asked && r.mandateId === mandate.id && r.request.merchant === to && r.request.amount === amount && r.request.fee === fee && now - r.request.at <= REPLAY_WINDOW_SEC);
+          if (same.length) { const paidSet = await paidHashes(); prior = same.filter((r) => paidSet.has(r.hash))[Number(meta[META_OCCURRENCE] ?? 0)]; }
+        } else {
+          const hit = session.get(sameCall);
+          const r = hit && now - hit.at <= SESSION_WINDOW_SEC ? all.find((x) => x.seq === hit.seq) : undefined;
+          if (r && (await paidHashes()).has(r.hash)) prior = r;
+        }
         {
           if (prior) {
             // the same request again: send the ORIGINAL receipt hash — the vault decides a receipt once, so the repeat is stopped on-chain (DUPLICATE_RECEIPT)
@@ -94,7 +110,7 @@ export function mcpTools(d: McpDeps): McpTool[] {
         }
         const r = await guardedPay(d, { merchant: to, amount, fee, why: a.why.trim(), flows, ...(asked ? { asked } : {}) });
         session.set(sameCall, { seq: r.receipt.seq, at: now });
-        const rest = { ...base, tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash };
+        const rest = { ...base, tx: r.outcome.txHash, receipt_seq: r.receipt.seq, receipt_hash: r.receipt.hash, ...(flows[0] ? { kiln_witness: flows[0].generationId } : {}) };
         return r.outcome.kind === 'paid' ? ok({ ok: true, ...rest }) : ok({ ok: false, reason: r.outcome.reason, ...rest });
   }
   return [

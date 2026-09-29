@@ -26,3 +26,4 @@ __pycache__/
 *.npz
 *.parquet
 *.pkl
+.spendline/

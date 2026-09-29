@@ -58,7 +58,7 @@ describe('KilnLlm sends tools and reads tool_calls (AC-33, no network)', () => {
       }) as unknown as typeof fetch,
     });
     const r = await llm.chat('F1_intent', [{ role: 'user', content: 'Need 1 GPU hour' }], { thinking: false, tools: [PROPOSE_PURCHASE] });
-    expect(r.toolCall).toEqual({ name: 'propose_purchase', arguments: '{"item":"gpu-hours","quantity":1}' });
+    expect(r.toolCall).toMatchObject({ name: 'propose_purchase', arguments: '{"item":"gpu-hours","quantity":1}' });
     expect(seen[0].tool_choice).toBe('auto');
     expect(seen[0].tools[0]).toMatchObject({ type: 'function', function: { name: 'propose_purchase' } });
     await llm.chat('F2_explain', [{ role: 'user', content: 'hi' }]);

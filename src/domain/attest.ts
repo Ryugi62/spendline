@@ -53,9 +53,12 @@ export function paymentFromArgs(args: string, offers: CatalogOffer[], paidMercha
     const item = typeof a.item === 'string' && a.item ? a.item : sells.length === 1 ? sells[0].item : undefined;
     offer = sells.find((o) => o.item === item);
   } else if (typeof a.item === 'string') {
-    // F1: code picks the seller; a seller address the model named must be the one paid
-    if (typeof a.merchantHint === 'string' && /^T[1-9A-HJ-NP-Za-km-z]{33}$|^T[A-Z]+$/.test(a.merchantHint) && a.merchantHint !== paidMerchant) return undefined;
+    // F1: code picks the seller; a seller the model named (address or catalog name) must be the one paid, and within its price cap
+    const hint = typeof a.merchantHint === 'string' ? a.merchantHint.trim() : '';
+    const named = hint ? offers.find((o) => o.merchant === hint || o.label.toLowerCase() === hint.toLowerCase())?.merchant ?? hint : undefined;
+    if (named && named !== paidMerchant) return undefined;
     offer = offers.find((o) => o.item === a.item && o.merchant === paidMerchant);
+    if (offer && typeof a.maxUnitPrice === 'number' && offer.unitPrice > Math.round(a.maxUnitPrice * 1e6)) return undefined;
   }
   return offer ? { merchant: offer.merchant, amount: Math.round(offer.unitPrice * q), fee: offer.fee } : undefined;
 }
@@ -83,7 +86,7 @@ export function attest(o: { receipts: Receipt[]; answers: AttestAnswer[]; events
   for (const r of o.receipts) for (const u of r.flows) if (isKilnCall(u)) askedOf.set(u.generationId, (askedOf.get(u.generationId) ?? new Map()).set(r.seq, r.asked));
   for (const r of o.receipts) {
     const ev = firstEvent.get(r.hash);
-    if (r.flows.length === 0 && (!o.scope || r.seq >= o.scope.fromSeq)) { // (a scripted stand-in is labelled elsewhere, never a row)
+    if (!r.flows.some(isKilnCall) && (o.scope ? r.seq >= o.scope.fromSeq : r.flows.length === 0)) { // in scope: any receipt no Kiln call decided (a stand-in included)
       rows.push({ flow: 'F1_intent', seq: r.seq, generationId: '', status: 'NO_KILN_CALL', diffs: ['no Kiln call decided this payment'], ...(ev ? { payAt: ev.at, txHash: ev.txHash } : {}) });
       continue;
     }

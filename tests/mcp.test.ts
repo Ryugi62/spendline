@@ -154,6 +154,41 @@ describe('MCP tools (AC-43)', () => {
     expect(audit.chain.ok).toBe(true);
   });
 
+  it('round-3 review: only a PAID earlier purchase makes a repeat — after STOP and a new grant the same request is a new attempt', async () => {
+    const { tools, chain, store } = await setup();
+    const asked = 'One Kiln credit, please';
+    await chain.pause();
+    const first = await call(tools, 'spendline_pay', { to: 'Kiln credits', why: 'credit' }, { 'spendline/request': asked });
+    expect(first.data).toMatchObject({ ok: false, reason: 'PAUSED', receipt_seq: 1 });
+    await chain.grant({ ...(await chain.mandate()), paused: false });
+    const again = await call(tools, 'spendline_pay', { to: 'Kiln credits', why: 'credit' }, { 'spendline/request': asked });
+    expect(again.data).toMatchObject({ ok: true, receipt_seq: 2 });
+    expect(await store.all()).toHaveLength(2);
+  });
+
+  it('round-3 review: two identical items in one request are two purchases (occurrence 0, 1); the request sent again repeats both — refused', async () => {
+    const { tools, store } = await setup();
+    const asked = 'One Kiln credit for the eval, and another one for the replay';
+    const pay = (n: number) => call(tools, 'spendline_pay', { to: 'Kiln credits', why: 'credit' }, { 'spendline/request': asked, 'spendline/occurrence': n });
+    expect([(await pay(0)).data, (await pay(1)).data]).toMatchObject([{ ok: true, receipt_seq: 1 }, { ok: true, receipt_seq: 2 }]);
+    expect([(await pay(0)).data, (await pay(1)).data]).toMatchObject([{ ok: false, replay_of: 1 }, { ok: false, replay_of: 2 }]);
+    expect(await store.all()).toHaveLength(2);
+  });
+
+  it('AC-45: with no _meta, the Kiln witness comes from the pass-through journal — the receipt carries the Kiln call whose tool call had these arguments', async () => {
+    const line = { id: 'm1', budget: usdt(4.5), perTxCap: usdt(4), deadline: 1790780340, merchants: [GPU, CRED], paused: false };
+    const chain = new MemoryChain(line, 1790700000);
+    await chain.grant(line);
+    const store = new MemoryReceiptStore();
+    const seen: Record<string, unknown>[] = [];
+    const witness = async (args: Record<string, unknown>) => { seen.push(args); return { flow: 'F4_mcp_host' as const, promptTokens: 900, completionTokens: 90, costUsd: 0.0001, latencyMs: 1200, generationId: 'gen-proxy', args: '{"to":"Kiln credits","why":"credit"}', via: 'tool_call' as const }; };
+    const tools = mcpTools({ chain, store, hash: sha, events: { events: async () => chain.events }, labels, offers, vault: 'TVault', witness });
+    const r = await tools[1].run({ to: 'Kiln credits', why: 'credit' });
+    expect(r.data).toMatchObject({ ok: true, kiln_witness: 'gen-proxy' });
+    expect(seen).toEqual([{ to: 'Kiln credits', why: 'credit' }]);
+    expect((await store.all())[0].flows).toEqual([expect.objectContaining({ flow: 'F4_mcp_host', generationId: 'gen-proxy', args: '{"to":"Kiln credits","why":"credit"}' })]);
+  });
+
   it('spendline_check: the keyless audit verdict for one receipt', async () => {
     const { tools } = await setup();
     await call(tools, 'spendline_pay', { to: UNK, amount_usdt: 0.9, why: 'cheaper' });

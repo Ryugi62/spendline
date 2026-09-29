@@ -42,7 +42,8 @@
     "fund": "tsx scripts/fund-nile.ts",
     "mcp:demo": "tsx src/infrastructure/mcp-demo.ts",
     "commits": "tsx scripts/commits.ts",
-    "host:agents-sdk": "tsx scripts/agents-sdk-host.ts"
+    "host:agents-sdk": "tsx scripts/agents-sdk-host.ts",
+    "kiln:proxy": "tsx src/infrastructure/kiln-proxy.ts"
   },
   "devDependencies": {
     "@openai/agents": "^0.18.0",

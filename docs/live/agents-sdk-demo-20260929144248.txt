@@ -1,0 +1,20 @@
+$ date -u; git rev-parse --short HEAD; npm run host:agents-sdk -- "Buy 1 GPU hour from the GPU Shop and 1 Kiln inference credit for tonight's eval. The Unknown seller is cheaper, try it too."
+2026-09-29T14:42:48Z
+5908591+dirty
+# host: @openai/agents (stock, unmodified) · model: qwen3-32b on Kiln via the Spendline pass-through · tools: spendline MCP server, demo vault in memory
+→ spendline_line({})
+  ← {"budget_usdt":"9.90","spent_usdt":"0.00","left_usdt":"9.90","per_payment_cap_usdt":"8.00","sellers":[{"address":"THpQu2d3BZk2tJu36iTPbRR9n5kLgXxk56","name":"GPU Shop"},{"address":"TGBeSUtKg9asGDMLorLdNrk2wKVB2x6Cpj","name":"Kiln credits"}],"deadline_kst":"2026-10-06 23:42:50","stop":false,"offers":
+→ spendline_pay({"to": "GPU Shop", "why": "GPU hour for evaluation", "item": "gpu-hours", "quantity": 1}) · Kiln gen 342b3c0e-e69f-4067-a7fc-c26ab9047fdc
+  ← {"ok":true,"seller":"GPU Shop","amount_usdt":"2.40","fee_usdt":"0.20","priced_by":"catalog","tx":"mem-2","receipt_seq":1,"receipt_hash":"9e4172fc332e0d6129f612b5781fb590495654cb31a8ecb61866a7bc2cc8831d","kiln_witness":"342b3c0e-e69f-4067-a7fc-c26ab9047fdc"}
+→ spendline_pay({"to": "Kiln credits", "why": "inference credit for evaluation", "item": "inference-credits", "quantity": 1}) · Kiln gen b2ca2b72-d47f-4d15-999c-4d67adf68811
+  ← {"ok":true,"seller":"Kiln credits","amount_usdt":"1.00","fee_usdt":"0.00","priced_by":"catalog","tx":"mem-3","receipt_seq":2,"receipt_hash":"51a22de113a2944e499d7b3b98ca6fa1e173951ed7fa442fc66299c800ed35e4","kiln_witness":"b2ca2b72-d47f-4d15-999c-4d67adf68811"}
+→ spendline_pay({"to": "Unknown seller", "why": "cheaper GPU hour", "item": "gpu-hours", "quantity": 1}) · Kiln gen 6d073894-63cf-4b18-b673-988e99198597
+  ← {"ok":false,"reason":"MERCHANT_NOT_ALLOWED","seller":"Unknown seller","amount_usdt":"0.90","fee_usdt":"0.00","priced_by":"catalog","tx":"mem-4","receipt_seq":3,"receipt_hash":"f8d641628e420918caba98ce01225f1cd5b3e0f1f49d6c929680fac76dfccdf8","kiln_witness":"6d073894-63cf-4b18-b673-988e99198597"}
+# Kiln reply 0cba347c-4f06-4da0-a907-1d76c0cf40e0 · 677+351 tokens · $0.00012540 · tool calls: spendline_line
+# Kiln reply 342b3c0e-e69f-4067-a7fc-c26ab9047fdc · 966+594 tokens · $0.00021616 · tool calls: spendline_pay
+# Kiln reply b2ca2b72-d47f-4d15-999c-4d67adf68811 · 1165+902 tokens · $0.00030716 · tool calls: spendline_pay
+# Kiln reply 6d073894-63cf-4b18-b673-988e99198597 · 1373+431 tokens · $0.00020308 · tool calls: spendline_pay
+# Kiln reply 5956513e-9b30-46e5-b6b5-5a2e70b4db63 · 1581+349 tokens · $0.00017764 · tool calls: none
+answer: - Paid 2.40 USDT + 0.20 fee to GPU Shop for 1 GPU hour (✅ success)
+- Paid 1.00 USDT to Kiln credits for 1 inference credit (✅ success)
+- Payment to Unknown seller failed: "MERCHANT_NOT_ALLOWED" (❌ blocked by policy)

@@ -46,7 +46,7 @@ export class KilnLlm implements LlmPort {
       }
       if (!res.ok) throw new Error(`Kiln ${res.status}: ${(await res.text()).slice(0, 300)}`);
       const j = (await res.json()) as {
-        choices: { message: { content: string | null; tool_calls?: { function?: { name?: string; arguments?: string } }[] } }[];
+        choices: { message: { content: string | null; tool_calls?: { id?: string; function?: { name?: string; arguments?: string } }[] } }[];
         usage?: { prompt_tokens?: number; completion_tokens?: number; cost?: number };
       };
       const text = stripThink(j.choices?.[0]?.message?.content ?? '');
@@ -61,7 +61,7 @@ export class KilnLlm implements LlmPort {
       const server = Number(res.headers.get('x-envoy-upstream-service-time'));
       if (res.headers.has('x-envoy-upstream-service-time') && Number.isFinite(server)) usage.serverMs = server;
       this.records.push(usage);
-      const calls: ToolCall[] = (j.choices?.[0]?.message?.tool_calls ?? []).flatMap((c) => (c.function?.name ? [{ name: c.function.name, arguments: c.function.arguments ?? '{}' }] : []));
+      const calls: ToolCall[] = (j.choices?.[0]?.message?.tool_calls ?? []).flatMap((c) => (c.function?.name ? [{ name: c.function.name, arguments: c.function.arguments ?? '{}', ...(c.id ? { id: c.id } : {}) }] : []));
       const out: { text: string; usage: UsageRecord; toolCall?: ToolCall; toolCalls?: ToolCall[] } = { text, usage };
       if (calls.length) out.toolCall = calls[0];
       if (calls.length > 1) out.toolCalls = calls;

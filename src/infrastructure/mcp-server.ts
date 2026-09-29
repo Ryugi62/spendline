@@ -13,6 +13,7 @@ import { createMcpServer } from '../adapters/mcp';
 import { TronChain } from '../adapters/tron';
 import { TronGridEvents } from '../adapters/trongrid';
 import { mcpTools } from '../application/mcp';
+import { journalWitness } from './journal-witness';
 import { CATALOG, flag, LIVE_RECEIPTS, need, readEnv, sha256, vaultOf } from './runtime';
 // @ts-expect-error plain ESM script without types
 import { compile } from '../../scripts/compile-contract.mjs';
@@ -24,7 +25,9 @@ async function demoTools() {
   const line: Mandate = { ...m, id: 'demo', deadline: now + 7 * 86400, paused: false };
   const chain = new MemoryChain(line, now);
   await chain.grant(line);
-  return mcpTools({ chain, store: new MemoryReceiptStore(), hash: sha256, events: { events: async () => chain.events }, labels: JsonCatalog.fromFile(CATALOG).labels(), offers: JsonCatalog.fromFile(CATALOG).all(), vault: 'demo (in memory)', demo: true });
+  const store = new MemoryReceiptStore();
+  const witness = process.env.SPENDLINE_KILN_JOURNAL ? { witness: journalWitness(process.env.SPENDLINE_KILN_JOURNAL, store) } : {};
+  return mcpTools({ chain, store, hash: sha256, events: { events: async () => chain.events }, labels: JsonCatalog.fromFile(CATALOG).labels(), offers: JsonCatalog.fromFile(CATALOG).all(), vault: 'demo (in memory)', demo: true, ...witness });
 }
 
 async function main(args: string[]) {
@@ -38,14 +41,16 @@ async function main(args: string[]) {
   need(env, 'AGENT_PRIVATE_KEY', 'TRON_FULLHOST');
   const vault = vaultOf(env, flag(args, '--vault'));
   if (!vault) throw new Error('no vault: pass --vault T…');
+  const store = new JsonlReceiptStore(flag(args, '--receipts') ?? LIVE_RECEIPTS);
   const tools = mcpTools({
     chain: new TronChain({ fullHost: env.TRON_FULLHOST, agentKey: env.AGENT_PRIVATE_KEY, vault, abi: compile().abi }),
-    store: new JsonlReceiptStore(flag(args, '--receipts') ?? LIVE_RECEIPTS),
+    store,
     hash: sha256,
     events: new TronGridEvents(),
     labels: JsonCatalog.fromFile(CATALOG).labels(),
     offers: JsonCatalog.fromFile(CATALOG).all(),
     vault,
+    ...(process.env.SPENDLINE_KILN_JOURNAL ? { witness: journalWitness(process.env.SPENDLINE_KILN_JOURNAL, store) } : {}),
   });
   await createMcpServer(tools, { name: 'spendline', version: '1.1.0' }).connect(new StdioServerTransport());
   console.error(`spendline MCP server on stdio · vault ${vault} · tools: ${tools.map((t) => t.name).join(', ')}`);
